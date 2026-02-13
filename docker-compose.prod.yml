@@ -1,0 +1,37 @@
+version: '3.8'
+
+services:
+  # Production frontend with Nginx
+  frontend:
+    build:
+      target: production
+    ports:
+      - "80:80"
+    environment:
+      - NGINX_ENVSUBST_TEMPLATE_SUFFIX=.template
+    volumes:
+      - ./frontend/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    restart: unless-stopped
+    profiles:
+      - production
+
+  # Production API configuration
+  api:
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=http://+:8080
+      - ConnectionStrings__DefaultConnection=Host=postgres;Database=dhamma_db;Username=dhamma_user;Password=dhamma_pass
+      - CORS__AllowedOrigins=http://localhost,https://your-domain.com
+    restart: unless-stopped
+    profiles:
+      - production
+
+  # Production database configuration
+  postgres:
+    environment:
+      - POSTGRES_DB=dhamma_db
+      - POSTGRES_USER=dhamma_user
+      - POSTGRES_PASSWORD=dhamma_pass
+    restart: unless-stopped
+    profiles:
+      - production

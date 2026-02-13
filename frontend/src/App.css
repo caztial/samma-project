@@ -1,0 +1,134 @@
+/* App-level styles */
+.app {
+  min-height: 100vh;
+  background-color: var(--p-color-bg);
+}
+
+/* Custom styles for Polaris components */
+.s-app-bar {
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.s-card {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid var(--p-color-border);
+}
+
+.s-button {
+  transition: all 0.2s ease;
+}
+
+.s-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .s-grid[gridTemplateColumns="repeat(3, 1fr)"] {
+    grid-template-columns: 1fr !important;
+  }
+  
+  .s-grid[gridTemplateColumns="2fr 1fr"] {
+    grid-template-columns: 1fr !important;
+  }
+  
+  .s-grid[gridTemplateColumns="repeat(2, 1fr)"] {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* Loading states */
+.loading-overlay {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+}
+
+/* Success and error messages */
+.success-message {
+  color: var(--p-color-text-success);
+  background-color: var(--p-color-bg-success);
+  border: 1px solid var(--p-color-border-success);
+}
+
+.error-message {
+  color: var(--p-color-text-critical);
+  background-color: var(--p-color-bg-critical);
+  border: 1px solid var(--p-color-border-critical);
+}
+
+/* Navigation active states */
+.nav-link-active {
+  background-color: var(--p-color-bg-subdued);
+  border-radius: var(--p-border-radius-base);
+}
+
+/* Dashboard specific styles */
+.dashboard-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--p-space-4);
+}
+
+.dashboard-actions {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--p-space-4);
+}
+
+.activity-item {
+  display: flex;
+  align-items: center;
+  gap: var(--p-space-2);
+  padding: var(--p-space-2);
+  border-radius: var(--p-border-radius-base);
+  transition: background-color 0.2s ease;
+}
+
+.activity-item:hover {
+  background-color: var(--p-color-bg-subdued);
+}
+
+/* Utility classes */
+.text-center {
+  text-align: center;
+}
+
+.text-right {
+  text-align: right;
+}
+
+.mb-4 {
+  margin-bottom: var(--p-space-4);
+}
+
+.mt-4 {
+  margin-top: var(--p-space-4);
+}
+
+.mt-8 {
+  margin-top: var(--p-space-8);
+}
+
+/* Focus styles for accessibility */
+.s-button:focus,
+.s-link:focus,
+.s-text-field:focus {
+  outline: 2px solid var(--p-color-border-focus);
+  outline-offset: 2px;
+}
+
+/* Print styles */
+@media print {
+  .s-app-bar,
+  .s-drawer {
+    display: none !important;
+  }
+  
+  .app {
+    background: white;
+  }
+}
