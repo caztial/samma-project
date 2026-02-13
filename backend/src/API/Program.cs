@@ -7,14 +7,16 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddOpenApi(options =>
 {
-    options.AddDocumentTransformer((document, context, cancellationToken) =>
-    {
-        document.Servers = new List<OpenApiServer>
+    options.AddDocumentTransformer(
+        (document, context, cancellationToken) =>
         {
-            new OpenApiServer { Url = "http://localhost:5001" }
-        };
-        return Task.CompletedTask;
-    });
+            document.Servers = new List<OpenApiServer>
+            {
+                new OpenApiServer { Url = "http://localhost:5001" }
+            };
+            return Task.CompletedTask;
+        }
+    );
 });
 
 // Add SignalR
@@ -23,12 +25,13 @@ builder.Services.AddSignalR();
 // Add CORS for SignalR
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("SignalRCors", policy =>
-    {
-        policy.AllowAnyOrigin()
-              .AllowAnyHeader()
-              .AllowAnyMethod();
-    });
+    options.AddPolicy(
+        "SignalRCors",
+        policy =>
+        {
+            policy.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod();
+        }
+    );
 });
 
 var app = builder.Build();
@@ -53,11 +56,11 @@ app.MapHub<SessionHub>("/hub/session");
 
 // Minimal API endpoints
 app.MapGet("/", () => Results.Ok(new { message = "Dhamma Session API is running!" }))
-   .WithName("GetRoot")
-   .WithOpenApi();
+    .WithName("GetRoot")
+    .WithOpenApi();
 
 app.MapGet("/health", () => Results.Ok(new { status = "Healthy", timestamp = DateTime.UtcNow }))
-   .WithName("GetHealth")
-   .WithOpenApi();
+    .WithName("GetHealth")
+    .WithOpenApi();
 
 app.Run();

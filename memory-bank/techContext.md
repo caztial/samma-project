@@ -39,11 +39,10 @@
 
 ## Architecture Patterns
 
-### Backend Architecture: Clean Architecture
+### Backend Architecture: Clean Architecture (3 layers)
 ```
 ├── API Layer (Controllers, SignalR Hubs, DTOs, OpenAPI)
-├── Application Layer (Use Cases, Commands, Queries)
-├── Domain Layer (Entities, Value Objects, Domain Events)
+├── Core Layer (Domain + Application: Entities, Value Objects, Commands, Queries)
 └── Infrastructure Layer (Data Access, External Services)
 ```
 

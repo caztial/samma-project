@@ -7,7 +7,7 @@ The backend API project structure has been successfully created and is running i
 ## Completed
 
 ### Backend Infrastructure
-- ✅ Clean Architecture project structure (4 layers: Domain, Application, Infrastructure, API)
+- ✅ Clean Architecture project structure (3 layers: Core, Infrastructure, API)
 - ✅ .NET 10 release version configured
 - ✅ SignalR Hub (SessionHub) with group management
 - ✅ OpenAPI 3.1.1 with Scalar UI documentation
@@ -28,9 +28,8 @@ The backend API project structure has been successfully created and is running i
 backend/
 ├── src/
 │   ├── API/              # Web API + SignalR Hub + OpenAPI
-│   ├── Application/      # Application layer (empty, ready for use)
-│   ├── Domain/           # Domain layer (empty, ready for use)
-│   └── Infrastructure/   # Infrastructure layer (empty, ready for use)
+│   ├── Core/             # Domain entities and business logic (renamed from Domain)
+│   └── Infrastructure/   # Data access, external services
 ├── Directory.Packages.props  # Central Package Management
 ├── DhammaSession.sln
 └── Dockerfile
@@ -44,16 +43,10 @@ backend/
    - Set up repository implementations
 
 2. **Week 2-4 Implementation**
-   - Question bank domain and application logic
+   - Question bank domain implementation
    - Session management
    - Real-time features enhancement
    - Frontend development (React + Vite)
-
-## Recent Changes
-- Added Central Package Management for Scalar and all NuGet packages
-- Configured Scalar server URL to localhost:5001
-- Added PostgreSQL to Docker Compose
-- Updated to .NET 10 release version
 
 ## Current Decisions
 

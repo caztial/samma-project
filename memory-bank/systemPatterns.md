@@ -25,17 +25,14 @@ public record SessionEndedEvent(Guid SessionId);
 - DTOs for request/response
 - Input validation
 
-### Application Layer
-- Commands/Queries (CQRS)
-- Event handlers
-- Business logic orchestration
-- DTOs mapping
-
-### Domain Layer
+### Core Layer (Domain + Application)
 - Entities
 - Value objects
 - Domain events
 - Repository interfaces
+- Commands/Queries (CQRS)
+- Event handlers
+- Business logic orchestration
 
 ### Infrastructure Layer
 - EF Core DbContext

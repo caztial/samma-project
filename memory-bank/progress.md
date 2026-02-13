@@ -26,7 +26,7 @@
 ## Implementation Phase: IN PROGRESS
 
 ### Week 1: Foundation - PARTIALLY COMPLETE
-- [x] Project structure (Clean Architecture 4 layers)
+- [x] Project structure (Clean Architecture 3 layers: Core, Infrastructure, API)
 - [x] Backend foundation (API, SignalR, OpenAPI)
 - [x] Docker Compose setup with PostgreSQL
 - [x] Central Package Management
