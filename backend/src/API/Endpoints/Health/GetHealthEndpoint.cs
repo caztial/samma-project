@@ -20,6 +20,7 @@ public class GetHealthEndpoint : EndpointWithoutRequest<HealthResponse>
     {
         await HttpContext.Response.SendAsync(
             new HealthResponse { Status = "Healthy", Timestamp = DateTime.UtcNow },
+            200,
             cancellation: ct
         );
     }

@@ -20,7 +20,7 @@ public record SessionEndedEvent(Guid SessionId);
 ## Clean Architecture Layers
 
 ### API Layer
-- Controllers for HTTP endpoints
+- FastEndpoints for HTTP endpoints
 - SignalR Hubs for real-time
 - DTOs for request/response
 - Input validation
@@ -30,13 +30,14 @@ public record SessionEndedEvent(Guid SessionId);
 - Value objects
 - Domain events
 - Repository interfaces
-- Commands/Queries (CQRS)
+- Service interfaces (IAuthService)
 - Event handlers
 - Business logic orchestration
 
 ### Infrastructure Layer
 - EF Core DbContext
 - Repository implementations
+- Service implementations (AuthService)
 - SignalR configuration
 - External services
 
@@ -106,10 +107,41 @@ public record GetSessionResultsQuery(Guid SessionId) : IRequest<SessionResultsDt
 
 ## Authentication Pattern
 
+### IAuthService Interface (Core Layer)
+```csharp
+public interface IAuthService
+{
+    Task<(ApplicationUser? User, string? Token)> LoginAsync(string email, string password);
+    Task<(ApplicationUser? User, string? Token)> RegisterAsync(string email, string password, string firstName, string lastName);
+}
+```
+
+### AuthService Implementation (Infrastructure Layer)
+```csharp
+public class AuthService : IAuthService
+{
+    private readonly IUserRepository _userRepository;
+    private readonly UserManager<ApplicationUser> _userManager;
+    private readonly SignInManager<ApplicationUser> _signInManager;
+    private readonly IPublishEndpoint _publishEndpoint;
+    private readonly JwtOptions _jwtOptions;
+
+    public async Task<(ApplicationUser? User, string? Token)> LoginAsync(string email, string password)
+    {
+        // Validate credentials and generate JWT token
+    }
+
+    public async Task<(ApplicationUser? User, string? Token)> RegisterAsync(string email, string password, string firstName, string lastName)
+    {
+        // Create user, publish event, generate JWT token
+    }
+}
+```
+
 ### JWT Flow
 ```
-1. Login → Validate credentials
-2. Generate JWT with claims (userId, role)
+1. Login → IAuthService.LoginAsync validates credentials
+2. Generate JWT with claims (userId, email, role)
 3. Return token to client
 4. Client sends token in Authorization header
 5. Server validates token on each request
@@ -120,6 +152,71 @@ public record GetSessionResultsQuery(Guid SessionId) : IRequest<SessionResultsDt
 [Authorize(Roles = "Admin")]
 [Authorize(Roles = "Moderator,Admin")]
 [Authorize] // Any authenticated user
+```
+
+### JWT Configuration (appsettings.json)
+```json
+{
+  "Jwt": {
+    "SigningKey": "YourSuperSecretKeyForJWTAuthentication2024!",
+    "ExpireDays": 1
+  }
+}
+```
+
+### Program.cs Setup
+```csharp
+var jwtOptions = builder.Configuration.GetSection("Jwt").Get<JwtOptions>() 
+    ?? throw new InvalidOperationException("JWT configuration not found");
+
+builder.Services.AddSingleton(jwtOptions);
+
+builder.Services.AddAuthenticationJwtBearer(s =>
+    s.SigningKey = jwtOptions.SigningKey
+)
+.AddAuthorization()
+.AddFastEndpoints();
+
+// Register services
+builder.Services.AddScoped<IAuthService, AuthService>();
+```
+
+### FastEndpoints Response Pattern
+⚠️ **IMPORTANT**: Always use `HttpContext.Response.SendAsync()` in FastEndpoints endpoints:
+
+```csharp
+// ✅ CORRECT
+public override async Task HandleAsync(MyRequest req, CancellationToken ct)
+{
+    var result = await _service.ProcessAsync(req, ct);
+    await HttpContext.Response.SendAsync(result);
+}
+
+// ❌ WRONG - Causes CS0103 compilation errors
+public override async Task HandleAsync(MyRequest req, CancellationToken ct)
+{
+    var result = await _service.ProcessAsync(req, ct);
+    await SendAsync(result);  // DO NOT USE
+}
+```
+
+This applies to all endpoint types:
+- `Endpoint<TRequest, TResponse>`
+- `EndpointWithoutRequest<TResponse>`
+- `Endpoint<TRequest>`
+- `EndpointWithoutRequest`
+
+### FastEndpoints Response Type Documentation
+```csharp
+public override void Configure()
+{
+    Post("/api/auth/login");
+    AllowAnonymous();
+    Description(x => x
+        .Produces<LoginResponse>(200)
+        .Produces(401)
+    );
+}
 ```
 
 ## Session State Pattern

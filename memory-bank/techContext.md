@@ -11,11 +11,13 @@
 | OpenAPI Models | Microsoft.OpenApi | 2.0.0-preview5 |
 | Documentation | Scalar.AspNetCore | 2.0.18 |
 | Authentication | ASP.NET Identity | - |
+| JWT | FastEndpoints.Security | 7.2.0 |
 | Real-time | SignalR | - |
 | ORM | Entity Framework Core | - |
 | Database | PostgreSQL | 16 |
 | Validation | FluentValidation | - |
 | Mediator | MediatR | - |
+| Messaging | MassTransit | 9.0.1 |
 
 ### Frontend
 | Component | Technology | Version |
@@ -41,16 +43,17 @@
 
 ### Backend Architecture: Clean Architecture (3 layers)
 ```
-├── API Layer (Controllers, SignalR Hubs, DTOs, OpenAPI)
-├── Core Layer (Domain + Application: Entities, Value Objects, Commands, Queries)
-└── Infrastructure Layer (Data Access, External Services)
+├── API Layer (FastEndpoints, SignalR Hubs, DTOs, OpenAPI)
+├── Core Layer (Domain + Application: Entities, Services interfaces, Repository interfaces)
+└── Infrastructure Layer (Service implementations, Data Access, External Services)
 ```
 
 ### Key Patterns
 - **CQRS**: Separate read/write operations
 - **Repository Pattern**: Data access abstraction
+- **Service Pattern**: IAuthService interface in Core, implementation in Infrastructure
 - **Unit of Work**: Transaction management
-- **Domain Events**: Loose coupling
+- **Domain Events**: Loose coupling via MassTransit
 - **SignalR Groups**: Session-based communication
 - **Central Package Management**: Single location for package versions
 
@@ -118,8 +121,16 @@ Using `Directory.Packages.props` in backend root:
     <PackageVersion Include="Microsoft.AspNetCore.OpenApi" Version="10.0.0-preview.1.25120.3" />
     <PackageVersion Include="Microsoft.OpenApi" Version="2.0.0-preview5" />
     <PackageVersion Include="Scalar.AspNetCore" Version="2.0.18" />
+    <PackageVersion Include="FastEndpoints" Version="7.2.0" />
+    <PackageVersion Include="FastEndpoints.Security" Version="7.2.0" />
   </ItemGroup>
 </Project>
+```
+
+### Infrastructure Project Dependencies
+The Infrastructure project requires `FastEndpoints.Security` for JWT token generation:
+```xml
+<PackageReference Include="FastEndpoints.Security" />
 ```
 
 ## OpenAPI/Scalar Configuration
@@ -152,7 +163,7 @@ app.MapScalarApiReference(options =>
 ```
 
 ## Security Considerations
-- JWT tokens for authentication
+- JWT tokens for authentication via FastEndpoints.Security
 - Role-based authorization
 - Input validation
 - SQL injection protection (EF Core)

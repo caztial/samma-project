@@ -7,4 +7,9 @@
     <AssemblyName>Core</AssemblyName>
   </PropertyGroup>
 
+  <ItemGroup>
+    <!-- Identity for ApplicationUser -->
+    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" />
+  </ItemGroup>
+
 </Project>

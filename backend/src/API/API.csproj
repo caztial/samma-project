@@ -7,8 +7,27 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <!-- FastEndpoints -->
     <PackageReference Include="FastEndpoints" />
     <PackageReference Include="FastEndpoints.Swagger" />
+    <PackageReference Include="FastEndpoints.Security" />
+    
+    <!-- MassTransit -->
+    <PackageReference Include="MassTransit" />
+    <PackageReference Include="MassTransit.EntityFrameworkCore" />
+    
+    <!-- Database -->
+    <PackageReference Include="Microsoft.EntityFrameworkCore" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
+    
+    <!-- Identity & JWT -->
+    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />
+    
+    <!-- Validation -->
+    <PackageReference Include="FluentValidation.AspNetCore" />
+    
+    <!-- OpenAPI / Scalar -->
     <PackageReference Include="Scalar.AspNetCore" />
   </ItemGroup>
 

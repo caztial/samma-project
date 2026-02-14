@@ -25,13 +25,17 @@
 
 ## Implementation Phase: IN PROGRESS
 
-### Week 1: Foundation - PARTIALLY COMPLETE
+### Week 1: Foundation - IN PROGRESS
 - [x] Project structure (Clean Architecture 3 layers: Core, Infrastructure, API)
 - [x] Backend foundation (API, SignalR, OpenAPI)
 - [x] Docker Compose setup with PostgreSQL
 - [x] Central Package Management
+- [x] Authentication (ASP.NET Identity with JWT)
+  - [x] IAuthService interface in Core
+  - [x] AuthService implementation in Infrastructure
+  - [x] Login and Register endpoints
+  - [x] JWT token generation
 - [ ] Database entities and EF Core migrations
-- [ ] Authentication (ASP.NET Identity with JWT)
 - [ ] Frontend foundation (React + Vite)
 
 ### Week 2: Core Features - NOT STARTED
@@ -59,18 +63,26 @@
 - Central Package Management setup
 - Scalar server URL configured to localhost:5001
 
+### Authentication ✅
+- IAuthService interface created in Core/Services
+- AuthService implementation in Infrastructure/Services
+- LoginEndpoint and RegisterEndpoint using IAuthService
+- JWT token generation using FastEndpoints.Security
+- FastEndpoints.Security package added to Infrastructure project
+
 ### What's Working
-- API endpoints: /, /health
+- API endpoints: /, /health, /api/auth/login, /api/auth/register
 - Scalar UI at /scalar/v1
-- OpenAPI JSON at /openapi/v1.json
+- OpenAPI JSON at /swagger/v1/swagger.json
 - SignalR hub at /hub/session
 - PostgreSQL database accessible
+- Build succeeds with 0 errors
 
 ### Next Immediate Tasks
-1. Create Domain entities (User, Question, Session, Answer, AuditLog)
-2. Set up EF Core DbContext
+1. Complete database entities (Question, Session, Answer, AuditLog)
+2. Set up EF Core DbContext with proper configurations
 3. Create initial database migration
-4. Implement ASP.NET Identity
+4. Test authentication endpoints
 
 ## Known Issues
 None at this stage.

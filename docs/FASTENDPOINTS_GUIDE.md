@@ -10,12 +10,13 @@ This project uses [FastEndpoints](https://fast-endpoints.com/) for building its 
 - [Creating an Endpoint](#creating-an-endpoint)
 - [Model Binding](#model-binding)
 - [Validation](#validation)
-- [Security \& Authentication](#security--authentication)
+- [Security & Authentication](#security--authentication)
 - [Configuration](#configuration)
 - [API Documentation](#api-documentation)
 - [Advanced Features](#advanced-features)
 - [Testing](#testing)
 - [Best Practices](#best-practices)
+- [Important Notes](#important-notes)
 
 ---
 
@@ -129,7 +130,7 @@ public class CreateEndpoint : Endpoint<CreateRequest>
     public override async Task HandleAsync(CreateRequest req, CancellationToken ct)
     {
         // Process request...
-        await SendAsync(new { Id = 1 }, statusCode: 201);
+        await HttpContext.Response.SendAsync(new { Id = 1 }, 201);
     }
 }
 ```
@@ -149,7 +150,7 @@ public class CreateUserEndpoint : Endpoint<CreateUserRequest, CreateUserResponse
     public override async Task HandleAsync(CreateUserRequest req, CancellationToken ct)
     {
         var user = await userService.CreateAsync(req);
-        await SendAsync(new CreateUserResponse { UserId = user.Id });
+        await HttpContext.Response.SendAsync(new CreateUserResponse { UserId = user.Id }, 200);
     }
 }
 ```
@@ -169,7 +170,7 @@ public class HealthEndpoint : EndpointWithoutRequest
 
     public override async Task HandleAsync(CancellationToken ct)
     {
-        await SendAsync(new { Status = "Healthy", Timestamp = DateTime.UtcNow });
+        await HttpContext.Response.SendAsync(new { Status = "Healthy", Timestamp = DateTime.UtcNow }, 200);
     }
 }
 ```
@@ -189,7 +190,7 @@ public class GetCurrentUserEndpoint : EndpointWithoutRequest<UserResponse>
     public override async Task HandleAsync(CancellationToken ct)
     {
         var user = await userService.GetCurrentUserAsync();
-        await SendAsync(new UserResponse { Id = user.Id, Name = user.Name });
+        await HttpContext.Response.SendAsync(new UserResponse { Id = user.Id, Name = user.Name }, 200);
     }
 }
 ```
@@ -273,12 +274,12 @@ public class CreateUserEndpoint : Endpoint<CreateUserRequest, CreateUserResponse
     {
         var user = await _userService.CreateAsync(req);
         
-        await SendAsync(new CreateUserResponse
+        await HttpContext.Response.SendAsync(new CreateUserResponse
         {
             UserId = user.Id,
             FullName = $"{req.FirstName} {req.LastName}",
             IsOver18 = req.Age > 18
-        });
+        }, 201);
     }
 }
 ```
@@ -493,7 +494,7 @@ public class LoginEndpoint : Endpoint<LoginRequest, TokenResponse>
                 o.User.Claims.Add(("UserId", "123"));
             });
 
-            await SendAsync(new TokenResponse { Token = token });
+            await HttpContext.Response.SendAsync(new TokenResponse { Token = token }, 200);
         }
         else
         {
@@ -757,32 +758,40 @@ public override void Configure()
 
 ### Response Sending Methods
 
+⚠️ **IMPORTANT**: Always use `HttpContext.Response.SendAsync()` instead of `SendAsync()` to avoid compilation errors:
+
+```csharp
+// ✅ CORRECT - Always use this
+await HttpContext.Response.SendAsync(response, 200);
+await HttpContext.Response.SendAsync(response, 201);
+
+// ❌ WRONG - Do NOT use this (will cause CS0103 errors)
+await SendAsync(response);
+await SendAsync(response, 201);
+```
+
+The full signature is:
+```csharp
+await HttpContext.Response.SendAsync<T>(T response, int statusCode);
+```
+
+### Send Specific Status Codes
+
 ```csharp
 // Send 200 OK
-await SendAsync(response);
+await HttpContext.Response.SendAsync(response, 200);
 
 // Send 201 Created
-await SendCreatedAtAsync<GetUserEndpoint>(
-    new { UserId = user.Id }, 
-    response);
+await HttpContext.Response.SendAsync(response, 201);
 
-// Send 204 No Content
-await SendNoContentAsync();
+// Send 204 No Content - send empty object
+await HttpContext.Response.SendAsync(new { }, 204);
 
-// Send 400 Bad Request
+// Send 400 Bad Request - use ThrowError
 ThrowError("Error message");
 
-// Send 404 Not Found
-await SendNotFoundAsync();
-
-// Send conditionally
-public override async Task<Void> HandleAsync(CancellationToken ct)
-{
-    if (notFound)
-        return await Send.NotFoundAsync();
-    
-    return await Send.OkAsync(response);
-}
+// Send 404 Not Found - return early with empty response
+return;
 ```
 
 ### Using TypedResults (Union Types)
@@ -938,9 +947,19 @@ public class MyEndpoint : Endpoint<MyRequest, MyResponse>
 }
 ```
 
-### 3. Always Use Async/Await
+### 3. Always Use HttpContext.Response.SendAsync
+
+⚠️ **CRITICAL**: Always use `HttpContext.Response.SendAsync()` for sending responses:
 
 ```csharp
+// ✅ CORRECT
+public override async Task HandleAsync(MyRequest req, CancellationToken ct)
+{
+    var result = await _service.ProcessAsync(req, ct);
+    await HttpContext.Response.SendAsync(result, 200);
+}
+
+// ❌ WRONG - Will cause compilation errors
 public override async Task HandleAsync(MyRequest req, CancellationToken ct)
 {
     var result = await _service.ProcessAsync(req, ct);
@@ -1013,6 +1032,40 @@ public override void Configure()
 
 ---
 
+## Important Notes
+
+### ⚠️ Critical: Always Use HttpContext.Response.SendAsync
+
+**This is the most important rule in this project:**
+
+In this project's setup with .NET 10 and FastEndpoints 7.2.0, you MUST always use `HttpContext.Response.SendAsync()` instead of the shorter `SendAsync()` method. The shorter version causes CS0103 compilation errors ("The name 'SendAsync' does not exist in the current context").
+
+**Correct Usage:**
+```csharp
+// With status code
+await HttpContext.Response.SendAsync(response, 200);
+
+// Without status code (not recommended)
+await HttpContext.Response.SendAsync(response);
+```
+
+**Wrong Usage (will cause errors):**
+```csharp
+// ❌ DO NOT USE - Causes CS0103 error
+await SendAsync(response);
+
+// ❌ DO NOT USE - Causes CS0103 error  
+await SendAsync(response, 201);
+```
+
+This applies to all endpoint types:
+- `Endpoint<TRequest, TResponse>`
+- `EndpointWithoutRequest<TResponse>`
+- `Endpoint<TRequest>`
+- `EndpointWithoutRequest`
+
+---
+
 ## Accessing the API Documentation
 
 When the API is running, you can view the documentation at:
@@ -1037,6 +1090,18 @@ If endpoints aren't being registered, check:
 1. Ensure FluentValidation package is installed
 2. Validator must be in the same namespace/assembly
 3. Or register validators explicitly in DI
+
+### SendAsync Does Not Exist (CS0103)
+
+**This is the most common error.** The solution is simple:
+
+```csharp
+// ❌ Wrong - causes CS0103
+await SendAsync(response);
+
+// ✅ Correct - always use HttpContext.Response
+await HttpContext.Response.SendAsync(response, 200);
+```
 
 ### Route Conflicts
 
