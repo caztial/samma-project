@@ -24,6 +24,9 @@
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />
     
+    <!-- Data Protection for PII encryption -->
+    <PackageReference Include="Microsoft.AspNetCore.DataProtection" />
+    
     <!-- Validation -->
     <PackageReference Include="FluentValidation.AspNetCore" />
     

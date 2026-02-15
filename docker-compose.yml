@@ -51,7 +51,7 @@ services:
       - POSTGRES_PASSWORD=dhamma_pass
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./backend/init.sql:/docker-entrypoint-initdb.d/init.sql
+      #- ./backend/init.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
       - dhamma-network
 

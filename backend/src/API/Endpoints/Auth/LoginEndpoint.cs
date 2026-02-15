@@ -35,12 +35,14 @@ public class LoginEndpoint : Endpoint<LoginRequest, LoginResponse>
             return;
         }
 
+        // FirstName and LastName are now in UserProfile (PII - encrypted)
+        // For now, we'll need to fetch from UserProfile if needed
         var response = new LoginResponse
         {
             UserId = user.Id,
             Email = user.Email ?? string.Empty,
-            FirstName = user.FirstName,
-            LastName = user.LastName,
+            FirstName = string.Empty, // TODO: Fetch from UserProfile
+            LastName = string.Empty, // TODO: Fetch from UserProfile
             Token = token
         };
 

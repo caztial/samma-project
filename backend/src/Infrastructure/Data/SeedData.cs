@@ -1,6 +1,5 @@
 using Core.Entities;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Data;
 
@@ -44,13 +43,12 @@ public static class SeedData
 
         if (adminUser == null)
         {
+            // FirstName and LastName are now in UserProfile (PII - encrypted)
             var user = new ApplicationUser
             {
                 UserName = adminEmail,
                 Email = adminEmail,
                 EmailConfirmed = true,
-                FirstName = "Admin",
-                LastName = "User",
                 IsActive = true,
                 CreatedAt = DateTime.UtcNow
             };
@@ -60,6 +58,8 @@ public static class SeedData
             if (result.Succeeded)
             {
                 await userManager.AddToRoleAsync(user, "Admin");
+
+                // TODO: Create UserProfile with FirstName="Admin", LastName="User" via event
             }
         }
     }

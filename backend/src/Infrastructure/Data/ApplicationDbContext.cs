@@ -1,4 +1,8 @@
 using Core.Entities;
+using Core.Entities.UserProfiles;
+using Core.Entities.ValueObjects;
+using Core.Services;
+using Infrastructure.Data.Encryption;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -7,25 +11,161 @@ namespace Infrastructure.Data;
 
 public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
 {
+    private readonly IEncryptionService? _encryptionService;
+
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
         : base(options) { }
+
+    public ApplicationDbContext(
+        DbContextOptions<ApplicationDbContext> options,
+        IEncryptionService encryptionService
+    )
+        : base(options)
+    {
+        _encryptionService = encryptionService;
+    }
+
+    // DbSets for UserProfile aggregate
+    // Note: Biometrics and Contact are owned types (configured via OwnsOne), not separate DbSets
+    public DbSet<UserProfile> UserProfiles { get; set; } = null!;
+    public DbSet<Consent> Consents { get; set; } = null!;
+    public DbSet<EmergencyContact> EmergencyContacts { get; set; } = null!;
+    public DbSet<Address> Addresses { get; set; } = null!;
+    public DbSet<Identification> Identifications { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
 
-        // Configure ApplicationUser
+        // Apply encryption converters if service is available
+        if (_encryptionService != null)
+        {
+            builder.ApplyEncryption(_encryptionService);
+        }
+
+        // ============================================
+        // ApplicationUser Configuration
+        // ============================================
         builder.Entity<ApplicationUser>(entity =>
         {
             entity.HasIndex(u => u.NormalizedEmail).IsUnique();
             entity.HasIndex(u => u.NormalizedUserName).IsUnique();
-
-            entity.Property(u => u.FirstName).HasMaxLength(100);
-            entity.Property(u => u.LastName).HasMaxLength(100);
-            entity.Property(u => u.ProfileImageUrl).HasMaxLength(500);
         });
 
-        // Configure Identity roles
+        // ============================================
+        // UserProfile Configuration
+        // ============================================
+        builder.Entity<UserProfile>(entity =>
+        {
+            entity.HasKey(up => up.Id);
+
+            entity.Property(up => up.FirstName).HasMaxLength(100);
+            entity.Property(up => up.LastName).HasMaxLength(100);
+            entity.Property(up => up.ProfileImageUrl).HasMaxLength(500);
+
+            // OwnsOne for Contact (1:1)
+            entity.OwnsOne(
+                up => up.Contact,
+                contact =>
+                {
+                    contact
+                        .Property(c => c.ContactNumber)
+                        .HasMaxLength(50)
+                        .HasColumnName("ContactNumber");
+                    contact.Property(c => c.Email).HasMaxLength(256).HasColumnName("ContactEmail");
+                }
+            );
+
+            // OwnsOne for Biometrics (1:1)
+            entity.OwnsOne(
+                up => up.Biometrics,
+                bio =>
+                {
+                    bio.Property(b => b.FingerPrint).HasColumnName("FingerPrint");
+                    bio.Property(b => b.Face).HasColumnName("Face");
+                }
+            );
+
+            // HasMany for EmergencyContacts (1:N)
+            entity
+                .HasMany(up => up.EmergencyContacts)
+                .WithOne()
+                .HasForeignKey(ec => ec.UserProfileId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // HasMany for Addresses (1:N)
+            entity
+                .HasMany(up => up.Addresses)
+                .WithOne()
+                .HasForeignKey(a => a.UserProfileId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // HasMany for Identifications (1:N)
+            entity
+                .HasMany(up => up.Identifications)
+                .WithOne()
+                .HasForeignKey(i => i.UserProfileId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // HasMany for Consents (1:N)
+            entity
+                .HasMany(up => up.Consents)
+                .WithOne()
+                .HasForeignKey(c => c.UserProfileId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // ============================================
+        // EmergencyContact Configuration
+        // ============================================
+        builder.Entity<EmergencyContact>(entity =>
+        {
+            entity.HasKey(ec => ec.Id);
+            entity.Property(ec => ec.Name).HasMaxLength(200);
+            entity.Property(ec => ec.ContactNumber).HasMaxLength(50);
+            entity.Property(ec => ec.Relationship).HasMaxLength(100);
+            entity.Property(ec => ec.Email).HasMaxLength(256);
+        });
+
+        // ============================================
+        // Address Configuration
+        // ============================================
+        builder.Entity<Address>(entity =>
+        {
+            entity.HasKey(a => a.Id);
+            entity.Property(a => a.Line1).HasMaxLength(500);
+            entity.Property(a => a.Line2).HasMaxLength(500);
+            entity.Property(a => a.Suburb).HasMaxLength(200);
+            entity.Property(a => a.StateProvince).HasMaxLength(200);
+            entity.Property(a => a.Country).HasMaxLength(200);
+            entity.Property(a => a.Postcode).HasMaxLength(20);
+        });
+
+        // ============================================
+        // Identification Configuration
+        // ============================================
+        builder.Entity<Identification>(entity =>
+        {
+            entity.HasKey(i => i.Id);
+            entity.Property(i => i.CIN).HasMaxLength(100);
+            entity.Property(i => i.PassportNumber).HasMaxLength(100);
+        });
+
+        // ============================================
+        // Consent Configuration
+        // ============================================
+        builder.Entity<Consent>(entity =>
+        {
+            entity.HasKey(c => c.Id);
+            entity.Property(c => c.TermId).HasMaxLength(100);
+            entity.Property(c => c.TermLink).HasMaxLength(2000);
+            entity.Property(c => c.TermsVersion).HasMaxLength(50);
+            entity.Property(c => c.IpAddress).HasMaxLength(45);
+        });
+
+        // ============================================
+        // Identity Role Configuration
+        // ============================================
         builder.Entity<IdentityRole>(entity =>
         {
             entity.HasIndex(r => r.NormalizedName).IsUnique();
@@ -33,20 +173,17 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             entity.Property(r => r.NormalizedName).HasMaxLength(256);
         });
 
-        // Configure Identity role claims
         builder.Entity<IdentityRoleClaim<string>>(entity =>
         {
             entity.HasKey(rc => rc.Id);
             entity.HasIndex(rc => rc.RoleId);
         });
 
-        // Configure Identity user logins
         builder.Entity<IdentityUserLogin<string>>(entity =>
         {
             entity.HasKey(l => new { l.LoginProvider, l.ProviderKey });
         });
 
-        // Configure Identity user tokens
         builder.Entity<IdentityUserToken<string>>(entity =>
         {
             entity.HasKey(t => new
@@ -57,7 +194,6 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             });
         });
 
-        // Configure Identity user claims
         builder.Entity<IdentityUserClaim<string>>(entity =>
         {
             entity.HasKey(uc => uc.Id);

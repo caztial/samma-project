@@ -1,3 +1,4 @@
+using Core.Entities.UserProfiles;
 using Core.Events;
 using MassTransit;
 using Microsoft.Extensions.Logging;
@@ -25,9 +26,21 @@ public class UserCreatedEventConsumer : IConsumer<UserCreatedEvent>
             userEvent.LastName
         );
 
-        // TODO: Add additional processing logic here
+        // Create UserProfile from the event
+        // Note: The actual database save would be handled by a unit of work or repository
+        // This consumer publishes the creation request or delegates to a handler
+        var userProfile = UserProfile.CreateFromEvent(userEvent);
+
+        _logger.LogInformation(
+            "UserProfile created: UserId={UserId}, FirstName={FirstName}, LastName={LastName}",
+            userProfile.UserId,
+            userProfile.FirstName,
+            userProfile.LastName
+        );
+
+        // TODO: Additional processing:
+        // - Save userProfile to database
         // - Send welcome email
-        // - Create user profile
         // - Trigger onboarding workflow
         // - Log to analytics
 

@@ -64,13 +64,11 @@ public class AuthService : IAuthService
         if (await _userRepository.EmailExistsAsync(email))
             return (null, null);
 
-        // Create new user
+        // Create new user (without FirstName/LastName - they are now in UserProfile)
         var user = new ApplicationUser
         {
             Email = email,
             UserName = email,
-            FirstName = firstName,
-            LastName = lastName,
             EmailConfirmed = true,
             IsActive = true,
             CreatedAt = DateTime.UtcNow
@@ -82,14 +80,14 @@ public class AuthService : IAuthService
         // Generate JWT token
         var token = await GenerateJwtTokenAsync(createdUser);
 
-        // Publish UserCreatedEvent
+        // Publish UserCreatedEvent (UserProfile will be created from this event)
         await _publishEndpoint.Publish(
             new UserCreatedEvent
             {
                 UserId = createdUser.Id,
                 Email = createdUser.Email ?? string.Empty,
-                FirstName = createdUser.FirstName,
-                LastName = createdUser.LastName
+                FirstName = firstName,
+                LastName = lastName
             }
         );
 
@@ -106,8 +104,9 @@ public class AuthService : IAuthService
             o.ExpireAt = DateTime.UtcNow.AddDays(_jwtOptions.ExpireDays);
             o.User.Claims.Add(("UserId", user.Id));
             o.User.Claims.Add(("Email", user.Email ?? string.Empty));
-            o.User.Claims.Add(("FirstName", user.FirstName));
-            o.User.Claims.Add(("LastName", user.LastName));
+
+            // FirstName and LastName will come from UserProfile in future
+            // For now, we'll need to fetch from UserProfile or adjust claims
 
             foreach (var role in roles)
             {

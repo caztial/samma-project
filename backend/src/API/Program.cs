@@ -36,6 +36,13 @@ var connectionString =
     builder.Configuration.GetConnectionString("DefaultConnection")
     ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 
+// Register Data Protection
+builder.Services.AddDataProtection();
+
+// Register Encryption Service
+builder.Services.AddScoped<IEncryptionService, EncryptionService>();
+
+// Register DbContext with encryption service
 builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseNpgsql(connectionString));
 
 builder

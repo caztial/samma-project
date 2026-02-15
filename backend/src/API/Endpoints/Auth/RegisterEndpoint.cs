@@ -41,12 +41,14 @@ public class RegisterEndpoint : Endpoint<RegisterRequest, RegisterResponse>
             ThrowIfAnyErrors();
         }
 
+        // FirstName and LastName are now in UserProfile (PII - encrypted)
+        // The values passed to RegisterAsync are used to create UserProfile via event
         var response = new RegisterResponse
         {
             UserId = user!.Id,
             Email = user.Email ?? string.Empty,
-            FirstName = user.FirstName,
-            LastName = user.LastName,
+            FirstName = req.FirstName, // Return what was passed in (unencrypted)
+            LastName = req.LastName, // Return what was passed in (unencrypted)
             Token = token!
         };
 
