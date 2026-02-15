@@ -1,4 +1,5 @@
 using API.Hubs;
+using API.Security;
 using Core.Entities;
 using Core.Repositories;
 using Core.Services;
@@ -10,6 +11,7 @@ using Infrastructure.Data;
 using Infrastructure.PostgreSQL.Repositories;
 using Infrastructure.Services;
 using MassTransit;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Scalar.AspNetCore;
@@ -64,6 +66,22 @@ builder
     .Services.AddAuthenticationJwtBearer(s => s.SigningKey = jwtOptions.SigningKey)
     .AddAuthorization()
     .AddFastEndpoints();
+
+// ============================================
+// AUTHORIZATION POLICIES
+// ============================================
+// Register HTTP Context Accessor for authorization handler
+builder.Services.AddHttpContextAccessor();
+
+// Register the profile owner authorization handler
+builder.Services.AddScoped<IAuthorizationHandler, ProfileOwnerAuthorizationHandler>();
+
+// Add authorization policies
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("ProfileOwner", policy =>
+        policy.Requirements.Add(new ProfileOwnerRequirement()));
+});
 
 // ============================================
 // MASS TRANSIT

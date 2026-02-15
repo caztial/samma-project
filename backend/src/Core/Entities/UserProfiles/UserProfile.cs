@@ -40,6 +40,7 @@ public class UserProfile : BaseEntity, IAggregatedRoot
     /// <summary>
     /// Date of birth
     /// </summary>
+    [Encrypt]
     public DateOnly? DateOfBirth { get; set; }
 
     /// <summary>
