@@ -3,18 +3,48 @@
 ## Domain-Driven Design
 
 ### Core Aggregates
-1. **User** - Participant/Admin/Moderator accounts
-2. **Question** - Question bank items with answer options
-3. **Session** - Dhamma session lifecycle
-4. **Answer** - Participant answer submissions
-5. **AuditLog** - Activity tracking
+1. **User** - Participant/Admin/Moderator accounts (ASP.NET Identity)
+2. **UserProfile** - Extended user information with PII encryption
+3. **Question** - Question bank items with answer options
+4. **Session** - Dhamma session lifecycle
+5. **Answer** - Participant answer submissions
+6. **AuditLog** - Activity tracking
 
 ### Domain Events
 ```csharp
+public record UserCreatedEvent(string UserId, string Email, string FirstName, string LastName);
 public record SessionStartedEvent(Guid SessionId, string Code);
 public record QuestionPushedEvent(Guid SessionId, Guid QuestionId);
 public record AnswerSubmittedEvent(Guid SessionId, Guid UserId, Guid QuestionId);
 public record SessionEndedEvent(Guid SessionId);
+```
+
+### UserProfile Aggregate Root
+The UserProfile is an aggregate root that encapsulates user personal information with PII encryption:
+
+```csharp
+public class UserProfile : IAggregatedRoot
+{
+    public Guid Id { get; private set; }
+    public string UserId { get; private set; }
+    
+    [Encrypt]
+    public string FirstName { get; private set; }
+    
+    [Encrypt]
+    public string LastName { get; private set; }
+    
+    public Gender Gender { get; private set; }
+    public DateTime? DateOfBirth { get; private set; }
+    
+    // Value Objects
+    public Contact? Contact { get; private set; }
+    public Biometrics? Biometrics { get; private set; }
+    public List<Address> Addresses { get; private set; }
+    public List<EmergencyContact> EmergencyContacts { get; private set; }
+    public List<Identification> Identifications { get; private set; }
+    public List<Consent> Consents { get; private set; }
+}
 ```
 
 ## Clean Architecture Layers
@@ -26,20 +56,85 @@ public record SessionEndedEvent(Guid SessionId);
 - Input validation
 
 ### Core Layer (Domain + Application)
-- Entities
-- Value objects
-- Domain events
+- Entities (UserProfile, ApplicationUser)
+- Value objects (Contact, Address, Consent, etc.)
+- Domain events (UserCreatedEvent)
 - Repository interfaces
-- Service interfaces (IAuthService)
+- Service interfaces (IAuthService, IEncryptionService, IUserProfileService)
 - Event handlers
 - Business logic orchestration
 
 ### Infrastructure Layer
 - EF Core DbContext
 - Repository implementations
-- Service implementations (AuthService)
+- Service implementations (AuthService, EncryptionService)
 - SignalR configuration
 - External services
+
+## PII Encryption Pattern
+
+### Encryption Service Interface (Core Layer)
+```csharp
+public interface IEncryptionService
+{
+    string Encrypt(string plainText);
+    string Decrypt(string cipherText);
+}
+```
+
+### Encryption Service Implementation (Infrastructure Layer)
+```csharp
+public class EncryptionService : IEncryptionService
+{
+    private readonly IDataProtector _protector;
+
+    public EncryptionService(IDataProtectionProvider dataProtectionProvider)
+    {
+        _protector = dataProtectionProvider.CreateProtector("UserProfile.PII.v1");
+    }
+
+    public string Encrypt(string plainText)
+    {
+        return _protector.Protect(plainText);
+    }
+
+    public string Decrypt(string cipherText)
+    {
+        return _protector.Unprotect(cipherText);
+    }
+}
+```
+
+### EF Core ValueConverter
+```csharp
+public class EncryptionConverter : ValueConverter<string, string>
+{
+    public EncryptionConverter(IEncryptionService encryptionService)
+        : base(
+            v => encryptionService.Encrypt(v),
+            v => encryptionService.Decrypt(v)
+        )
+    {
+    }
+}
+```
+
+### Encrypt Attribute
+```csharp
+[AttributeUsage(AttributeTargets.Property)]
+public class EncryptAttribute : Attribute { }
+```
+
+### DbContext Configuration
+```csharp
+protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
+{
+    configurationBuilder
+        .Properties<string>()
+        .Where(p => p.GetCustomAttribute<EncryptAttribute>() != null)
+        .HaveConversion<EncryptionConverter>();
+}
+```
 
 ## Real-time Communication Pattern
 
@@ -68,24 +163,27 @@ Participant → Hub → Group → Admin/Presenter
 ```csharp
 public interface IRepository<T> where T : BaseEntity
 {
-    Task<T> GetByIdAsync(Guid id);
+    Task<T?> GetByIdAsync(Guid id);
     Task<IEnumerable<T>> GetAllAsync();
     Task<T> AddAsync(T entity);
     Task UpdateAsync(T entity);
-    Task DeleteAsync(T entity);
+    Task DeleteAsync(Guid id);
+    Task<bool> ExistsAsync(Guid id);
 }
 ```
 
 ### Specific Repositories
 ```csharp
-public interface IQuestionRepository : IRepository<Question>
+public interface IUserRepository : IRepository<ApplicationUser>
 {
-    Task<IEnumerable<Question>> SearchAsync(string query, string[] tags);
+    Task<ApplicationUser?> GetByEmailAsync(string email);
 }
 
-public interface ISessionRepository : IRepository<Session>
+public interface IUserProfileRepository
 {
-    Task<Session> GetByCodeAsync(string code);
+    Task<UserProfile?> GetByUserIdAsync(string userId);
+    Task<UserProfile> CreateAsync(UserProfile userProfile);
+    Task<bool> ExistsAsync(string userId);
 }
 ```
 
@@ -276,3 +374,72 @@ public class AuditBehavior<TRequest, TResponse> : IPipelineBehavior<...>
 - Question push
 - Answer submission
 - Score calculation
+
+## Value Object Patterns
+
+### Contact (PII - Encrypted)
+```csharp
+public record Contact
+{
+    public string PhoneNumber { get; init; }
+    public string Email { get; init; }
+    public string EmergencyContactName { get; init; }
+    public string EmergencyContactPhone { get; init; }
+}
+```
+
+### Address
+```csharp
+public record Address
+{
+    public string Street { get; init; }
+    public string City { get; init; }
+    public string State { get; init; }
+    public string PostalCode { get; init; }
+    public string Country { get; init; }
+}
+```
+
+### Consent
+```csharp
+public record Consent
+{
+    public string Type { get; init; }  // e.g., "DataProcessing", "Marketing"
+    public bool Granted { get; init; }
+    public DateTime GrantedAt { get; init; }
+}
+```
+
+## Seed Data Pattern
+
+### Reading Encrypted Credentials
+```csharp
+public static async Task SeedAsync(
+    UserManager<ApplicationUser> userManager,
+    RoleManager<IdentityRole> roleManager,
+    IEncryptionService encryptionService,
+    IConfiguration configuration
+)
+{
+    var adminConfig = configuration.GetSection("AdminUser");
+    var encryptedPassword = adminConfig["EncryptedPassword"];
+    
+    // Decrypt the password
+    var decryptedPassword = encryptionService.Decrypt(encryptedPassword);
+    
+    // Create user with decrypted password
+    var result = await userManager.CreateAsync(user, decryptedPassword);
+}
+```
+
+### Configuration Structure
+```json
+{
+  "AdminUser": {
+    "Email": "admin@dhamma.org",
+    "EncryptedPassword": "CfDJ8...",
+    "FirstName": "Admin",
+    "LastName": "User"
+  }
+}
+```

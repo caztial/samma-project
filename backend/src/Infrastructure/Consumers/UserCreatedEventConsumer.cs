@@ -1,5 +1,5 @@
-using Core.Entities.UserProfiles;
 using Core.Events;
+using Core.Services;
 using MassTransit;
 using Microsoft.Extensions.Logging;
 
@@ -7,14 +7,19 @@ namespace Infrastructure.Consumers;
 
 public class UserCreatedEventConsumer : IConsumer<UserCreatedEvent>
 {
+    private readonly IUserProfileService _userProfileService;
     private readonly ILogger<UserCreatedEventConsumer> _logger;
 
-    public UserCreatedEventConsumer(ILogger<UserCreatedEventConsumer> logger)
+    public UserCreatedEventConsumer(
+        IUserProfileService userProfileService,
+        ILogger<UserCreatedEventConsumer> logger
+    )
     {
+        _userProfileService = userProfileService;
         _logger = logger;
     }
 
-    public Task Consume(ConsumeContext<UserCreatedEvent> context)
+    public async Task Consume(ConsumeContext<UserCreatedEvent> context)
     {
         var userEvent = context.Message;
 
@@ -26,24 +31,19 @@ public class UserCreatedEventConsumer : IConsumer<UserCreatedEvent>
             userEvent.LastName
         );
 
-        // Create UserProfile from the event
-        // Note: The actual database save would be handled by a unit of work or repository
-        // This consumer publishes the creation request or delegates to a handler
-        var userProfile = UserProfile.CreateFromEvent(userEvent);
+        // Create and save UserProfile from the event
+        var userProfile = await _userProfileService.CreateFromEventAsync(userEvent);
 
         _logger.LogInformation(
-            "UserProfile created: UserId={UserId}, FirstName={FirstName}, LastName={LastName}",
+            "UserProfile saved: UserId={UserId}, FirstName={FirstName}, LastName={LastName}",
             userProfile.UserId,
             userProfile.FirstName,
             userProfile.LastName
         );
 
         // TODO: Additional processing:
-        // - Save userProfile to database
         // - Send welcome email
         // - Trigger onboarding workflow
         // - Log to analytics
-
-        return Task.CompletedTask;
     }
 }

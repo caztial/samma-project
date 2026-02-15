@@ -7,10 +7,12 @@ namespace API.Endpoints.Auth;
 public class LoginEndpoint : Endpoint<LoginRequest, LoginResponse>
 {
     private readonly IAuthService _authService;
+    private readonly IUserProfileService _userProfileService;
 
-    public LoginEndpoint(IAuthService authService)
+    public LoginEndpoint(IAuthService authService, IUserProfileService userProfileService)
     {
         _authService = authService;
+        _userProfileService = userProfileService;
     }
 
     public override void Configure()
@@ -35,14 +37,15 @@ public class LoginEndpoint : Endpoint<LoginRequest, LoginResponse>
             return;
         }
 
-        // FirstName and LastName are now in UserProfile (PII - encrypted)
-        // For now, we'll need to fetch from UserProfile if needed
+        // Fetch UserProfile to get FirstName and LastName (encrypted)
+        var userProfile = await _userProfileService.GetByUserIdAsync(user.Id);
+
         var response = new LoginResponse
         {
             UserId = user.Id,
             Email = user.Email ?? string.Empty,
-            FirstName = string.Empty, // TODO: Fetch from UserProfile
-            LastName = string.Empty, // TODO: Fetch from UserProfile
+            FirstName = userProfile?.FirstName ?? string.Empty,
+            LastName = userProfile?.LastName ?? string.Empty,
             Token = token
         };
 

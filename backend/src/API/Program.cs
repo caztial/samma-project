@@ -1,6 +1,5 @@
-using API.DTOs.Auth;
-using API.Endpoints.Auth;
 using API.Hubs;
+using Core.Entities;
 using Core.Repositories;
 using Core.Services;
 using FastEndpoints;
@@ -85,7 +84,9 @@ builder.Services.AddMassTransit(x =>
 // REPOSITORIES & SERVICES
 // ============================================
 builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IUserProfileRepository, UserProfileRepository>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IUserProfileService, UserProfileService>();
 
 // ============================================
 // FAST ENDPOINTS
@@ -127,16 +128,15 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    var userManager = scope.ServiceProvider.GetRequiredService<
-        UserManager<Core.Entities.ApplicationUser>
-    >();
+    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
     var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+    var encryptionService = scope.ServiceProvider.GetRequiredService<IEncryptionService>();
 
     // Create database and Identity tables (or apply migrations)
     await context.Database.EnsureCreatedAsync();
-    
-    // Now seed data
-    await SeedData.SeedAsync(userManager, roleManager);
+
+    // Now seed data with decrypted password
+    await SeedData.SeedAsync(userManager, roleManager, encryptionService, builder.Configuration);
 }
 
 // ============================================

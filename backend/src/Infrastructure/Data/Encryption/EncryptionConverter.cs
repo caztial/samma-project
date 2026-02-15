@@ -17,9 +17,7 @@ public class EncryptionConverter : ValueConverter<string, string>
             v => encryptionService.Encrypt(v),
             // Convert from database (decrypt)
             v => encryptionService.Decrypt(v)
-        )
-    {
-    }
+        ) { }
 }
 
 /// <summary>
@@ -30,7 +28,10 @@ public static class EncryptionExtensions
     /// <summary>
     /// Applies encryption converters to all string properties marked with [Encrypt].
     /// </summary>
-    public static void ApplyEncryption(this ModelBuilder modelBuilder, IEncryptionService encryptionService)
+    public static void ApplyEncryption(
+        this ModelBuilder modelBuilder,
+        IEncryptionService encryptionService
+    )
     {
         var converter = new EncryptionConverter(encryptionService);
 
@@ -40,8 +41,12 @@ public static class EncryptionExtensions
 
             foreach (var property in entityType.GetProperties())
             {
-                if (property.ClrType == typeof(string) && 
-                    entityTypeclr.GetProperty(property.Name)?.GetCustomAttribute<EncryptAttribute>() != null)
+                if (
+                    property.ClrType == typeof(string)
+                    && entityTypeclr
+                        .GetProperty(property.Name)
+                        ?.GetCustomAttribute<EncryptAttribute>() != null
+                )
                 {
                     property.SetValueConverter(converter);
                 }

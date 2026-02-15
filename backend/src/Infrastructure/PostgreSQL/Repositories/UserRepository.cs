@@ -1,6 +1,5 @@
 using Core.Entities;
 using Core.Repositories;
-using Infrastructure.Data;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 

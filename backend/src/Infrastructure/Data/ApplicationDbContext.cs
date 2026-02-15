@@ -59,30 +59,33 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
         {
             entity.HasKey(up => up.Id);
 
-            entity.Property(up => up.FirstName).HasMaxLength(100);
-            entity.Property(up => up.LastName).HasMaxLength(100);
+            // Encrypted fields - increased to accommodate AES encryption overhead
+            entity.Property(up => up.FirstName).HasMaxLength(500);
+            entity.Property(up => up.LastName).HasMaxLength(500);
             entity.Property(up => up.ProfileImageUrl).HasMaxLength(500);
 
-            // OwnsOne for Contact (1:1)
+            // OwnsOne for Contact (1:1) - encrypted
             entity.OwnsOne(
                 up => up.Contact,
                 contact =>
                 {
                     contact
                         .Property(c => c.ContactNumber)
-                        .HasMaxLength(50)
+                        .HasMaxLength(500)
                         .HasColumnName("ContactNumber");
-                    contact.Property(c => c.Email).HasMaxLength(256).HasColumnName("ContactEmail");
+                    contact.Property(c => c.Email).HasMaxLength(500).HasColumnName("ContactEmail");
                 }
             );
 
-            // OwnsOne for Biometrics (1:1)
+            // OwnsOne for Biometrics (1:1) - encrypted, Base64 encoded
             entity.OwnsOne(
                 up => up.Biometrics,
                 bio =>
                 {
-                    bio.Property(b => b.FingerPrint).HasColumnName("FingerPrint");
-                    bio.Property(b => b.Face).HasColumnName("Face");
+                    bio.Property(b => b.FingerPrint)
+                        .HasMaxLength(5000)
+                        .HasColumnName("FingerPrint");
+                    bio.Property(b => b.Face).HasMaxLength(5000).HasColumnName("Face");
                 }
             );
 
@@ -116,15 +119,15 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
         });
 
         // ============================================
-        // EmergencyContact Configuration
+        // EmergencyContact Configuration (all encrypted)
         // ============================================
         builder.Entity<EmergencyContact>(entity =>
         {
             entity.HasKey(ec => ec.Id);
-            entity.Property(ec => ec.Name).HasMaxLength(200);
-            entity.Property(ec => ec.ContactNumber).HasMaxLength(50);
+            entity.Property(ec => ec.Name).HasMaxLength(500);
+            entity.Property(ec => ec.ContactNumber).HasMaxLength(500);
             entity.Property(ec => ec.Relationship).HasMaxLength(100);
-            entity.Property(ec => ec.Email).HasMaxLength(256);
+            entity.Property(ec => ec.Email).HasMaxLength(500);
         });
 
         // ============================================
@@ -142,13 +145,13 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
         });
 
         // ============================================
-        // Identification Configuration
+        // Identification Configuration (all encrypted)
         // ============================================
         builder.Entity<Identification>(entity =>
         {
             entity.HasKey(i => i.Id);
-            entity.Property(i => i.CIN).HasMaxLength(100);
-            entity.Property(i => i.PassportNumber).HasMaxLength(100);
+            entity.Property(i => i.CIN).HasMaxLength(500);
+            entity.Property(i => i.PassportNumber).HasMaxLength(500);
         });
 
         // ============================================
