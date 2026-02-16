@@ -10,6 +10,9 @@
   <ItemGroup>
     <!-- Identity for ApplicationUser -->
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" />
+    
+    <!-- Authorization for IAuthorizationRequirement -->
+    <PackageReference Include="Microsoft.AspNetCore.Authorization" />
   </ItemGroup>
 
 </Project>

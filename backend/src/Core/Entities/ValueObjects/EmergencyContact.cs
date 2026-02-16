@@ -11,15 +11,15 @@ public sealed class EmergencyContact
     public Guid Id { get; private set; } = Guid.NewGuid();
 
     [Encrypt]
-    public string Name { get; private set; } = string.Empty;
+    public string Name { get; set; } = string.Empty;
 
     [Encrypt]
-    public string ContactNumber { get; private set; } = string.Empty;
+    public string ContactNumber { get; set; } = string.Empty;
 
-    public string Relationship { get; private set; } = string.Empty;
+    public string Relationship { get; set; } = string.Empty;
 
     [Encrypt]
-    public string Email { get; private set; } = string.Empty;
+    public string Email { get; set; } = string.Empty;
 
     // For EF Core navigation
     public Guid UserProfileId { get; set; }

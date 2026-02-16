@@ -23,6 +23,7 @@
     <!-- Identity & JWT - Using .NET 10 versions -->
     <PackageVersion Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="10.0.0" />
     <PackageVersion Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.1" />
+    <PackageVersion Include="Microsoft.AspNetCore.Authorization" Version="10.0.0" />
     
     <!-- Data Protection for PII encryption -->
     <PackageVersion Include="Microsoft.AspNetCore.DataProtection" Version="10.0.0" />

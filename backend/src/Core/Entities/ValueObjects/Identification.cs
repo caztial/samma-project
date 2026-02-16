@@ -11,10 +11,10 @@ public sealed class Identification
     public Guid Id { get; private set; } = Guid.NewGuid();
 
     [Encrypt]
-    public string? CIN { get; private set; } // Country specific Identification Number
+    public string? CIN { get; set; } // Country specific Identification Number
 
     [Encrypt]
-    public string? PassportNumber { get; private set; }
+    public string? PassportNumber { get; set; }
 
     // For EF Core navigation
     public Guid UserProfileId { get; set; }

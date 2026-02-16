@@ -1,4 +1,7 @@
 using API.DTOs.UserProfile;
+using Core.Authorization;
+using Core.Entities.UserProfiles;
+using Core.Enums;
 using Core.Services;
 using FastEndpoints;
 
@@ -7,7 +10,7 @@ namespace API.Endpoints.UserProfile;
 /// <summary>
 /// Endpoint to get all consents for a profile.
 /// </summary>
-public class GetConsentsEndpoint : Endpoint<Guid, IEnumerable<ConsentResponse>>
+public class GetConsentsEndpoint : EndpointWithoutRequest
 {
     private readonly IUserProfileService _userProfileService;
 
@@ -18,9 +21,17 @@ public class GetConsentsEndpoint : Endpoint<Guid, IEnumerable<ConsentResponse>>
 
     public override void Configure()
     {
-        Get("/api/profile/{id}/consents");
-        Roles("Admin", "Moderator");
-        Policies("ProfileOwner");
+        Get("/profile/{id}/consents");
+        Policy(policy =>
+        {
+            policy.AddRequirements(
+                new AdminOwnerRequirement(
+                    aggregatedRootName: nameof(UserProfile),
+                    resourceIdParameterName: "id",
+                    valueFetchFrom: ValueFetchFrom.Route
+                )
+            );
+        });
         Summary(s =>
         {
             s.Summary = "Get consents";
@@ -29,13 +40,18 @@ public class GetConsentsEndpoint : Endpoint<Guid, IEnumerable<ConsentResponse>>
         });
     }
 
-    public override async Task HandleAsync(Guid id, CancellationToken ct)
+    public override async Task HandleAsync(CancellationToken ct)
     {
+        var id = Route<Guid>("id");
         var profile = await _userProfileService.GetByIdAsync(id);
 
         if (profile == null)
         {
-            await HttpContext.Response.SendAsync(new { error = "Profile not found" }, 404);
+            await HttpContext.Response.SendAsync(
+                new { error = "Profile not found" },
+                404,
+                cancellation: ct
+            );
             return;
         }
 
@@ -51,6 +67,6 @@ public class GetConsentsEndpoint : Endpoint<Guid, IEnumerable<ConsentResponse>>
             IpAddress = c.IpAddress
         });
 
-        await HttpContext.Response.SendAsync(response, 200);
+        await HttpContext.Response.SendAsync(response, 200, cancellation: ct);
     }
 }

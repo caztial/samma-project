@@ -1,4 +1,7 @@
 using API.DTOs.UserProfile;
+using Core.Authorization;
+using Core.Entities.UserProfiles;
+using Core.Enums;
 using Core.Services;
 using FastEndpoints;
 
@@ -7,7 +10,7 @@ namespace API.Endpoints.UserProfile;
 /// <summary>
 /// Endpoint to get biometrics for a profile.
 /// </summary>
-public class GetBiometricsEndpoint : Endpoint<Guid, BiometricsResponse>
+public class GetBiometricsEndpoint : EndpointWithoutRequest
 {
     private readonly IUserProfileService _userProfileService;
 
@@ -18,9 +21,17 @@ public class GetBiometricsEndpoint : Endpoint<Guid, BiometricsResponse>
 
     public override void Configure()
     {
-        Get("/api/profile/{id}/biometrics");
-        Roles("Admin", "Moderator");
-        Policies("ProfileOwner");
+        Get("/profile/{id}/biometrics");
+        Policy(policy =>
+        {
+            policy.AddRequirements(
+                new AdminOwnerRequirement(
+                    aggregatedRootName: nameof(UserProfile),
+                    resourceIdParameterName: "id",
+                    valueFetchFrom: ValueFetchFrom.Route
+                )
+            );
+        });
         Summary(s =>
         {
             s.Summary = "Get biometrics";
@@ -29,13 +40,18 @@ public class GetBiometricsEndpoint : Endpoint<Guid, BiometricsResponse>
         });
     }
 
-    public override async Task HandleAsync(Guid id, CancellationToken ct)
+    public override async Task HandleAsync(CancellationToken ct)
     {
+        var id = Route<Guid>("id");
         var profile = await _userProfileService.GetByIdAsync(id);
 
         if (profile == null)
         {
-            await HttpContext.Response.SendAsync(new { error = "Profile not found" }, 404);
+            await HttpContext.Response.SendAsync(
+                new { error = "Profile not found" },
+                404,
+                cancellation: ct
+            );
             return;
         }
 
@@ -45,6 +61,6 @@ public class GetBiometricsEndpoint : Endpoint<Guid, BiometricsResponse>
             Face = profile.Biometrics.Face
         };
 
-        await HttpContext.Response.SendAsync(response, 200);
+        await HttpContext.Response.SendAsync(response, 200, cancellation: ct);
     }
 }

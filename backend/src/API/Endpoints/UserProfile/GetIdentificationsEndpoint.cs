@@ -1,4 +1,7 @@
 using API.DTOs.UserProfile;
+using Core.Authorization;
+using Core.Entities.UserProfiles;
+using Core.Enums;
 using Core.Services;
 using FastEndpoints;
 
@@ -7,7 +10,7 @@ namespace API.Endpoints.UserProfile;
 /// <summary>
 /// Endpoint to get all identifications for a profile.
 /// </summary>
-public class GetIdentificationsEndpoint : Endpoint<Guid, IEnumerable<IdentificationResponse>>
+public class GetIdentificationsEndpoint : EndpointWithoutRequest
 {
     private readonly IUserProfileService _userProfileService;
 
@@ -18,9 +21,17 @@ public class GetIdentificationsEndpoint : Endpoint<Guid, IEnumerable<Identificat
 
     public override void Configure()
     {
-        Get("/api/profile/{id}/identifications");
-        Roles("Admin", "Moderator");
-        Policies("ProfileOwner");
+        Get("/profile/{id}/identifications");
+        Policy(policy =>
+        {
+            policy.AddRequirements(
+                new AdminOwnerRequirement(
+                    aggregatedRootName: nameof(UserProfile),
+                    resourceIdParameterName: "id",
+                    valueFetchFrom: ValueFetchFrom.Route
+                )
+            );
+        });
         Summary(s =>
         {
             s.Summary = "Get identifications";
@@ -29,13 +40,18 @@ public class GetIdentificationsEndpoint : Endpoint<Guid, IEnumerable<Identificat
         });
     }
 
-    public override async Task HandleAsync(Guid id, CancellationToken ct)
+    public override async Task HandleAsync(CancellationToken ct)
     {
+        var id = Route<Guid>("id");
         var profile = await _userProfileService.GetByIdAsync(id);
 
         if (profile == null)
         {
-            await HttpContext.Response.SendAsync(new { error = "Profile not found" }, 404);
+            await HttpContext.Response.SendAsync(
+                new { error = "Profile not found" },
+                404,
+                cancellation: ct
+            );
             return;
         }
 

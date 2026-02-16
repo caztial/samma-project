@@ -10,21 +10,21 @@ using FastEndpoints;
 namespace API.Endpoints.UserProfile;
 
 /// <summary>
-/// Endpoint to update biometrics for a profile.
+/// Endpoint to update an identification in a profile.
 /// </summary>
-public class UpdateBiometricsEndpoint
-    : Endpoint<UpdateBiometricsRequest, BiometricsResponse, BiometricsMapper>
+public class UpdateIdentificationEndpoint
+    : Endpoint<UpdateIdentificationRequest, IdentificationResponse, IdentificationMapper>
 {
     private readonly IUserProfileService _userProfileService;
 
-    public UpdateBiometricsEndpoint(IUserProfileService userProfileService)
+    public UpdateIdentificationEndpoint(IUserProfileService userProfileService)
     {
         _userProfileService = userProfileService;
     }
 
     public override void Configure()
     {
-        Put("/profile/{id}/biometrics");
+        Put("/profile/{id}/identifications/{identificationId}");
         Policy(policy =>
         {
             policy.AddRequirements(
@@ -37,17 +37,18 @@ public class UpdateBiometricsEndpoint
         });
         Summary(s =>
         {
-            s.Summary = "Update biometrics";
+            s.Summary = "Update identification";
             s.Description =
-                "Updates biometrics for a profile. Owner, Admin, or Moderator can update.";
+                "Updates an identification in a profile. Owner, Admin, or Moderator can update.";
         });
     }
 
-    public override async Task HandleAsync(UpdateBiometricsRequest req, CancellationToken ct)
+    public override async Task HandleAsync(UpdateIdentificationRequest req, CancellationToken ct)
     {
-        var id = Route<Guid>("id");
+        var profileId = Route<Guid>("id");
+        var identificationId = Route<Guid>("identificationId");
 
-        var profile = await _userProfileService.GetByIdAsync(id);
+        var profile = await _userProfileService.GetByIdAsync(profileId);
 
         if (profile == null)
         {
@@ -55,20 +56,24 @@ public class UpdateBiometricsEndpoint
             return;
         }
 
-        var biometrics = Map.ToEntity(req.Biometrics);
+        var identification = Map.ToEntity(req.Identification);
 
-        var updated = await _userProfileService.UpdateBiometricsAsync(id, biometrics);
+        var updated = await _userProfileService.UpdateIdentificationAsync(
+            profileId,
+            identificationId,
+            identification
+        );
 
         if (updated == null)
         {
             await HttpContext.Response.SendAsync(
-                new { error = "Failed to update biometrics" },
-                500
+                new { error = "Identification not found" },
+                404
             );
             return;
         }
 
-        Response = Map.FromEntity(updated.Biometrics);
+        Response = Map.FromEntity(updated);
         await HttpContext.Response.SendAsync(Response, 200, cancellation: ct);
     }
 }

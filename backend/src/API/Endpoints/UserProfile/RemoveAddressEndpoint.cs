@@ -1,3 +1,7 @@
+using API.DTOs.UserProfile;
+using Core.Authorization;
+using Core.Entities.UserProfiles;
+using Core.Enums;
 using Core.Services;
 using FastEndpoints;
 
@@ -6,7 +10,7 @@ namespace API.Endpoints.UserProfile;
 /// <summary>
 /// Endpoint to remove an address from a profile.
 /// </summary>
-public class RemoveAddressEndpoint : Endpoint<(Guid Id, Guid AddressId)>
+public class RemoveAddressEndpoint : EndpointWithoutRequest
 {
     private readonly IUserProfileService _userProfileService;
 
@@ -17,9 +21,17 @@ public class RemoveAddressEndpoint : Endpoint<(Guid Id, Guid AddressId)>
 
     public override void Configure()
     {
-        Delete("/api/profile/{id}/addresses/{addressId}");
-        Roles("Admin", "Moderator");
-        Policies("ProfileOwner");
+        Delete("/profile/{id}/addresses/{addressId}");
+        Policy(policy =>
+        {
+            policy.AddRequirements(
+                new AdminOwnerRequirement(
+                    aggregatedRootName: nameof(UserProfile),
+                    resourceIdParameterName: "id",
+                    valueFetchFrom: ValueFetchFrom.Route
+                )
+            );
+        });
         Summary(s =>
         {
             s.Summary = "Remove address";
@@ -28,15 +40,20 @@ public class RemoveAddressEndpoint : Endpoint<(Guid Id, Guid AddressId)>
         });
     }
 
-    public override async Task HandleAsync((Guid Id, Guid AddressId) ctx, CancellationToken ct)
+    public override async Task HandleAsync(CancellationToken ct)
     {
-        var (id, addressId) = ctx;
+        var id = Route<Guid>("id");
+        var addressId = Route<Guid>("addressId");
 
         var profile = await _userProfileService.GetByIdAsync(id);
 
         if (profile == null)
         {
-            await HttpContext.Response.SendAsync(new { error = "Profile not found" }, 404);
+            await HttpContext.Response.SendAsync(
+                new { error = "Profile not found" },
+                404,
+                cancellation: ct
+            );
             return;
         }
 
@@ -44,10 +61,18 @@ public class RemoveAddressEndpoint : Endpoint<(Guid Id, Guid AddressId)>
 
         if (!removed)
         {
-            await HttpContext.Response.SendAsync(new { error = "Address not found" }, 404);
+            await HttpContext.Response.SendAsync(
+                new { error = "Address not found" },
+                404,
+                cancellation: ct
+            );
             return;
         }
 
-        await HttpContext.Response.SendAsync(new { message = "Address removed" }, 200);
+        await HttpContext.Response.SendAsync(
+            new { message = "Address removed" },
+            200,
+            cancellation: ct
+        );
     }
 }

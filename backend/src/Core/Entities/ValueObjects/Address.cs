@@ -3,15 +3,15 @@ namespace Core.Entities.ValueObjects;
 /// <summary>
 /// Value object representing a user's address (1:N relationship with UserProfile).
 /// </summary>
-public sealed record Address
+public sealed class Address
 {
-    public Guid Id { get; init; } = Guid.NewGuid();
-    public string Line1 { get; init; } = string.Empty;
-    public string? Line2 { get; init; }
-    public string Suburb { get; init; } = string.Empty;
-    public string StateProvince { get; init; } = string.Empty;
-    public string Country { get; init; } = string.Empty;
-    public string Postcode { get; init; } = string.Empty;
+    public Guid Id { get; set; } = Guid.NewGuid();
+    public string Line1 { get; set; } = string.Empty;
+    public string? Line2 { get; set; }
+    public string Suburb { get; set; } = string.Empty;
+    public string StateProvince { get; set; } = string.Empty;
+    public string Country { get; set; } = string.Empty;
+    public string Postcode { get; set; } = string.Empty;
 
     // For EF Core navigation
     public Guid UserProfileId { get; set; }

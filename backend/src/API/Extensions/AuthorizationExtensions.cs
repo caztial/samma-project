@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using Core.Enums;
 
 namespace API.Extensions;
 
@@ -25,9 +26,7 @@ public static class AuthorizationExtensions
         }
 
         // Check if user has Admin or Moderator role
-        var roles = claimList.Where(c => c.Type == ClaimTypes.Role || c.Type == "role").Select(c => c.Value);
-        if (roles.Contains("Admin", StringComparer.OrdinalIgnoreCase) || 
-            roles.Contains("Moderator", StringComparer.OrdinalIgnoreCase))
+        if (claims.HasElevatedRole())
         {
             return true;
         }
@@ -54,11 +53,20 @@ public static class AuthorizationExtensions
     }
 
     /// <summary>
+    /// Checks if the user has an elevated role (Admin or Moderator).
+    /// </summary>
+    public static bool HasElevatedRole(this IEnumerable<Claim> claims)
+    {
+        return claims.HasRole(ApplicationRoles.Admin.ToValueString())
+               || claims.HasRole(ApplicationRoles.Moderator.ToValueString());
+    }
+
+    /// <summary>
     /// Checks if the user is an Admin.
     /// </summary>
     public static bool IsAdmin(this IEnumerable<Claim> claims)
     {
-        return claims.HasRole("Admin");
+        return claims.HasRole(ApplicationRoles.Admin.ToValueString());
     }
 
     /// <summary>
@@ -66,6 +74,6 @@ public static class AuthorizationExtensions
     /// </summary>
     public static bool IsModerator(this IEnumerable<Claim> claims)
     {
-        return claims.HasRole("Moderator");
+        return claims.HasRole(ApplicationRoles.Moderator.ToValueString());
     }
 }

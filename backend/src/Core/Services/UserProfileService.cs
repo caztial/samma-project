@@ -102,6 +102,19 @@ public class UserProfileService : IUserProfileService
         return await _userProfileRepository.RemoveEmergencyContactAsync(profileId, emergencyContactId);
     }
 
+    public async Task<EmergencyContact?> UpdateEmergencyContactAsync(
+        Guid profileId,
+        Guid emergencyContactId,
+        EmergencyContact emergencyContact
+    )
+    {
+        return await _userProfileRepository.UpdateEmergencyContactAsync(
+            profileId,
+            emergencyContactId,
+            emergencyContact
+        );
+    }
+
     // ========== Addresses ==========
 
     public async Task<IEnumerable<Address>> GetAddressesAsync(Guid profileId)
@@ -118,6 +131,15 @@ public class UserProfileService : IUserProfileService
     public async Task<bool> RemoveAddressAsync(Guid profileId, Guid addressId)
     {
         return await _userProfileRepository.RemoveAddressAsync(profileId, addressId);
+    }
+
+    public async Task<Address?> UpdateAddressAsync(
+        Guid profileId,
+        Guid addressId,
+        Address address
+    )
+    {
+        return await _userProfileRepository.UpdateAddressAsync(profileId, addressId, address);
     }
 
     // ========== Identifications ==========
@@ -138,6 +160,19 @@ public class UserProfileService : IUserProfileService
         return await _userProfileRepository.RemoveIdentificationAsync(profileId, identificationId);
     }
 
+    public async Task<Identification?> UpdateIdentificationAsync(
+        Guid profileId,
+        Guid identificationId,
+        Identification identification
+    )
+    {
+        return await _userProfileRepository.UpdateIdentificationAsync(
+            profileId,
+            identificationId,
+            identification
+        );
+    }
+
     // ========== Consents ==========
 
     public async Task<IEnumerable<Consent>> GetConsentsAsync(Guid profileId)
@@ -154,5 +189,14 @@ public class UserProfileService : IUserProfileService
     public async Task<bool> RemoveConsentAsync(Guid profileId, Guid consentId)
     {
         return await _userProfileRepository.RemoveConsentAsync(profileId, consentId);
+    }
+
+    public async Task<Consent?> UpdateConsentAsync(
+        Guid profileId,
+        Guid consentId,
+        Consent consent
+    )
+    {
+        return await _userProfileRepository.UpdateConsentAsync(profileId, consentId, consent);
     }
 }

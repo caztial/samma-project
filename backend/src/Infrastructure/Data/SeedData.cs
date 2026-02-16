@@ -1,4 +1,5 @@
 using Core.Entities;
+using Core.Enums;
 using Core.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
@@ -23,16 +24,22 @@ public static class SeedData
 
     private static async Task SeedRolesAsync(RoleManager<IdentityRole> roleManager)
     {
-        string[] roles = { "Admin", "Presenter", "Participant" };
+        var roles = new[]
+        {
+            ApplicationRoles.Admin,
+            ApplicationRoles.Presenter,
+            ApplicationRoles.Participant
+        };
 
         foreach (var role in roles)
         {
-            if (!await roleManager.RoleExistsAsync(role))
+            var roleName = role.ToValueString();
+            if (!await roleManager.RoleExistsAsync(roleName))
             {
                 var identityRole = new IdentityRole
                 {
-                    Name = role,
-                    NormalizedName = role.ToUpperInvariant()
+                    Name = roleName,
+                    NormalizedName = roleName.ToUpperInvariant()
                 };
 
                 await roleManager.CreateAsync(identityRole);
@@ -78,7 +85,7 @@ public static class SeedData
 
             if (result.Succeeded)
             {
-                await userManager.AddToRoleAsync(user, "Admin");
+                await userManager.AddToRoleAsync(user, ApplicationRoles.Admin.ToValueString());
 
                 // TODO: Create UserProfile with FirstName="Admin", LastName="User" via event
             }

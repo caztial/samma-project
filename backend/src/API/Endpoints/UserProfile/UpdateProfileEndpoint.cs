@@ -1,6 +1,9 @@
 using API.DTOs.UserProfile;
 using API.Mappers;
+using Core.Authorization;
+using Core.Entities.UserProfiles;
 using Core.Entities.ValueObjects;
+using Core.Enums;
 using Core.Services;
 using FastEndpoints;
 
@@ -20,9 +23,17 @@ public class UpdateProfileEndpoint : Endpoint<UpdateProfileRequest, ProfileRespo
 
     public override void Configure()
     {
-        Put("/api/profile/{id}");
-        Roles("Admin", "Moderator");
-        Policies("ProfileOwner");
+        Put("/profile/{id}");
+        Policy(policy =>
+        {
+            policy.AddRequirements(
+                new AdminOwnerRequirement(
+                    aggregatedRootName: nameof(UserProfile),
+                    resourceIdParameterName: "id",
+                    valueFetchFrom: ValueFetchFrom.Route
+                )
+            );
+        });
         Summary(s =>
         {
             s.Summary = "Update user profile";
@@ -72,6 +83,6 @@ public class UpdateProfileEndpoint : Endpoint<UpdateProfileRequest, ProfileRespo
 
         // Use mapper for response mapping
         Response = Map.FromEntity(updated);
-        await HttpContext.Response.SendAsync(Response, 200);
+        await HttpContext.Response.SendAsync(Response, 200, cancellation: ct);
     }
 }

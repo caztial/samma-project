@@ -1,3 +1,7 @@
+using API.DTOs.UserProfile;
+using Core.Authorization;
+using Core.Entities.UserProfiles;
+using Core.Enums;
 using Core.Services;
 using FastEndpoints;
 
@@ -6,7 +10,7 @@ namespace API.Endpoints.UserProfile;
 /// <summary>
 /// Endpoint to remove an identification from a profile.
 /// </summary>
-public class RemoveIdentificationEndpoint : Endpoint<(Guid Id, Guid IdentificationId)>
+public class RemoveIdentificationEndpoint : EndpointWithoutRequest
 {
     private readonly IUserProfileService _userProfileService;
 
@@ -17,9 +21,17 @@ public class RemoveIdentificationEndpoint : Endpoint<(Guid Id, Guid Identificati
 
     public override void Configure()
     {
-        Delete("/api/profile/{id}/identifications/{identificationId}");
-        Roles("Admin", "Moderator");
-        Policies("ProfileOwner");
+        Delete("/profile/{id}/identifications/{identificationId}");
+        Policy(policy =>
+        {
+            policy.AddRequirements(
+                new AdminOwnerRequirement(
+                    aggregatedRootName: nameof(UserProfile),
+                    resourceIdParameterName: "id",
+                    valueFetchFrom: ValueFetchFrom.Route
+                )
+            );
+        });
         Summary(s =>
         {
             s.Summary = "Remove identification";
@@ -28,18 +40,20 @@ public class RemoveIdentificationEndpoint : Endpoint<(Guid Id, Guid Identificati
         });
     }
 
-    public override async Task HandleAsync(
-        (Guid Id, Guid IdentificationId) ctx,
-        CancellationToken ct
-    )
+    public override async Task HandleAsync(CancellationToken ct)
     {
-        var (id, identificationId) = ctx;
+        var id = Route<Guid>("id");
+        var identificationId = Route<Guid>("identificationId");
 
         var profile = await _userProfileService.GetByIdAsync(id);
 
         if (profile == null)
         {
-            await HttpContext.Response.SendAsync(new { error = "Profile not found" }, 404);
+            await HttpContext.Response.SendAsync(
+                new { error = "Profile not found" },
+                404,
+                cancellation: ct
+            );
             return;
         }
 
@@ -47,10 +61,18 @@ public class RemoveIdentificationEndpoint : Endpoint<(Guid Id, Guid Identificati
 
         if (!removed)
         {
-            await HttpContext.Response.SendAsync(new { error = "Identification not found" }, 404);
+            await HttpContext.Response.SendAsync(
+                new { error = "Identification not found" },
+                404,
+                cancellation: ct
+            );
             return;
         }
 
-        await HttpContext.Response.SendAsync(new { message = "Identification removed" }, 200);
+        await HttpContext.Response.SendAsync(
+            new { message = "Identification removed" },
+            200,
+            cancellation: ct
+        );
     }
 }

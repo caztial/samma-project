@@ -1,3 +1,7 @@
+using API.DTOs.UserProfile;
+using Core.Authorization;
+using Core.Entities.UserProfiles;
+using Core.Enums;
 using Core.Services;
 using FastEndpoints;
 
@@ -6,7 +10,7 @@ namespace API.Endpoints.UserProfile;
 /// <summary>
 /// Endpoint to remove an emergency contact from a profile.
 /// </summary>
-public class RemoveEmergencyContactEndpoint : Endpoint<(Guid Id, Guid EmergencyContactId)>
+public class RemoveEmergencyContactEndpoint : EndpointWithoutRequest
 {
     private readonly IUserProfileService _userProfileService;
 
@@ -17,9 +21,17 @@ public class RemoveEmergencyContactEndpoint : Endpoint<(Guid Id, Guid EmergencyC
 
     public override void Configure()
     {
-        Delete("/api/profile/{id}/emergency-contacts/{emergencyContactId}");
-        Roles("Admin", "Moderator");
-        Policies("ProfileOwner");
+        Delete("/profile/{id}/emergency-contacts/{emergencyContactId}");
+        Policy(policy =>
+        {
+            policy.AddRequirements(
+                new AdminOwnerRequirement(
+                    aggregatedRootName: nameof(UserProfile),
+                    resourceIdParameterName: "id",
+                    valueFetchFrom: ValueFetchFrom.Route
+                )
+            );
+        });
         Summary(s =>
         {
             s.Summary = "Remove emergency contact";
@@ -28,18 +40,20 @@ public class RemoveEmergencyContactEndpoint : Endpoint<(Guid Id, Guid EmergencyC
         });
     }
 
-    public override async Task HandleAsync(
-        (Guid Id, Guid EmergencyContactId) ctx,
-        CancellationToken ct
-    )
+    public override async Task HandleAsync(CancellationToken ct)
     {
-        var (id, emergencyContactId) = ctx;
+        var id = Route<Guid>("id");
+        var emergencyContactId = Route<Guid>("emergencyContactId");
 
         var profile = await _userProfileService.GetByIdAsync(id);
 
         if (profile == null)
         {
-            await HttpContext.Response.SendAsync(new { error = "Profile not found" }, 404);
+            await HttpContext.Response.SendAsync(
+                new { error = "Profile not found" },
+                404,
+                cancellation: ct
+            );
             return;
         }
 
@@ -49,11 +63,16 @@ public class RemoveEmergencyContactEndpoint : Endpoint<(Guid Id, Guid EmergencyC
         {
             await HttpContext.Response.SendAsync(
                 new { error = "Emergency contact not found" },
-                404
+                404,
+                cancellation: ct
             );
             return;
         }
 
-        await HttpContext.Response.SendAsync(new { message = "Emergency contact removed" }, 200);
+        await HttpContext.Response.SendAsync(
+            new { message = "Emergency contact removed" },
+            200,
+            cancellation: ct
+        );
     }
 }

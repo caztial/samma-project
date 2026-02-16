@@ -10,20 +10,20 @@ using FastEndpoints;
 namespace API.Endpoints.UserProfile;
 
 /// <summary>
-/// Endpoint to add an address to a profile.
+/// Endpoint to update an address in a profile.
 /// </summary>
-public class AddAddressEndpoint : Endpoint<AddAddressRequest, AddressResponse, AddressMapper>
+public class UpdateAddressEndpoint : Endpoint<UpdateAddressRequest, AddressResponse, AddressMapper>
 {
     private readonly IUserProfileService _userProfileService;
 
-    public AddAddressEndpoint(IUserProfileService userProfileService)
+    public UpdateAddressEndpoint(IUserProfileService userProfileService)
     {
         _userProfileService = userProfileService;
     }
 
     public override void Configure()
     {
-        Post("/profile/{id}/addresses");
+        Put("/profile/{id}/addresses/{addressId}");
         Policy(policy =>
         {
             policy.AddRequirements(
@@ -36,16 +36,18 @@ public class AddAddressEndpoint : Endpoint<AddAddressRequest, AddressResponse, A
         });
         Summary(s =>
         {
-            s.Summary = "Add address";
-            s.Description = "Adds an address to a profile. Owner, Admin, or Moderator can add.";
+            s.Summary = "Update address";
+            s.Description =
+                "Updates an address in a profile. Owner, Admin, or Moderator can update.";
         });
     }
 
-    public override async Task HandleAsync(AddAddressRequest req, CancellationToken ct)
+    public override async Task HandleAsync(UpdateAddressRequest req, CancellationToken ct)
     {
-        var id = Route<Guid>("id");
+        var profileId = Route<Guid>("id");
+        var addressId = Route<Guid>("addressId");
 
-        var profile = await _userProfileService.GetByIdAsync(id);
+        var profile = await _userProfileService.GetByIdAsync(profileId);
 
         if (profile == null)
         {
@@ -55,19 +57,15 @@ public class AddAddressEndpoint : Endpoint<AddAddressRequest, AddressResponse, A
 
         var address = Map.ToEntity(req.Address);
 
-        var added = await _userProfileService.AddAddressAsync(id, address);
+        var updated = await _userProfileService.UpdateAddressAsync(profileId, addressId, address);
 
-        if (added == null)
+        if (updated == null)
         {
-            await HttpContext.Response.SendAsync(
-                new { error = "Failed to add address" },
-                500,
-                cancellation: ct
-            );
+            await HttpContext.Response.SendAsync(new { error = "Address not found" }, 404);
             return;
         }
 
-        Response = Map.FromEntity(added);
-        await HttpContext.Response.SendAsync(Response, 201);
+        Response = Map.FromEntity(updated);
+        await HttpContext.Response.SendAsync(Response, 200, cancellation: ct);
     }
 }

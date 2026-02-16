@@ -10,21 +10,21 @@ using FastEndpoints;
 namespace API.Endpoints.UserProfile;
 
 /// <summary>
-/// Endpoint to add an emergency contact to a profile.
+/// Endpoint to update an emergency contact in a profile.
 /// </summary>
-public class AddEmergencyContactEndpoint
-    : Endpoint<AddEmergencyContactRequest, EmergencyContactResponse, EmergencyContactMapper>
+public class UpdateEmergencyContactEndpoint
+    : Endpoint<UpdateEmergencyContactRequest, EmergencyContactResponse, EmergencyContactMapper>
 {
     private readonly IUserProfileService _userProfileService;
 
-    public AddEmergencyContactEndpoint(IUserProfileService userProfileService)
+    public UpdateEmergencyContactEndpoint(IUserProfileService userProfileService)
     {
         _userProfileService = userProfileService;
     }
 
     public override void Configure()
     {
-        Post("/profile/{id}/emergency-contacts");
+        Put("/profile/{id}/emergency-contacts/{emergencyContactId}");
         Policy(policy =>
         {
             policy.AddRequirements(
@@ -37,17 +37,18 @@ public class AddEmergencyContactEndpoint
         });
         Summary(s =>
         {
-            s.Summary = "Add emergency contact";
+            s.Summary = "Update emergency contact";
             s.Description =
-                "Adds an emergency contact to a profile. Owner, Admin, or Moderator can add.";
+                "Updates an emergency contact in a profile. Owner, Admin, or Moderator can update.";
         });
     }
 
-    public override async Task HandleAsync(AddEmergencyContactRequest req, CancellationToken ct)
+    public override async Task HandleAsync(UpdateEmergencyContactRequest req, CancellationToken ct)
     {
-        var id = Route<Guid>("id");
+        var profileId = Route<Guid>("id");
+        var emergencyContactId = Route<Guid>("emergencyContactId");
 
-        var profile = await _userProfileService.GetByIdAsync(id);
+        var profile = await _userProfileService.GetByIdAsync(profileId);
 
         if (profile == null)
         {
@@ -57,18 +58,22 @@ public class AddEmergencyContactEndpoint
 
         var emergencyContact = Map.ToEntity(req.EmergencyContact);
 
-        var added = await _userProfileService.AddEmergencyContactAsync(id, emergencyContact);
+        var updated = await _userProfileService.UpdateEmergencyContactAsync(
+            profileId,
+            emergencyContactId,
+            emergencyContact
+        );
 
-        if (added == null)
+        if (updated == null)
         {
             await HttpContext.Response.SendAsync(
-                new { error = "Failed to add emergency contact" },
-                500
+                new { error = "Emergency contact not found" },
+                404
             );
             return;
         }
 
-        Response = Map.FromEntity(added);
-        await HttpContext.Response.SendAsync(Response, 201, cancellation: ct);
+        Response = Map.FromEntity(updated);
+        await HttpContext.Response.SendAsync(Response, 200, cancellation: ct);
     }
 }

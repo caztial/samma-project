@@ -1,6 +1,9 @@
 using API.DTOs.UserProfile;
 using API.Mappers;
+using Core.Authorization;
+using Core.Entities.UserProfiles;
 using Core.Entities.ValueObjects;
+using Core.Enums;
 using Core.Services;
 using FastEndpoints;
 
@@ -10,11 +13,7 @@ namespace API.Endpoints.UserProfile;
 /// Endpoint to add an identification to a profile.
 /// </summary>
 public class AddIdentificationEndpoint
-    : Endpoint<
-        (Guid Id, IdentificationRequest Request),
-        IdentificationResponse,
-        IdentificationMapper
-    >
+    : Endpoint<AddIdentificationRequest, IdentificationResponse, IdentificationMapper>
 {
     private readonly IUserProfileService _userProfileService;
 
@@ -25,9 +24,17 @@ public class AddIdentificationEndpoint
 
     public override void Configure()
     {
-        Post("/api/profile/{id}/identifications");
-        Roles("Admin", "Moderator");
-        Policies("ProfileOwner");
+        Post("/profile/{id}/identifications");
+        Policy(policy =>
+        {
+            policy.AddRequirements(
+                new AdminOwnerRequirement(
+                    aggregatedRootName: nameof(UserProfile),
+                    resourceIdParameterName: "id",
+                    valueFetchFrom: ValueFetchFrom.Route
+                )
+            );
+        });
         Summary(s =>
         {
             s.Summary = "Add identification";
@@ -36,12 +43,9 @@ public class AddIdentificationEndpoint
         });
     }
 
-    public override async Task HandleAsync(
-        (Guid Id, IdentificationRequest Request) ctx,
-        CancellationToken ct
-    )
+    public override async Task HandleAsync(AddIdentificationRequest req, CancellationToken ct)
     {
-        var (id, req) = ctx;
+        var id = Route<Guid>("id");
 
         var profile = await _userProfileService.GetByIdAsync(id);
 
@@ -51,7 +55,7 @@ public class AddIdentificationEndpoint
             return;
         }
 
-        var identification = Map.ToEntity(req);
+        var identification = Map.ToEntity(req.Identification);
 
         var added = await _userProfileService.AddIdentificationAsync(id, identification);
 
@@ -65,6 +69,6 @@ public class AddIdentificationEndpoint
         }
 
         Response = Map.FromEntity(added);
-        await HttpContext.Response.SendAsync(Response, 201);
+        await HttpContext.Response.SendAsync(Response, 201, cancellation: ct);
     }
 }

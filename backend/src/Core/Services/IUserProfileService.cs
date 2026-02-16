@@ -60,6 +60,15 @@ public interface IUserProfileService
     /// </summary>
     Task<bool> RemoveEmergencyContactAsync(Guid profileId, Guid emergencyContactId);
 
+    /// <summary>
+    /// Updates an emergency contact in the profile.
+    /// </summary>
+    Task<EmergencyContact?> UpdateEmergencyContactAsync(
+        Guid profileId,
+        Guid emergencyContactId,
+        EmergencyContact emergencyContact
+    );
+
     // ========== Addresses ==========
 
     /// <summary>
@@ -76,6 +85,15 @@ public interface IUserProfileService
     /// Removes an address from the profile.
     /// </summary>
     Task<bool> RemoveAddressAsync(Guid profileId, Guid addressId);
+
+    /// <summary>
+    /// Updates an address in the profile.
+    /// </summary>
+    Task<Address?> UpdateAddressAsync(
+        Guid profileId,
+        Guid addressId,
+        Address address
+    );
 
     // ========== Identifications ==========
 
@@ -94,6 +112,15 @@ public interface IUserProfileService
     /// </summary>
     Task<bool> RemoveIdentificationAsync(Guid profileId, Guid identificationId);
 
+    /// <summary>
+    /// Updates an identification in the profile.
+    /// </summary>
+    Task<Identification?> UpdateIdentificationAsync(
+        Guid profileId,
+        Guid identificationId,
+        Identification identification
+    );
+
     // ========== Consents ==========
 
     /// <summary>
@@ -110,4 +137,13 @@ public interface IUserProfileService
     /// Removes a consent from the profile.
     /// </summary>
     Task<bool> RemoveConsentAsync(Guid profileId, Guid consentId);
+
+    /// <summary>
+    /// Updates a consent in the profile.
+    /// </summary>
+    Task<Consent?> UpdateConsentAsync(
+        Guid profileId,
+        Guid consentId,
+        Consent consent
+    );
 }

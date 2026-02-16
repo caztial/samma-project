@@ -17,7 +17,7 @@ public class LoginEndpoint : Endpoint<LoginRequest, LoginResponse>
 
     public override void Configure()
     {
-        Post("/api/auth/login");
+        Post("/auth/login");
         AllowAnonymous();
         Summary(s =>
         {
@@ -44,6 +44,7 @@ public class LoginEndpoint : Endpoint<LoginRequest, LoginResponse>
         {
             UserId = user.Id,
             Email = user.Email ?? string.Empty,
+            ProfileId = userProfile?.Id.ToString() ?? string.Empty,
             FirstName = userProfile?.FirstName ?? string.Empty,
             LastName = userProfile?.LastName ?? string.Empty,
             Token = token

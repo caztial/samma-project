@@ -1,3 +1,7 @@
+using API.DTOs.UserProfile;
+using Core.Authorization;
+using Core.Entities.UserProfiles;
+using Core.Enums;
 using Core.Services;
 using FastEndpoints;
 
@@ -6,7 +10,7 @@ namespace API.Endpoints.UserProfile;
 /// <summary>
 /// Endpoint to remove a consent from a profile.
 /// </summary>
-public class RemoveConsentEndpoint : Endpoint<(Guid Id, Guid ConsentId)>
+public class RemoveConsentEndpoint : EndpointWithoutRequest
 {
     private readonly IUserProfileService _userProfileService;
 
@@ -17,9 +21,17 @@ public class RemoveConsentEndpoint : Endpoint<(Guid Id, Guid ConsentId)>
 
     public override void Configure()
     {
-        Delete("/api/profile/{id}/consents/{consentId}");
-        Roles("Admin", "Moderator");
-        Policies("ProfileOwner");
+        Delete("/profile/{id}/consents/{consentId}");
+        Policy(policy =>
+        {
+            policy.AddRequirements(
+                new AdminOwnerRequirement(
+                    aggregatedRootName: nameof(UserProfile),
+                    resourceIdParameterName: "id",
+                    valueFetchFrom: ValueFetchFrom.Route
+                )
+            );
+        });
         Summary(s =>
         {
             s.Summary = "Remove consent";
@@ -28,9 +40,10 @@ public class RemoveConsentEndpoint : Endpoint<(Guid Id, Guid ConsentId)>
         });
     }
 
-    public override async Task HandleAsync((Guid Id, Guid ConsentId) ctx, CancellationToken ct)
+    public override async Task HandleAsync(CancellationToken ct)
     {
-        var (id, consentId) = ctx;
+        var id = Route<Guid>("id");
+        var consentId = Route<Guid>("consentId");
 
         var profile = await _userProfileService.GetByIdAsync(id);
 

@@ -1,5 +1,8 @@
 using API.DTOs.UserProfile;
+using Core.Authorization;
+using Core.Entities.UserProfiles;
 using Core.Entities.ValueObjects;
+using Core.Enums;
 using Core.Services;
 using FastEndpoints;
 
@@ -8,7 +11,7 @@ namespace API.Endpoints.UserProfile;
 /// <summary>
 /// Endpoint to add a consent to a profile.
 /// </summary>
-public class AddConsentEndpoint : Endpoint<(Guid Id, ConsentRequest Request), ConsentResponse>
+public class AddConsentEndpoint : Endpoint<AddConsentRequest, ConsentResponse>
 {
     private readonly IUserProfileService _userProfileService;
 
@@ -19,9 +22,17 @@ public class AddConsentEndpoint : Endpoint<(Guid Id, ConsentRequest Request), Co
 
     public override void Configure()
     {
-        Post("/api/profile/{id}/consents");
-        Roles("Admin", "Moderator");
-        Policies("ProfileOwner");
+        Post("/profile/{id}/consents");
+        Policy(policy =>
+        {
+            policy.AddRequirements(
+                new AdminOwnerRequirement(
+                    aggregatedRootName: nameof(UserProfile),
+                    resourceIdParameterName: "id",
+                    valueFetchFrom: ValueFetchFrom.Route
+                )
+            );
+        });
         Summary(s =>
         {
             s.Summary = "Add consent";
@@ -29,12 +40,9 @@ public class AddConsentEndpoint : Endpoint<(Guid Id, ConsentRequest Request), Co
         });
     }
 
-    public override async Task HandleAsync(
-        (Guid Id, ConsentRequest Request) ctx,
-        CancellationToken ct
-    )
+    public override async Task HandleAsync(AddConsentRequest req, CancellationToken ct)
     {
-        var (id, req) = ctx;
+        var id = Route<Guid>("id");
 
         var profile = await _userProfileService.GetByIdAsync(id);
 
@@ -48,7 +56,12 @@ public class AddConsentEndpoint : Endpoint<(Guid Id, ConsentRequest Request), Co
         var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
 
         // Create consent directly since it needs IP address at creation time
-        var consent = new Consent(req.TermId, req.TermLink, req.TermsVersion, ipAddress);
+        var consent = new Consent(
+            req.Consent.TermId,
+            req.Consent.TermLink,
+            req.Consent.TermsVersion,
+            ipAddress
+        );
 
         var added = await _userProfileService.AddConsentAsync(id, consent);
 
@@ -68,6 +81,6 @@ public class AddConsentEndpoint : Endpoint<(Guid Id, ConsentRequest Request), Co
             IpAddress = added.IpAddress
         };
 
-        await HttpContext.Response.SendAsync(response, 201);
+        await HttpContext.Response.SendAsync(response, 201, cancellation: ct);
     }
 }

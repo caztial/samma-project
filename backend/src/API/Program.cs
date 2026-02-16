@@ -1,6 +1,7 @@
 using API.Hubs;
 using API.Security;
 using Core.Entities;
+using Core.Entities.UserProfiles;
 using Core.Repositories;
 using Core.Services;
 using FastEndpoints;
@@ -11,6 +12,7 @@ using Infrastructure.Data;
 using Infrastructure.PostgreSQL.Repositories;
 using Infrastructure.Services;
 using MassTransit;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -47,7 +49,7 @@ builder.Services.AddScoped<IEncryptionService, EncryptionService>();
 builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseNpgsql(connectionString));
 
 builder
-    .Services.AddIdentity<Core.Entities.ApplicationUser, IdentityRole>(options =>
+    .Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
     {
         options.Password.RequireDigit = true;
         options.Password.RequireLowercase = true;
@@ -56,32 +58,36 @@ builder
         options.Password.RequiredLength = 8;
         options.User.RequireUniqueEmail = true;
     })
-    .AddEntityFrameworkStores<ApplicationDbContext>()
-    .AddDefaultTokenProviders();
+    .AddEntityFrameworkStores<ApplicationDbContext>();
 
 // ============================================
 // JWT AUTHENTICATION (FastEndpoints.Security)
 // ============================================
-builder
-    .Services.AddAuthenticationJwtBearer(s => s.SigningKey = jwtOptions.SigningKey)
-    .AddAuthorization()
-    .AddFastEndpoints();
 
-// ============================================
-// AUTHORIZATION POLICIES
-// ============================================
-// Register HTTP Context Accessor for authorization handler
-builder.Services.AddHttpContextAccessor();
-
-// Register the profile owner authorization handler
-builder.Services.AddScoped<IAuthorizationHandler, ProfileOwnerAuthorizationHandler>();
-
-// Add authorization policies
-builder.Services.AddAuthorization(options =>
+builder.Services.AddAuthenticationJwtBearer(s =>
 {
-    options.AddPolicy("ProfileOwner", policy =>
-        policy.Requirements.Add(new ProfileOwnerRequirement()));
+    s.SigningKey = jwtOptions.SigningKey;
 });
+
+// Add authorization services
+builder.Services.AddAuthorization();
+
+// Configure default schemes to JWT Bearer
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+});
+builder.Services.AddFastEndpoints();
+
+// Register the AdminOwnerAuthorizationHandler
+builder.Services.AddScoped<IAuthorizationHandler, AdminOwnerAuthorizationHandler>();
+
+// Register resource owner authorization implementations as keyed services
+// Key = AggregatedRootName (e.g., "UserProfile")
+builder.Services.AddKeyedScoped<IResourceOwnerAuthorization, ProfileResourceOwnerAuthorization>(
+    nameof(UserProfile)
+);
 
 // ============================================
 // MASS TRANSIT
@@ -109,7 +115,6 @@ builder.Services.AddScoped<IUserProfileService, UserProfileService>();
 // ============================================
 // FAST ENDPOINTS
 // ============================================
-builder.Services.AddFastEndpoints();
 builder.Services.SwaggerDocument(o =>
 {
     o.DocumentSettings = s =>

@@ -106,6 +106,34 @@ public class UserProfileRepository : IUserProfileRepository
         return true;
     }
 
+    public async Task<EmergencyContact?> UpdateEmergencyContactAsync(
+        Guid profileId,
+        Guid emergencyContactId,
+        EmergencyContact emergencyContact
+    )
+    {
+        var profile = await _context
+            .UserProfiles.Include(up => up.EmergencyContacts)
+            .FirstOrDefaultAsync(up => up.Id == profileId);
+
+        if (profile == null)
+            return null;
+
+        var existing = profile.EmergencyContacts.FirstOrDefault(ec => ec.Id == emergencyContactId);
+        if (existing == null)
+            return null;
+
+        // Update the existing entity
+        existing.Name = emergencyContact.Name;
+        existing.ContactNumber = emergencyContact.ContactNumber;
+        existing.Relationship = emergencyContact.Relationship;
+        existing.Email = emergencyContact.Email;
+
+        profile.UpdatedAt = DateTime.UtcNow;
+        await _context.SaveChangesAsync();
+        return existing;
+    }
+
     // ========== Addresses ==========
 
     public async Task<Address?> AddAddressAsync(Guid profileId, Address address)
@@ -143,6 +171,36 @@ public class UserProfileRepository : IUserProfileRepository
 
         await _context.SaveChangesAsync();
         return true;
+    }
+
+    public async Task<Address?> UpdateAddressAsync(
+        Guid profileId,
+        Guid addressId,
+        Address address
+    )
+    {
+        var profile = await _context
+            .UserProfiles.Include(up => up.Addresses)
+            .FirstOrDefaultAsync(up => up.Id == profileId);
+
+        if (profile == null)
+            return null;
+
+        var existing = profile.Addresses.FirstOrDefault(a => a.Id == addressId);
+        if (existing == null)
+            return null;
+
+        // Update the existing entity
+        existing.Line1 = address.Line1;
+        existing.Line2 = address.Line2;
+        existing.Suburb = address.Suburb;
+        existing.StateProvince = address.StateProvince;
+        existing.Country = address.Country;
+        existing.Postcode = address.Postcode;
+
+        profile.UpdatedAt = DateTime.UtcNow;
+        await _context.SaveChangesAsync();
+        return existing;
     }
 
     // ========== Identifications ==========
@@ -187,6 +245,32 @@ public class UserProfileRepository : IUserProfileRepository
         return true;
     }
 
+    public async Task<Identification?> UpdateIdentificationAsync(
+        Guid profileId,
+        Guid identificationId,
+        Identification identification
+    )
+    {
+        var profile = await _context
+            .UserProfiles.Include(up => up.Identifications)
+            .FirstOrDefaultAsync(up => up.Id == profileId);
+
+        if (profile == null)
+            return null;
+
+        var existing = profile.Identifications.FirstOrDefault(i => i.Id == identificationId);
+        if (existing == null)
+            return null;
+
+        // Update the existing entity
+        existing.CIN = identification.CIN;
+        existing.PassportNumber = identification.PassportNumber;
+
+        profile.UpdatedAt = DateTime.UtcNow;
+        await _context.SaveChangesAsync();
+        return existing;
+    }
+
     // ========== Consents ==========
 
     public async Task<Consent?> AddConsentAsync(Guid profileId, Consent consent)
@@ -224,5 +308,33 @@ public class UserProfileRepository : IUserProfileRepository
 
         await _context.SaveChangesAsync();
         return true;
+    }
+
+    public async Task<Consent?> UpdateConsentAsync(
+        Guid profileId,
+        Guid consentId,
+        Consent consent
+    )
+    {
+        var profile = await _context
+            .UserProfiles.Include(up => up.Consents)
+            .FirstOrDefaultAsync(up => up.Id == profileId);
+
+        if (profile == null)
+            return null;
+
+        var existing = profile.Consents.FirstOrDefault(c => c.Id == consentId);
+        if (existing == null)
+            return null;
+
+        // Update the existing entity (only updatable fields)
+        existing.TermId = consent.TermId;
+        existing.TermLink = consent.TermLink;
+        existing.TermsVersion = consent.TermsVersion;
+        // Note: AcceptedAt and IpAddress are typically not updated after creation
+
+        profile.UpdatedAt = DateTime.UtcNow;
+        await _context.SaveChangesAsync();
+        return existing;
     }
 }
