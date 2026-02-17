@@ -28,6 +28,9 @@
     <!-- Data Protection for PII encryption -->
     <PackageVersion Include="Microsoft.AspNetCore.DataProtection" Version="10.0.0" />
     
+    <!-- Configuration -->
+    <PackageVersion Include="Microsoft.Extensions.Configuration.Abstractions" Version="10.0.1" />
+    
     <!-- Validation -->
     <PackageVersion Include="FluentValidation.AspNetCore" Version="11.3.0" />
     

@@ -1,7 +1,7 @@
 namespace Core.Services;
 
 /// <summary>
-/// Interface for encryption/decryption service using AES via IDataProtector.
+/// Interface for encryption/decryption service using AES.
 /// </summary>
 public interface IEncryptionService
 {

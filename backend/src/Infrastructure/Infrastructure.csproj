@@ -20,6 +20,9 @@
     
     <!-- FastEndpoints Security for JWT -->
     <PackageReference Include="FastEndpoints.Security" />
+    
+    <!-- Configuration -->
+    <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" />
   </ItemGroup>
 
   <ItemGroup>
