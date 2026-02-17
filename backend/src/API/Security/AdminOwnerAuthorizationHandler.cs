@@ -51,7 +51,7 @@ public class AdminOwnerAuthorizationHandler : AuthorizationHandler<AdminOwnerReq
 
         // Get the resource ID based on ValueFetchFrom
         var resourceId = GetResourceId(httpContext, requirement);
-        if (!resourceId.HasValue)
+        if (!resourceId.HasValue && !requirement.ValueNullable)
         {
             _logger.LogWarning(
                 "Resource ID not found for parameter: {ParameterName} from {Source}",
@@ -59,6 +59,16 @@ public class AdminOwnerAuthorizationHandler : AuthorizationHandler<AdminOwnerReq
                 requirement.ValueFetchFrom
             );
             context.Fail();
+            return;
+        }
+        else if (!resourceId.HasValue && requirement.ValueNullable)
+        {
+            _logger.LogInformation(
+                "Resource ID is null but ValueNullable is true for parameter: {ParameterName} from {Source}",
+                requirement.ResourceIdParameterName,
+                requirement.ValueFetchFrom
+            );
+            context.Succeed(requirement);
             return;
         }
 
@@ -81,7 +91,7 @@ public class AdminOwnerAuthorizationHandler : AuthorizationHandler<AdminOwnerReq
 
         // Check ownership
         var claims = context.User;
-        var isAuthorized = await authorization.IsOwnerAsync(resourceId.Value, claims);
+        var isAuthorized = await authorization.IsOwnerAsync(resourceId!.Value, claims);
 
         if (isAuthorized)
         {

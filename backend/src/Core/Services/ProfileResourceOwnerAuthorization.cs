@@ -1,5 +1,4 @@
 using System.Security.Claims;
-using Core.Entities.UserProfiles;
 using Core.Enums;
 
 namespace Core.Services;

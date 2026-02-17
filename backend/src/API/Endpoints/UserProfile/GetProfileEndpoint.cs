@@ -23,14 +23,15 @@ public class GetProfileEndpoint
 
     public override void Configure()
     {
-        Get("/profile/{id}");
+        Get("/profile/{id?}");
         Policy(policy =>
         {
             policy.AddRequirements(
                 new AdminOwnerRequirement(
                     aggregatedRootName: nameof(UserProfile),
                     resourceIdParameterName: "id",
-                    valueFetchFrom: ValueFetchFrom.Route
+                    valueFetchFrom: ValueFetchFrom.Route,
+                    valueNullable: true
                 )
             );
         });
@@ -38,15 +39,54 @@ public class GetProfileEndpoint
         {
             s.Summary = "Get user profile";
             s.Description =
-                "Retrieves a user profile by ID including all collections. Owner, Admin, or Moderator can access.";
+                "Retrieves a user profile by ID including all collections. Owner, Admin, or Moderator can access. If ID is not provided, returns the current user's profile.";
         });
     }
 
     public override async Task HandleAsync(GetProfileEndpointRequest request, CancellationToken ct)
     {
-        var profile = await _userProfileService.GetByIdAsync(request.Id);
+        Guid profileId;
 
-        if (profile == null)
+        // If ID is provided in route, use it; otherwise fetch from claims
+        if (request.Id.HasValue)
+        {
+            profileId = request.Id.Value;
+        }
+        else
+        {
+            // Get UserId from claims using FromClaim and fetch ProfileId
+            var userId = request.UserId;
+
+            if (string.IsNullOrEmpty(userId))
+            {
+                await HttpContext.Response.SendAsync(
+                    new
+                    {
+                        error = "Unable to identify user. Please provide a profile ID or ensure you are authenticated."
+                    },
+                    401,
+                    cancellation: ct
+                );
+                return;
+            }
+
+            var profile = await _userProfileService.GetByUserIdAsync(userId);
+            if (profile == null)
+            {
+                await HttpContext.Response.SendAsync(
+                    new { error = "Profile not found" },
+                    404,
+                    cancellation: ct
+                );
+                return;
+            }
+
+            profileId = profile.Id;
+        }
+
+        var profileById = await _userProfileService.GetByIdAsync(profileId);
+
+        if (profileById == null)
         {
             await HttpContext.Response.SendAsync(
                 new { error = "Profile not found" },
@@ -57,12 +97,18 @@ public class GetProfileEndpoint
         }
 
         // Use mapper to convert entity to response (includes all collections)
-        Response = Map.FromEntity(profile);
+        Response = Map.FromEntity(profileById);
         await HttpContext.Response.SendAsync(Response, 200, cancellation: ct);
     }
 }
 
 public class GetProfileEndpointRequest
 {
-    public Guid Id { get; set; }
+    /// <summary>
+    /// User ID from JWT claims. Used when profile ID is not provided in route.
+    /// </summary>
+    [FromClaim("UserId")]
+    public string? UserId { get; set; }
+
+    public Guid? Id { get; set; }
 }

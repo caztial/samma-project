@@ -1,7 +1,6 @@
 using API.DTOs.UserProfile;
 using API.Mappers;
 using Core.Authorization;
-using Core.Entities.UserProfiles;
 using Core.Entities.ValueObjects;
 using Core.Enums;
 using Core.Services;
@@ -23,28 +22,66 @@ public class UpdateProfileEndpoint : Endpoint<UpdateProfileRequest, ProfileRespo
 
     public override void Configure()
     {
-        Put("/profile/{id}");
+        Put("/profile/{id?}");
         Policy(policy =>
         {
             policy.AddRequirements(
                 new AdminOwnerRequirement(
                     aggregatedRootName: nameof(UserProfile),
                     resourceIdParameterName: "id",
-                    valueFetchFrom: ValueFetchFrom.Route
+                    valueFetchFrom: ValueFetchFrom.Route,
+                    valueNullable: true
                 )
             );
         });
         Summary(s =>
         {
             s.Summary = "Update user profile";
-            s.Description = "Updates a user profile. Owner, Admin, or Moderator can update.";
+            s.Description =
+                "Updates a user profile. Owner, Admin, or Moderator can update. If ID is not provided, updates the current user's profile.";
         });
     }
 
     public override async Task HandleAsync(UpdateProfileRequest req, CancellationToken ct)
     {
-        // Get profile ID from route
-        var profileId = Route<Guid>("id");
+        Guid profileId;
+
+        // Get profile ID from route, otherwise derive from claims
+        if (Route<Guid?>("id").HasValue)
+        {
+            profileId = Route<Guid>("id");
+        }
+        else
+        {
+            // Get UserId from claims using FromClaim and fetch ProfileId
+            var userId = req.UserId;
+
+            if (string.IsNullOrEmpty(userId))
+            {
+                await HttpContext.Response.SendAsync(
+                    new
+                    {
+                        error = "Unable to identify user. Please provide a profile ID or ensure you are authenticated."
+                    },
+                    401,
+                    cancellation: ct
+                );
+                return;
+            }
+
+            var profileByUserId = await _userProfileService.GetByUserIdAsync(userId);
+            if (profileByUserId == null)
+            {
+                await HttpContext.Response.SendAsync(
+                    new { error = "Profile not found" },
+                    404,
+                    cancellation: ct
+                );
+                return;
+            }
+
+            profileId = profileByUserId.Id;
+        }
 
         var profile = await _userProfileService.GetByIdAsync(profileId);
 
@@ -54,14 +91,25 @@ public class UpdateProfileEndpoint : Endpoint<UpdateProfileRequest, ProfileRespo
             return;
         }
 
-        // Convert Contact DTO to ValueObject
-        Contact? contact = null;
-        if (req.Contact != null)
+        // Parse Gender string to enum
+        Gender? gender = null;
+        if (!string.IsNullOrEmpty(req.Gender))
         {
-            contact = new Contact(
-                req.Contact.ContactNumber ?? string.Empty,
-                req.Contact.Email ?? string.Empty
-            );
+            gender = Enum.Parse<Gender>(req.Gender, ignoreCase: true);
+        }
+
+        // Parse DateOfBirth string to DateOnly
+        DateOnly? dateOfBirth = null;
+        if (!string.IsNullOrEmpty(req.DateOfBirth))
+        {
+            dateOfBirth = DateOnly.Parse(req.DateOfBirth);
+        }
+
+        // Convert flattened contact fields to ValueObject
+        Contact? contact = null;
+        if (!string.IsNullOrEmpty(req.ContactNumber) || !string.IsNullOrEmpty(req.Email))
+        {
+            contact = new Contact(req.ContactNumber ?? string.Empty, req.Email ?? string.Empty);
         }
 
         // Update profile
@@ -70,8 +118,8 @@ public class UpdateProfileEndpoint : Endpoint<UpdateProfileRequest, ProfileRespo
             req.FirstName,
             req.LastName,
             req.ProfileImageUrl,
-            req.Gender,
-            req.DateOfBirth,
+            gender,
+            dateOfBirth,
             contact
         );
 

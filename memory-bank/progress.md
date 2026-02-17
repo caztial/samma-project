@@ -44,12 +44,19 @@
 - ✅ Collection responses
 
 ### API Layer - Mappers
-- ✅ ProfileMapper - Maps full aggregate to ProfileResponse
+- ✅ ProfileMapper - Maps full aggregate to ProfileResponse (updated for flattened fields)
 - ✅ EmergencyContactMapper - Maps to/from EmergencyContact
 - ✅ AddressMapper - Maps to/from Address
 - ✅ IdentificationMapper - Maps to/from Identification
 - ✅ ConsentMapper - Maps to/from Consent
 - ✅ BiometricsMapper
+
+### API Layer - Validators
+- ✅ UpdateProfileRequestValidator - FluentValidation for UpdateProfileRequest
+  - FirstName: Required, min 3 chars
+  - Gender: Required, valid enum values
+  - DateOfBirth: Required, valid date format
+  - Email: Optional, built-in .EmailAddress() validator
 
 ### API Layer - Endpoints
 All endpoints use:
@@ -88,6 +95,12 @@ All endpoints use:
 ### Events
 - ✅ UserCreatedEvent - Published on user registration
 - ✅ UserCreatedEventConsumer - Creates UserProfile on user creation
+
+### Key Patterns Used
+- ✅ `[FromClaim]` attribute for JWT claim binding in FastEndpoints
+- ✅ Optional route parameters with fallback to claims
+- ✅ Flattened DTOs for simpler JSON payloads
+- ✅ FluentValidation with built-in validators and custom rules
 
 ## What's Left
 - ❌ Frontend integration with these endpoints

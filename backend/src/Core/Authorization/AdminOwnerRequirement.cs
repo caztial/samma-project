@@ -24,6 +24,8 @@ public class AdminOwnerRequirement : IAuthorizationRequirement
     /// </summary>
     public ValueFetchFrom ValueFetchFrom { get; }
 
+    public bool ValueNullable { get; } = false;
+
     /// <summary>
     /// Creates a new AdminOwnerRequirement.
     /// </summary>
@@ -39,5 +41,18 @@ public class AdminOwnerRequirement : IAuthorizationRequirement
         AggregatedRootName = aggregatedRootName;
         ResourceIdParameterName = resourceIdParameterName;
         ValueFetchFrom = valueFetchFrom;
+    }
+
+    public AdminOwnerRequirement(
+        string aggregatedRootName,
+        string resourceIdParameterName,
+        ValueFetchFrom valueFetchFrom,
+        bool valueNullable
+    )
+    {
+        AggregatedRootName = aggregatedRootName;
+        ResourceIdParameterName = resourceIdParameterName;
+        ValueFetchFrom = valueFetchFrom;
+        ValueNullable = valueNullable;
     }
 }

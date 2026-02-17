@@ -13,20 +13,34 @@ public class ProfileMapper : Mapper<UpdateProfileRequest, ProfileResponse, UserP
 {
     public override UserProfile ToEntity(UpdateProfileRequest r)
     {
+        // Parse Gender string to enum
+        Gender? gender = null;
+        if (!string.IsNullOrEmpty(r.Gender))
+        {
+            gender = Enum.Parse<Gender>(r.Gender, ignoreCase: true);
+        }
+
+        // Parse DateOfBirth string to DateOnly
+        DateOnly? dateOfBirth = null;
+        if (!string.IsNullOrEmpty(r.DateOfBirth))
+        {
+            dateOfBirth = DateOnly.Parse(r.DateOfBirth);
+        }
+
         var profile = new UserProfile
         {
             FirstName = r.FirstName ?? string.Empty,
             LastName = r.LastName ?? string.Empty,
             ProfileImageUrl = r.ProfileImageUrl,
-            Gender = r.Gender,
-            DateOfBirth = r.DateOfBirth
+            Gender = gender,
+            DateOfBirth = dateOfBirth
         };
 
-        if (r.Contact != null)
+        if (!string.IsNullOrEmpty(r.ContactNumber) || !string.IsNullOrEmpty(r.Email))
         {
             profile.Contact = new Contact(
-                r.Contact.ContactNumber ?? string.Empty,
-                r.Contact.Email ?? string.Empty
+                r.ContactNumber ?? string.Empty,
+                r.Email ?? string.Empty
             );
         }
 

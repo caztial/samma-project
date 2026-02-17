@@ -1,10 +1,22 @@
 # Active Context
 
-## Current Phase: UserProfile API Complete ✅
+## Current Phase: UserProfile API Enhanced ✅
 
-The UserProfile API with authorization has been completed. All CRUD endpoints are now operational with role-based and owner-based authorization.
+The UserProfile API has been enhanced with improved claim-based authorization and validation.
 
-## Recent Changes (Feb 17, 2026)
+## Recent Changes (Feb 18, 2026)
+
+### Enhancement: GetProfileEndpoint & UpdateProfileEndpoint
+- Added `[FromClaim("sub")]` attribute to request DTOs for automatic JWT claim binding
+- Made route ID optional - falls back to deriving ProfileId from UserId in claims
+- Route ID takes precedence over claims when both are provided
+- Updated validation documentation in FASTENDPOINTS_GUIDE.md
+
+### Enhancement: UpdateProfileRequest Validation
+- Flattened ContactNumber and Email to top-level fields
+- Added UpdateProfileRequestValidator with FluentValidation
+- Uses built-in `.EmailAddress()` validator
+- Added validation examples for string-to-enum and date parsing
 
 ### Commit: 8b18adb - refactor encryption service
 - Refactored IEncryptionService interface
@@ -17,28 +29,6 @@ The UserProfile API with authorization has been completed. All CRUD endpoints ar
 - New AdminOwnerAuthorizationHandler (replaced ProfileOwnerAuthorizationHandler)
 - New ApplicationRoles enum (Participant, Moderator, Admin)
 - New ValueFetchFrom enum for PII retrieval
-- New IUserProfileService and UserProfileService
-- Updated all UserProfile endpoints with proper authorization
-- Added UserProfileRepository implementation
-
-### Commit: 2f4b614 - Add REST endpoints for UserProfile
-- Created all CRUD endpoints for UserProfile
-- New ProfileOwnerAuthorizationHandler
-- New UserProfileMappers (196 lines)
-- New IUserProfileService and UserProfileService
-
-### Commit: d51dbd2 - add UserCreatedEventHandler and PII data
-- Updated UserCreatedEventConsumer
-- Updated ApplicationDbContext
-- New EncryptionConverter for PII
-- Added event flow documentation
-
-### Commit: bc105dc - Add UserProfile AggregatedRoot
-- New IAggregatedRoot interface
-- New UserProfile entity with all Value Objects
-- New EncryptAttribute for PII
-- New IEncryptionService with ASP.NET DataProtection
-- New EncryptionConverter for EF Core
 
 ## Running Services
 - API: http://localhost:8080 (Docker)
@@ -50,16 +40,17 @@ The UserProfile API with authorization has been completed. All CRUD endpoints ar
 - **AdminOwnerRequirement**: Admins can access all profiles, owners can access their own
 - **Roles**: Participant, Moderator, Admin
 - **ValueFetchFrom**: Determines where to fetch PII (Database vs JWT)
+- **[FromClaim]**: FastEndpoints attribute for automatic JWT claim binding
 
-### Encryption Architecture
-- IDataProtectionProvider for AES-256 encryption
-- ValueConverter for automatic encrypt/decrypt
-- EncryptAttribute marks PII fields
+### Endpoint Pattern
+- Use `[FromClaim("sub")]` on request DTO properties to bind UserId from JWT
+- Route ID takes precedence: route → claims → error
+- Flattened DTOs for simpler JSON payloads
 
-### Endpoint Authorization
-- Role-based: `Roles("Admin", "Moderator")`
-- Policy-based: `Policies("ProfileOwner")`
-- Owner check via AdminOwnerAuthorizationHandler
+### Validation
+- FastEndpoints validators inherit from `Validator<TRequest>`
+- Use built-in FluentValidation rules where possible (e.g., `.EmailAddress()`)
+- Custom validators for string-to-enum and date parsing
 
 ## Project Structure
 ```
@@ -67,15 +58,16 @@ backend/src/
 ├── API/
 │   ├── Endpoints/UserProfile/   # 15+ endpoints
 │   ├── DTOs/UserProfile/       # Request/Response DTOs
-│   ├── Security/               # AdminOwnerAuthorizationHandler
-│   └── Mappers/                # UserProfileMappers
+│   ├── Validators/              # FluentValidation validators
+│   ├── Security/                # AdminOwnerAuthorizationHandler
+│   └── Mappers/                 # UserProfileMappers
 ├── Core/
-│   ├── Entities/UserProfiles/  # UserProfile aggregate
+│   ├── Entities/UserProfiles/   # UserProfile aggregate
 │   ├── Entities/ValueObjects/  # Contact, Address, etc.
 │   ├── Services/               # IUserProfileService, IEncryptionService
 │   └── Authorization/          # AdminOwnerRequirement
 └── Infrastructure/
-    ├── Services/               # EncryptionService, AuthService
+    ├── Services/                # EncryptionService, AuthService
     └── PostgreSQL/             # UserProfileRepository
 ```
 

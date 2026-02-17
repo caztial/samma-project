@@ -443,3 +443,136 @@ public static async Task SeedAsync(
   }
 }
 ```
+
+## FastEndpoints Claim Binding Pattern
+
+### FromClaim Attribute
+Use `[FromClaim]` to automatically bind properties from JWT claims:
+
+```csharp
+public class UpdateProfileRequest
+{
+    /// <summary>
+    /// User ID from JWT claims. Used when profile ID is not provided in route.
+    /// </summary>
+    [FromClaim("sub")]
+    public string? UserId { get; set; }
+
+    public string? FirstName { get; set; }
+    public string? LastName { get; set; }
+    // ...
+}
+```
+
+### Optional Route Parameters with Claim Fallback
+When route ID is optional, derive ProfileId from UserId in claims:
+
+```csharp
+public override async Task HandleAsync(UpdateProfileRequest request, CancellationToken ct)
+{
+    Guid profileId;
+
+    // Route ID takes precedence over claims
+    if (request.Id.HasValue)
+    {
+        profileId = request.Id.Value;
+    }
+    else
+    {
+        // Derive from UserId in JWT claims
+        var userId = request.UserId;
+        
+        if (string.IsNullOrEmpty(userId))
+        {
+            await HttpContext.Response.SendAsync(
+                new { error = "Unable to identify user" },
+                401,
+                cancellation: ct
+            );
+            return;
+        }
+
+        var profile = await _userProfileService.GetByUserIdAsync(userId);
+        profileId = profile.Id;
+    }
+
+    // ... rest of handler
+}
+```
+
+## FastEndpoints Validation Pattern
+
+### Validator Base Class
+Validators inherit from `Validator<TRequest>`:
+
+```csharp
+using FastEndpoints;
+using FluentValidation;
+
+public class UpdateProfileRequestValidator : Validator<UpdateProfileRequest>
+{
+    public UpdateProfileRequestValidator()
+    {
+        RuleFor(x => x.FirstName)
+            .NotEmpty()
+            .WithMessage("First name is required")
+            .MinimumLength(3)
+            .WithMessage("First name must be at least 3 characters");
+
+        RuleFor(x => x.Gender)
+            .NotEmpty()
+            .WithMessage("Gender is required")
+            .Must(BeAValidGender)
+            .WithMessage("Gender must be one of: Male, Female, Other, PreferNotToSay");
+
+        RuleFor(x => x.DateOfBirth)
+            .NotEmpty()
+            .WithMessage("Date of birth is required")
+            .Must(BeAValidDate)
+            .WithMessage("Date of birth must be a valid date");
+
+        // Use built-in validator for email
+        RuleFor(x => x.Email)
+            .EmailAddress()
+            .When(x => !string.IsNullOrEmpty(x.Email))
+            .WithMessage("Invalid email format");
+    }
+
+    private bool BeAValidGender(string? gender)
+    {
+        if (string.IsNullOrEmpty(gender))
+            return false;
+
+        var validGenders = new[] { "Male", "Female", "Other", "PreferNotToSay" };
+        return validGenders.Contains(gender, StringComparer.OrdinalIgnoreCase);
+    }
+
+    private bool BeAValidDate(string? dateStr)
+    {
+        if (string.IsNullOrEmpty(dateStr))
+            return false;
+
+        return DateOnly.TryParse(dateStr, out _);
+    }
+}
+```
+
+### Flattened DTOs
+For simpler JSON payloads, flatten nested objects:
+
+```csharp
+// Before: Nested Contact object
+public class UpdateProfileRequest
+{
+    public string? FirstName { get; set; }
+    public ContactDto? Contact { get; set; }
+}
+
+// After: Flattened fields
+public class UpdateProfileRequest
+{
+    public string? FirstName { get; set; }
+    public string? ContactNumber { get; set; }
+    public string? Email { get; set; }
+}
+```
