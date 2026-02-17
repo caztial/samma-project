@@ -1,140 +1,86 @@
 # Active Context
 
-## Current Phase: UserProfile DDD Implementation Complete ✅
+## Current Phase: UserProfile API Complete ✅
 
-The UserProfile Aggregated Root with PII encryption has been successfully implemented, moving user profile data to a separate domain entity with automatic encryption.
+The UserProfile API with authorization has been completed. All CRUD endpoints are now operational with role-based and owner-based authorization.
 
-## Completed
+## Recent Changes (Feb 17, 2026)
 
-### UserProfile Aggregate Root Implementation
-- ✅ IAggregatedRoot marker interface in Core
-- ✅ Gender enum (Male, Female, Other, PreferNotToSay)
-- ✅ IEncryptionService interface in Core
-- ✅ EncryptionService implementation using ASP.NET Core DataProtection (AES)
-- ✅ EF Core ValueConverter for automatic encrypt/decrypt on read/write
-- ✅ UserProfile aggregate root with:
-  - FirstName, LastName (encrypted PII)
-  - Gender, DateOfBirth
-  - Value Objects: Consent, Contact, EmergencyContact, Address, Identification, Biometrics
-- ✅ IUserProfileRepository interface
-- ✅ IUserProfileService interface and implementation
-- ✅ UserCreatedEventConsumer creates UserProfile on registration
+### Commit: 8b18adb - refactor encryption service
+- Refactored IEncryptionService interface
+- Updated appsettings configuration
+- Added Infrastructure project dependencies
+- Removed appsettings.Production.json
 
-### Login Endpoint Enhancement
-- ✅ LoginEndpoint now fetches UserProfile to return FirstName/LastName
+### Commit: 8705ea3 - Add Profile endpoints with Auth
+- Added Update endpoints for: Address, Consent, EmergencyContact, Identification
+- New AdminOwnerAuthorizationHandler (replaced ProfileOwnerAuthorizationHandler)
+- New ApplicationRoles enum (Participant, Moderator, Admin)
+- New ValueFetchFrom enum for PII retrieval
+- New IUserProfileService and UserProfileService
+- Updated all UserProfile endpoints with proper authorization
+- Added UserProfileRepository implementation
 
-### Configuration
-- ✅ appsettings.Development.json created with:
-  - ConnectionStrings
-  - DataProtection encryption key
-  - AdminUser credentials (encrypted password)
-- ✅ launch.json configured for VSCode debugging
-- ✅ tasks.json build task created
+### Commit: 2f4b614 - Add REST endpoints for UserProfile
+- Created all CRUD endpoints for UserProfile
+- New ProfileOwnerAuthorizationHandler
+- New UserProfileMappers (196 lines)
+- New IUserProfileService and UserProfileService
 
-### SeedData Enhancement
-- ✅ SeedData reads AdminUser from configuration
-- ✅ Decrypts password using IEncryptionService before creating admin user
+### Commit: d51dbd2 - add UserCreatedEventHandler and PII data
+- Updated UserCreatedEventConsumer
+- Updated ApplicationDbContext
+- New EncryptionConverter for PII
+- Added event flow documentation
+
+### Commit: bc105dc - Add UserProfile AggregatedRoot
+- New IAggregatedRoot interface
+- New UserProfile entity with all Value Objects
+- New EncryptAttribute for PII
+- New IEncryptionService with ASP.NET DataProtection
+- New EncryptionConverter for EF Core
 
 ## Running Services
 - API: http://localhost:8080 (Docker)
 - PostgreSQL: localhost:5432
 
-## Project Structure (Updated)
-```
-backend/
-├── src/
-│   ├── API/              # Web API + SignalR Hub + OpenAPI
-│   │   ├── Endpoints/
-│   │   │   └── Auth/
-│   │   │       ├── LoginEndpoint.cs
-│   │   │       └── RegisterEndpoint.cs
-│   │   ├── DTOs/
-│   │   └── Hubs/
-│   ├── Core/             # Domain entities and business logic
-│   │   ├── Entities/
-│   │   │   ├── UserProfiles/
-│   │   │   │   └── UserProfile.cs
-│   │   │   ├── ValueObjects/
-│   │   │   │   ├── Consent.cs
-│   │   │   │   ├── Contact.cs
-│   │   │   │   ├── EmergencyContact.cs
-│   │   │   │   ├── Address.cs
-│   │   │   │   ├── Identification.cs
-│   │   │   │   └── Biometrics.cs
-│   │   │   ├── IAggregatedRoot.cs
-│   │   │   ├── EncryptAttribute.cs
-│   │   │   └── BaseEntity.cs
-│   │   ├── Enums/
-│   │   │   └── Gender.cs
-│   │   ├── Services/
-│   │   │   ├── IAuthService.cs
-│   │   │   ├── IEncryptionService.cs
-│   │   │   ├── IUserProfileService.cs
-│   │   │   └── JwtOptions.cs
-│   │   └── Repositories/
-│   │       ├── IUserRepository.cs
-│   │       └── IUserProfileRepository.cs
-│   └── Infrastructure/   # Data access, external services
-│       ├── Services/
-│       │   ├── AuthService.cs
-│       │   └── EncryptionService.cs
-│       ├── Data/
-│       │   ├── ApplicationDbContext.cs
-│       │   ├── SeedData.cs
-│       │   └── Encryption/
-│       │       └── EncryptionConverter.cs
-│       └── PostgreSQL/
-│           └── Repositories/
-│               ├── UserRepository.cs
-│               └── UserProfileRepository.cs
-└── .vscode/
-    ├── launch.json
-    └── tasks.json
-```
-
 ## Current Decisions
 
+### Authorization Model
+- **AdminOwnerRequirement**: Admins can access all profiles, owners can access their own
+- **Roles**: Participant, Moderator, Admin
+- **ValueFetchFrom**: Determines where to fetch PII (Database vs JWT)
+
 ### Encryption Architecture
-- **IDataProtectionProvider** for AES-256 encryption
-- ValueConverter for automatic encrypt/decrypt in EF Core
-- EncryptAttribute for marking PII fields
-- Separate encryption key in appsettings.Development.json
+- IDataProtectionProvider for AES-256 encryption
+- ValueConverter for automatic encrypt/decrypt
+- EncryptAttribute marks PII fields
 
-### Value Object Relationships
-| Value Object | Relationship | PII |
-|--------------|-------------|-----|
-| Consent | 1:N | No |
-| EmergencyContact | 1:N | Yes (encrypted) |
-| Contact | 1:1 | Yes (encrypted) |
-| Address | 1:N | No |
-| Identification | 1:N | Yes (encrypted) |
-| Biometrics | 1:1 | Yes (Base64, encrypted) |
+### Endpoint Authorization
+- Role-based: `Roles("Admin", "Moderator")`
+- Policy-based: `Policies("ProfileOwner")`
+- Owner check via AdminOwnerAuthorizationHandler
 
-### Admin Password Management
-- Encrypted password stored in appsettings.Development.json
-- Decrypted at runtime using IEncryptionService
-- Allows secure configuration without exposing passwords in source
-
-## VSCode Debugging
-- Launch configuration in .vscode/launch.json
-- Build task in .vscode/tasks.json
-- Press F5 to debug the API locally
+## Project Structure
+```
+backend/src/
+├── API/
+│   ├── Endpoints/UserProfile/   # 15+ endpoints
+│   ├── DTOs/UserProfile/       # Request/Response DTOs
+│   ├── Security/               # AdminOwnerAuthorizationHandler
+│   └── Mappers/                # UserProfileMappers
+├── Core/
+│   ├── Entities/UserProfiles/  # UserProfile aggregate
+│   ├── Entities/ValueObjects/  # Contact, Address, etc.
+│   ├── Services/               # IUserProfileService, IEncryptionService
+│   └── Authorization/          # AdminOwnerRequirement
+└── Infrastructure/
+    ├── Services/               # EncryptionService, AuthService
+    └── PostgreSQL/             # UserProfileRepository
+```
 
 ## Next Steps
-
-1. **Complete UserProfile Creation for Admin**
-   - Trigger UserCreatedEvent for admin user during seeding
-   - Or create UserProfile directly in SeedData
-
-2. **Question Bank Domain**
-   - Question entity with answer options
-   - QuestionRepository
-
-3. **Session Management**
-   - Session entity with lifecycle states
-   - SessionRepository
-
-4. **Frontend Development**
-   - React + Vite setup
-   - Authentication flow
-   - Dashboard pages
+1. Frontend integration with UserProfile endpoints
+2. Testing
+3. Question Bank domain
+4. Session Management

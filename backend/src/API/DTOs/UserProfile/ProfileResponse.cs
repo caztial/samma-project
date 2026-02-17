@@ -14,18 +14,18 @@ public class ProfileResponse
     public string? ProfileImageUrl { get; set; }
     public Gender? Gender { get; set; }
     public DateOnly? DateOfBirth { get; set; }
-    
+
     // Primary contact
     public ContactDto Contact { get; set; } = new();
-    
+
     // Biometrics
     public BiometricsDto Biometrics { get; set; } = new();
-    
+
     // Collections
-    public List<EmergencyContactResponse> EmergencyContacts { get; set; } = new();
-    public List<AddressResponse> Addresses { get; set; } = new();
-    public List<IdentificationResponse> Identifications { get; set; } = new();
-    public List<ConsentResponse> Consents { get; set; } = new();
+    public List<EmergencyContactResponse> EmergencyContacts { get; set; } = [];
+    public List<AddressResponse> Addresses { get; set; } = [];
+    public List<IdentificationResponse> Identifications { get; set; } = [];
+    public List<ConsentResponse> Consents { get; set; } = [];
 }
 
 public class ContactDto
