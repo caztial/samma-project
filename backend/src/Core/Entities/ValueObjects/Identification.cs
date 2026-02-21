@@ -6,44 +6,38 @@ namespace Core.Entities.ValueObjects;
 /// Value object representing identification numbers (PII - encrypted).
 /// 1:N relationship with UserProfile.
 /// </summary>
-public sealed class Identification
+public sealed class Identification : ValueObject
 {
     public Guid Id { get; private set; } = Guid.NewGuid();
 
-    [Encrypt]
-    public string? CIN { get; set; } // Country specific Identification Number
+    /// <summary>
+    /// Type of identification (e.g., "Passport", "SSN", "DriverLicense").
+    /// </summary>
+    public string Type { get; set; } = string.Empty;
 
+    /// <summary>
+    /// The identification number/value (encrypted).
+    /// </summary>
     [Encrypt]
-    public string? PassportNumber { get; set; }
+    public string Value { get; set; } = string.Empty;
 
     // For EF Core navigation
     public Guid UserProfileId { get; set; }
 
     public Identification() { }
 
-    public Identification(string? cin, string? passportNumber)
+    public Identification(string type, string value)
     {
-        CIN = cin;
-        PassportNumber = passportNumber;
+        Type = type;
+        Value = value;
     }
 
-    public static Identification Empty => new(null, null);
+    public static Identification Empty => new(string.Empty, string.Empty);
 
-    public override bool Equals(object? obj)
+    protected override IEnumerable<object?> GetEqualityComponents()
     {
-        if (obj is not Identification other)
-            return false;
-        return CIN == other.CIN && PassportNumber == other.PassportNumber;
+        // Id is excluded from equality - value objects compare by value, not identity
+        yield return Type;
+        yield return Value;
     }
-
-    public override int GetHashCode() => HashCode.Combine(CIN, PassportNumber);
-
-    public static bool operator ==(Identification? left, Identification? right)
-    {
-        if (left is null)
-            return right is null;
-        return left.Equals(right);
-    }
-
-    public static bool operator !=(Identification? left, Identification? right) => !(left == right);
 }

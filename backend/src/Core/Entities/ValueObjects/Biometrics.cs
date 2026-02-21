@@ -6,7 +6,7 @@ namespace Core.Entities.ValueObjects;
 /// Value object representing biometric data (PII - encrypted, stored as Base64).
 /// 1:1 relationship with UserProfile.
 /// </summary>
-public sealed class Biometrics
+public sealed class Biometrics : ValueObject
 {
     [Encrypt]
     public string? FingerPrint { get; private set; } // Base64 encoded
@@ -29,21 +29,9 @@ public sealed class Biometrics
 
     public bool HasData => !string.IsNullOrEmpty(FingerPrint) || !string.IsNullOrEmpty(Face);
 
-    public override bool Equals(object? obj)
+    protected override IEnumerable<object?> GetEqualityComponents()
     {
-        if (obj is not Biometrics other)
-            return false;
-        return FingerPrint == other.FingerPrint && Face == other.Face;
+        yield return FingerPrint;
+        yield return Face;
     }
-
-    public override int GetHashCode() => HashCode.Combine(FingerPrint, Face);
-
-    public static bool operator ==(Biometrics? left, Biometrics? right)
-    {
-        if (left is null)
-            return right is null;
-        return left.Equals(right);
-    }
-
-    public static bool operator !=(Biometrics? left, Biometrics? right) => !(left == right);
 }

@@ -5,11 +5,11 @@ namespace Core.Entities.ValueObjects;
 /// <summary>
 /// Value object representing contact information (PII - encrypted).
 /// </summary>
-public sealed class Contact
+public sealed class Contact : ValueObject
 {
     [Encrypt]
     public string ContactNumber { get; private set; } = string.Empty;
-    
+
     [Encrypt]
     public string Email { get; private set; } = string.Empty;
 
@@ -23,19 +23,9 @@ public sealed class Contact
 
     public static Contact Empty => new(string.Empty, string.Empty);
 
-    public override bool Equals(object? obj)
+    protected override IEnumerable<object?> GetEqualityComponents()
     {
-        if (obj is not Contact other) return false;
-        return ContactNumber == other.ContactNumber && Email == other.Email;
+        yield return ContactNumber;
+        yield return Email;
     }
-
-    public override int GetHashCode() => HashCode.Combine(ContactNumber, Email);
-
-    public static bool operator ==(Contact? left, Contact? right)
-    {
-        if (left is null) return right is null;
-        return left.Equals(right);
-    }
-
-    public static bool operator !=(Contact? left, Contact? right) => !(left == right);
 }

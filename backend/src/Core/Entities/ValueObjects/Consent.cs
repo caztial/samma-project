@@ -3,7 +3,7 @@ namespace Core.Entities.ValueObjects;
 /// <summary>
 /// Value object representing user consent to terms (1:N relationship with UserProfile).
 /// </summary>
-public sealed class Consent
+public sealed class Consent : ValueObject
 {
     public Guid Id { get; set; } = Guid.NewGuid();
     public string TermId { get; set; } = string.Empty;
@@ -24,5 +24,15 @@ public sealed class Consent
         TermsVersion = termsVersion;
         AcceptedAt = DateTime.UtcNow;
         IpAddress = ipAddress;
+    }
+
+    protected override IEnumerable<object?> GetEqualityComponents()
+    {
+        // Id is excluded from equality - value objects compare by value, not identity
+        yield return TermId;
+        yield return TermLink;
+        yield return TermsVersion;
+        yield return AcceptedAt;
+        yield return IpAddress;
     }
 }

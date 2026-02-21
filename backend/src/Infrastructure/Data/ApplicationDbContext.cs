@@ -145,13 +145,13 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
         });
 
         // ============================================
-        // Identification Configuration (all encrypted)
+        // Identification Configuration (Value encrypted)
         // ============================================
         builder.Entity<Identification>(entity =>
         {
             entity.HasKey(i => i.Id);
-            entity.Property(i => i.CIN).HasMaxLength(500);
-            entity.Property(i => i.PassportNumber).HasMaxLength(500);
+            entity.Property(i => i.Type).HasMaxLength(100);
+            entity.Property(i => i.Value).HasMaxLength(500);
         });
 
         // ============================================

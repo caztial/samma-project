@@ -60,8 +60,8 @@ public class GetIdentificationsEndpoint : EndpointWithoutRequest
         var response = identifications.Select(i => new IdentificationResponse
         {
             Id = i.Id,
-            CIN = i.CIN,
-            PassportNumber = i.PassportNumber
+            Type = i.Type,
+            Value = i.Value
         });
 
         await HttpContext.Response.SendAsync(response, 200);

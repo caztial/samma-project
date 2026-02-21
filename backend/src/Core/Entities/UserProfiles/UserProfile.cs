@@ -18,7 +18,6 @@ public class UserProfile : BaseEntity, IAggregatedRoot
     /// <summary>
     /// First name (PII - encrypted)
     /// </summary>
-    [Encrypt]
     public string FirstName { get; set; } = string.Empty;
 
     /// <summary>

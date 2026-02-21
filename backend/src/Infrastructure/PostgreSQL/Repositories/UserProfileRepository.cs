@@ -262,8 +262,8 @@ public class UserProfileRepository : IUserProfileRepository
             return null;
 
         // Update the existing entity
-        existing.CIN = identification.CIN;
-        existing.PassportNumber = identification.PassportNumber;
+        existing.Type = identification.Type;
+        existing.Value = identification.Value;
 
         profile.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync();

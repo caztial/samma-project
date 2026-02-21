@@ -97,8 +97,8 @@ public class ProfileMapper : Mapper<UpdateProfileRequest, ProfileResponse, UserP
                 .. e.Identifications.Select(i => new IdentificationResponse
                 {
                     Id = i.Id,
-                    CIN = i.CIN,
-                    PassportNumber = i.PassportNumber
+                    Type = i.Type,
+                    Value = i.Value
                 })
             ],
             Consents =
@@ -164,14 +164,14 @@ public class IdentificationMapper
     : Mapper<IdentificationRequest, IdentificationResponse, Identification>
 {
     public override Identification ToEntity(IdentificationRequest r) =>
-        new(r.CIN, r.PassportNumber);
+        new(r.Type, r.Value);
 
     public override IdentificationResponse FromEntity(Identification e) =>
         new()
         {
             Id = e.Id,
-            CIN = e.CIN,
-            PassportNumber = e.PassportNumber
+            Type = e.Type,
+            Value = e.Value
         };
 }
 

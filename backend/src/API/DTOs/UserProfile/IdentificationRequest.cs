@@ -5,8 +5,15 @@ namespace API.DTOs.UserProfile;
 /// </summary>
 public class IdentificationRequest
 {
-    public string? CIN { get; set; }
-    public string? PassportNumber { get; set; }
+    /// <summary>
+    /// Type of identification (e.g., "Passport", "SSN", "DriverLicense").
+    /// </summary>
+    public string Type { get; set; } = string.Empty;
+
+    /// <summary>
+    /// The identification number/value.
+    /// </summary>
+    public string Value { get; set; } = string.Empty;
 }
 
 /// <summary>
@@ -15,6 +22,6 @@ public class IdentificationRequest
 public class IdentificationResponse
 {
     public Guid Id { get; set; }
-    public string? CIN { get; set; }
-    public string? PassportNumber { get; set; }
+    public string Type { get; set; } = string.Empty;
+    public string Value { get; set; } = string.Empty;
 }
