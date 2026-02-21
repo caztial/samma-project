@@ -78,6 +78,7 @@ public class UserProfileRepository : IUserProfileRepository
 
         emergencyContact.UserProfileId = profileId;
         profile.EmergencyContacts.Add(emergencyContact);
+        await _context.AddAsync(emergencyContact);
         profile.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync();
@@ -149,6 +150,7 @@ public class UserProfileRepository : IUserProfileRepository
         profile.Addresses.Add(address);
         profile.UpdatedAt = DateTime.UtcNow;
 
+        await _context.AddAsync(address);
         await _context.SaveChangesAsync();
         return address;
     }
@@ -173,11 +175,7 @@ public class UserProfileRepository : IUserProfileRepository
         return true;
     }
 
-    public async Task<Address?> UpdateAddressAsync(
-        Guid profileId,
-        Guid addressId,
-        Address address
-    )
+    public async Task<Address?> UpdateAddressAsync(Guid profileId, Guid addressId, Address address)
     {
         var profile = await _context
             .UserProfiles.Include(up => up.Addresses)
@@ -221,6 +219,7 @@ public class UserProfileRepository : IUserProfileRepository
         profile.Identifications.Add(identification);
         profile.UpdatedAt = DateTime.UtcNow;
 
+        await _context.AddAsync(identification);
         await _context.SaveChangesAsync();
         return identification;
     }
@@ -285,7 +284,7 @@ public class UserProfileRepository : IUserProfileRepository
         consent.UserProfileId = profileId;
         profile.Consents.Add(consent);
         profile.UpdatedAt = DateTime.UtcNow;
-
+        await _context.AddAsync(consent);
         await _context.SaveChangesAsync();
         return consent;
     }
@@ -310,11 +309,7 @@ public class UserProfileRepository : IUserProfileRepository
         return true;
     }
 
-    public async Task<Consent?> UpdateConsentAsync(
-        Guid profileId,
-        Guid consentId,
-        Consent consent
-    )
+    public async Task<Consent?> UpdateConsentAsync(Guid profileId, Guid consentId, Consent consent)
     {
         var profile = await _context
             .UserProfiles.Include(up => up.Consents)
