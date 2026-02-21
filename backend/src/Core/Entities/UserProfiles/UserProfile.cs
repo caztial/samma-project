@@ -16,14 +16,13 @@ public class UserProfile : BaseEntity, IAggregatedRoot
     public string UserId { get; set; } = string.Empty;
 
     /// <summary>
-    /// First name (PII - encrypted)
+    /// First name
     /// </summary>
     public string FirstName { get; set; } = string.Empty;
 
     /// <summary>
-    /// Last name (PII - encrypted)
+    /// Last name
     /// </summary>
-    [Encrypt]
     public string LastName { get; set; } = string.Empty;
 
     /// <summary>
@@ -48,15 +47,20 @@ public class UserProfile : BaseEntity, IAggregatedRoot
     public Contact Contact { get; set; } = Contact.Empty;
 
     /// <summary>
-    /// Emergency contacts (PII - encrypted) - 1:N
+    /// Biometrics data (PII - encrypted, Base64) - 1:1
     /// </summary>
-    public ICollection<EmergencyContact> EmergencyContacts { get; set; } =
-        new List<EmergencyContact>();
+    public Biometrics Biometrics { get; set; } = Biometrics.Empty;
 
     /// <summary>
     /// Addresses - 1:N
     /// </summary>
-    public ICollection<Address> Addresses { get; set; } = new List<Address>();
+    public ICollection<UserAddress> Addresses { get; set; } = new List<UserAddress>();
+
+    /// <summary>
+    /// Emergency contacts (PII - encrypted) - 1:N
+    /// </summary>
+    public ICollection<EmergencyContact> EmergencyContacts { get; set; } =
+        new List<EmergencyContact>();
 
     /// <summary>
     /// Identification numbers (PII - encrypted) - 1:N
@@ -64,14 +68,19 @@ public class UserProfile : BaseEntity, IAggregatedRoot
     public ICollection<Identification> Identifications { get; set; } = new List<Identification>();
 
     /// <summary>
-    /// Biometrics data (PII - encrypted, Base64) - 1:1
-    /// </summary>
-    public Biometrics Biometrics { get; set; } = Biometrics.Empty;
-
-    /// <summary>
     /// Consent records - 1:N
     /// </summary>
-    public ICollection<Consent> Consents { get; set; } = new List<Consent>();
+    public ICollection<UserConsent> Consents { get; set; } = new List<UserConsent>();
+
+    /// <summary>
+    /// Education qualifications - 1:N
+    /// </summary>
+    public ICollection<Education> Educations { get; set; } = new List<Education>();
+
+    /// <summary>
+    /// Bank account details (PII - encrypted) - 1:N
+    /// </summary>
+    public ICollection<BankAccount> BankAccounts { get; set; } = new List<BankAccount>();
 
     /// <summary>
     /// Factory method to create UserProfile from UserCreatedEvent

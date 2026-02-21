@@ -60,11 +60,11 @@ public class GetConsentsEndpoint : EndpointWithoutRequest
         var response = consents.Select(c => new ConsentResponse
         {
             Id = c.Id,
-            TermId = c.TermId,
-            TermLink = c.TermLink,
-            TermsVersion = c.TermsVersion,
-            AcceptedAt = c.AcceptedAt,
-            IpAddress = c.IpAddress
+            TermId = c.Consent.TermId,
+            TermLink = c.Consent.TermLink,
+            TermsVersion = c.Consent.TermsVersion,
+            AcceptedAt = c.Consent.AcceptedAt,
+            IpAddress = c.Consent.IpAddress
         });
 
         await HttpContext.Response.SendAsync(response, 200, cancellation: ct);

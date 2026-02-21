@@ -54,18 +54,21 @@ public class UpdateConsentEndpoint : Endpoint<UpdateConsentRequest, ConsentRespo
             return;
         }
 
-        // Create consent with the updated values (IpAddress and AcceptedAt remain unchanged)
-        var consent = new Consent(
-            req.Consent.TermId,
-            req.Consent.TermLink,
-            req.Consent.TermsVersion,
-            string.Empty // IpAddress is not updated
-        );
+        // Create UserConsent with updated Consent value object
+        var userConsent = new UserConsent
+        {
+            Consent = new Consent(
+                req.Consent.TermId,
+                req.Consent.TermLink,
+                req.Consent.TermsVersion,
+                string.Empty // IpAddress is not updated
+            )
+        };
 
         var updated = await _userProfileService.UpdateConsentAsync(
             profileId,
             consentId,
-            consent
+            userConsent
         );
 
         if (updated == null)
@@ -80,11 +83,11 @@ public class UpdateConsentEndpoint : Endpoint<UpdateConsentRequest, ConsentRespo
         var response = new ConsentResponse
         {
             Id = updated.Id,
-            TermId = updated.TermId,
-            TermLink = updated.TermLink,
-            TermsVersion = updated.TermsVersion,
-            AcceptedAt = updated.AcceptedAt,
-            IpAddress = updated.IpAddress
+            TermId = updated.Consent.TermId,
+            TermLink = updated.Consent.TermLink,
+            TermsVersion = updated.Consent.TermsVersion,
+            AcceptedAt = updated.Consent.AcceptedAt,
+            IpAddress = updated.Consent.IpAddress
         };
 
         await HttpContext.Response.SendAsync(response, 200, cancellation: ct);

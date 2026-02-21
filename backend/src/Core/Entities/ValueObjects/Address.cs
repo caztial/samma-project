@@ -1,20 +1,16 @@
 namespace Core.Entities.ValueObjects;
 
 /// <summary>
-/// Value object representing a user's address (1:N relationship with UserProfile).
+/// Value object representing address details - compared by value.
 /// </summary>
 public sealed class Address : ValueObject
 {
-    public Guid Id { get; set; } = Guid.NewGuid();
-    public string Line1 { get; set; } = string.Empty;
-    public string? Line2 { get; set; }
-    public string Suburb { get; set; } = string.Empty;
-    public string StateProvince { get; set; } = string.Empty;
-    public string Country { get; set; } = string.Empty;
-    public string Postcode { get; set; } = string.Empty;
-
-    // For EF Core navigation
-    public Guid UserProfileId { get; set; }
+    public string Line1 { get; } = string.Empty;
+    public string? Line2 { get; }
+    public string Suburb { get; } = string.Empty;
+    public string StateProvince { get; } = string.Empty;
+    public string Country { get; } = string.Empty;
+    public string Postcode { get; } = string.Empty;
 
     public Address() { }
 
@@ -35,9 +31,10 @@ public sealed class Address : ValueObject
         Postcode = postcode;
     }
 
+    public static Address Empty => new();
+
     protected override IEnumerable<object?> GetEqualityComponents()
     {
-        // Id is excluded from equality - value objects compare by value, not identity
         yield return Line1;
         yield return Line2;
         yield return Suburb;

@@ -18,9 +18,9 @@ public interface IUserProfileRepository
     Task<EmergencyContact?> UpdateEmergencyContactAsync(Guid profileId, Guid emergencyContactId, EmergencyContact emergencyContact);
 
     // ========== Addresses ==========
-    Task<Address?> AddAddressAsync(Guid profileId, Address address);
+    Task<UserAddress?> AddAddressAsync(Guid profileId, UserAddress address);
     Task<bool> RemoveAddressAsync(Guid profileId, Guid addressId);
-    Task<Address?> UpdateAddressAsync(Guid profileId, Guid addressId, Address address);
+    Task<UserAddress?> UpdateAddressAsync(Guid profileId, Guid addressId, UserAddress address);
 
     // ========== Identifications ==========
     Task<Identification?> AddIdentificationAsync(Guid profileId, Identification identification);
@@ -28,7 +28,17 @@ public interface IUserProfileRepository
     Task<Identification?> UpdateIdentificationAsync(Guid profileId, Guid identificationId, Identification identification);
 
     // ========== Consents ==========
-    Task<Consent?> AddConsentAsync(Guid profileId, Consent consent);
+    Task<UserConsent?> AddConsentAsync(Guid profileId, UserConsent consent);
     Task<bool> RemoveConsentAsync(Guid profileId, Guid consentId);
-    Task<Consent?> UpdateConsentAsync(Guid profileId, Guid consentId, Consent consent);
+    Task<UserConsent?> UpdateConsentAsync(Guid profileId, Guid consentId, UserConsent consent);
+
+    // ========== Educations ==========
+    Task<Education?> AddEducationAsync(Guid profileId, Education education);
+    Task<bool> RemoveEducationAsync(Guid profileId, Guid educationId);
+    Task<Education?> UpdateEducationAsync(Guid profileId, Guid educationId, Education education);
+
+    // ========== Bank Accounts ==========
+    Task<BankAccount?> AddBankAccountAsync(Guid profileId, BankAccount bankAccount);
+    Task<bool> RemoveBankAccountAsync(Guid profileId, Guid bankAccountId);
+    Task<BankAccount?> UpdateBankAccountAsync(Guid profileId, Guid bankAccountId, BankAccount bankAccount);
 }

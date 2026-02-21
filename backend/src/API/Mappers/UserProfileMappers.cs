@@ -74,9 +74,9 @@ public class ProfileMapper : Mapper<UpdateProfileRequest, ProfileResponse, UserP
                 {
                     Id = ec.Id,
                     Name = ec.Name,
-                    ContactNumber = ec.ContactNumber,
+                    ContactNumber = ec.Contact.ContactNumber,
                     Relationship = ec.Relationship,
-                    Email = ec.Email
+                    Email = ec.Contact.Email
                 })
             ],
             Addresses =
@@ -84,12 +84,13 @@ public class ProfileMapper : Mapper<UpdateProfileRequest, ProfileResponse, UserP
                 .. e.Addresses.Select(a => new AddressResponse
                 {
                     Id = a.Id,
-                    Line1 = a.Line1,
-                    Line2 = a.Line2,
-                    Suburb = a.Suburb,
-                    StateProvince = a.StateProvince,
-                    Country = a.Country,
-                    Postcode = a.Postcode
+                    Type = a.Type,
+                    Line1 = a.Address.Line1,
+                    Line2 = a.Address.Line2,
+                    Suburb = a.Address.Suburb,
+                    StateProvince = a.Address.StateProvince,
+                    Country = a.Address.Country,
+                    Postcode = a.Address.Postcode
                 })
             ],
             Identifications =
@@ -106,11 +107,11 @@ public class ProfileMapper : Mapper<UpdateProfileRequest, ProfileResponse, UserP
                 .. e.Consents.Select(c => new ConsentResponse
                 {
                     Id = c.Id,
-                    TermId = c.TermId,
-                    TermLink = c.TermLink,
-                    TermsVersion = c.TermsVersion,
-                    AcceptedAt = c.AcceptedAt,
-                    IpAddress = c.IpAddress
+                    TermId = c.Consent.TermId,
+                    TermLink = c.Consent.TermLink,
+                    TermsVersion = c.Consent.TermsVersion,
+                    AcceptedAt = c.Consent.AcceptedAt,
+                    IpAddress = c.Consent.IpAddress
                 })
             ]
         };
@@ -123,37 +124,46 @@ public class EmergencyContactMapper
     : Mapper<EmergencyContactRequest, EmergencyContactResponse, EmergencyContact>
 {
     public override EmergencyContact ToEntity(EmergencyContactRequest r) =>
-        new(r.Name, r.ContactNumber, r.Relationship, r.Email);
+        new()
+        {
+            Name = r.Name,
+            Relationship = r.Relationship,
+            Contact = new Contact(r.ContactNumber, r.Email)
+        };
 
     public override EmergencyContactResponse FromEntity(EmergencyContact e) =>
         new()
         {
             Id = e.Id,
             Name = e.Name,
-            ContactNumber = e.ContactNumber,
+            ContactNumber = e.Contact.ContactNumber,
             Relationship = e.Relationship,
-            Email = e.Email
+            Email = e.Contact.Email
         };
 }
 
 /// <summary>
-/// Mapper for Address entity.
+/// Mapper for UserAddress entity.
 /// </summary>
-public class AddressMapper : Mapper<AddressRequest, AddressResponse, Address>
+public class AddressMapper : Mapper<AddressRequest, AddressResponse, UserAddress>
 {
-    public override Address ToEntity(AddressRequest r) =>
-        new(r.Line1, r.Suburb, r.StateProvince, r.Country, r.Postcode, r.Line2);
+    public override UserAddress ToEntity(AddressRequest r) =>
+        new()
+        {
+            Address = new Address(r.Line1, r.Suburb, r.StateProvince, r.Country, r.Postcode, r.Line2)
+        };
 
-    public override AddressResponse FromEntity(Address e) =>
+    public override AddressResponse FromEntity(UserAddress e) =>
         new()
         {
             Id = e.Id,
-            Line1 = e.Line1,
-            Line2 = e.Line2,
-            Suburb = e.Suburb,
-            StateProvince = e.StateProvince,
-            Country = e.Country,
-            Postcode = e.Postcode
+            Type = e.Type,
+            Line1 = e.Address.Line1,
+            Line2 = e.Address.Line2,
+            Suburb = e.Address.Suburb,
+            StateProvince = e.Address.StateProvince,
+            Country = e.Address.Country,
+            Postcode = e.Address.Postcode
         };
 }
 
@@ -163,8 +173,7 @@ public class AddressMapper : Mapper<AddressRequest, AddressResponse, Address>
 public class IdentificationMapper
     : Mapper<IdentificationRequest, IdentificationResponse, Identification>
 {
-    public override Identification ToEntity(IdentificationRequest r) =>
-        new(r.Type, r.Value);
+    public override Identification ToEntity(IdentificationRequest r) => new() { Type = r.Type, Value = r.Value };
 
     public override IdentificationResponse FromEntity(Identification e) =>
         new()
@@ -176,25 +185,28 @@ public class IdentificationMapper
 }
 
 /// <summary>
-/// Mapper for Consent entity.
+/// Mapper for UserConsent entity.
 /// </summary>
-public class ConsentMapper : Mapper<ConsentRequest, ConsentResponse, Consent>
+public class ConsentMapper : Mapper<ConsentRequest, ConsentResponse, UserConsent>
 {
-    public override Consent ToEntity(ConsentRequest r)
+    public override UserConsent ToEntity(ConsentRequest r)
     {
         // IP address will be set by the endpoint
-        return new Consent(r.TermId, r.TermLink, r.TermsVersion, string.Empty);
+        return new()
+        {
+            Consent = new Consent(r.TermId, r.TermLink, r.TermsVersion, string.Empty)
+        };
     }
 
-    public override ConsentResponse FromEntity(Consent e) =>
+    public override ConsentResponse FromEntity(UserConsent e) =>
         new()
         {
             Id = e.Id,
-            TermId = e.TermId,
-            TermLink = e.TermLink,
-            TermsVersion = e.TermsVersion,
-            AcceptedAt = e.AcceptedAt,
-            IpAddress = e.IpAddress
+            TermId = e.Consent.TermId,
+            TermLink = e.Consent.TermLink,
+            TermsVersion = e.Consent.TermsVersion,
+            AcceptedAt = e.Consent.AcceptedAt,
+            IpAddress = e.Consent.IpAddress
         };
 }
 

@@ -2,7 +2,6 @@ using API.DTOs.UserProfile;
 using API.Mappers;
 using Core.Authorization;
 using Core.Entities.UserProfiles;
-using Core.Entities.ValueObjects;
 using Core.Enums;
 using Core.Services;
 using FastEndpoints;
@@ -12,7 +11,7 @@ namespace API.Endpoints.UserProfile;
 /// <summary>
 /// Endpoint to add an address to a profile.
 /// </summary>
-public class AddAddressEndpoint : Endpoint<AddAddressRequest, AddressResponse, AddressMapper>
+public class AddAddressEndpoint : Endpoint<AddAddressRequest, AddressResponse>
 {
     private readonly IUserProfileService _userProfileService;
 
@@ -53,9 +52,20 @@ public class AddAddressEndpoint : Endpoint<AddAddressRequest, AddressResponse, A
             return;
         }
 
-        var address = Map.ToEntity(req.Address);
+        var userAddress = new UserAddress
+        {
+            Type = req.Type,
+            Address = new Core.Entities.ValueObjects.Address(
+                req.Address.Line1,
+                req.Address.Suburb,
+                req.Address.StateProvince,
+                req.Address.Country,
+                req.Address.Postcode,
+                req.Address.Line2
+            )
+        };
 
-        var added = await _userProfileService.AddAddressAsync(id, address);
+        var added = await _userProfileService.AddAddressAsync(id, userAddress);
 
         if (added == null)
         {
@@ -67,7 +77,17 @@ public class AddAddressEndpoint : Endpoint<AddAddressRequest, AddressResponse, A
             return;
         }
 
-        Response = Map.FromEntity(added);
+        Response = new AddressResponse
+        {
+            Id = added.Id,
+            Type = added.Type,
+            Line1 = added.Address.Line1,
+            Line2 = added.Address.Line2,
+            Suburb = added.Address.Suburb,
+            StateProvince = added.Address.StateProvince,
+            Country = added.Address.Country,
+            Postcode = added.Address.Postcode
+        };
         await HttpContext.Response.SendAsync(Response, 201);
     }
 }

@@ -5,6 +5,7 @@ namespace API.DTOs.UserProfile;
 /// </summary>
 public class UpdateAddressRequest
 {
+    public string Type { get; set; } = "Home";
     public AddressRequest Address { get; set; } = new();
 }
 

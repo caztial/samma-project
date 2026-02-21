@@ -55,15 +55,18 @@ public class AddConsentEndpoint : Endpoint<AddConsentRequest, ConsentResponse>
         // Get client IP address
         var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
 
-        // Create consent directly since it needs IP address at creation time
-        var consent = new Consent(
-            req.Consent.TermId,
-            req.Consent.TermLink,
-            req.Consent.TermsVersion,
-            ipAddress
-        );
+        // Create UserConsent with nested Consent value object
+        var userConsent = new UserConsent
+        {
+            Consent = new Consent(
+                req.Consent.TermId,
+                req.Consent.TermLink,
+                req.Consent.TermsVersion,
+                ipAddress
+            )
+        };
 
-        var added = await _userProfileService.AddConsentAsync(id, consent);
+        var added = await _userProfileService.AddConsentAsync(id, userConsent);
 
         if (added == null)
         {
@@ -74,11 +77,11 @@ public class AddConsentEndpoint : Endpoint<AddConsentRequest, ConsentResponse>
         var response = new ConsentResponse
         {
             Id = added.Id,
-            TermId = added.TermId,
-            TermLink = added.TermLink,
-            TermsVersion = added.TermsVersion,
-            AcceptedAt = added.AcceptedAt,
-            IpAddress = added.IpAddress
+            TermId = added.Consent.TermId,
+            TermLink = added.Consent.TermLink,
+            TermsVersion = added.Consent.TermsVersion,
+            AcceptedAt = added.Consent.AcceptedAt,
+            IpAddress = added.Consent.IpAddress
         };
 
         await HttpContext.Response.SendAsync(response, 201, cancellation: ct);

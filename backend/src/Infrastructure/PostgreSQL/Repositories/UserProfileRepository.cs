@@ -27,6 +27,8 @@ public class UserProfileRepository : IUserProfileRepository
             .Include(up => up.Addresses)
             .Include(up => up.Identifications)
             .Include(up => up.Consents)
+            .Include(up => up.Educations)
+            .Include(up => up.BankAccounts)
             .FirstOrDefaultAsync(up => up.Id == id);
     }
 
@@ -126,9 +128,8 @@ public class UserProfileRepository : IUserProfileRepository
 
         // Update the existing entity
         existing.Name = emergencyContact.Name;
-        existing.ContactNumber = emergencyContact.ContactNumber;
         existing.Relationship = emergencyContact.Relationship;
-        existing.Email = emergencyContact.Email;
+        existing.Contact = emergencyContact.Contact;
 
         profile.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync();
@@ -137,7 +138,7 @@ public class UserProfileRepository : IUserProfileRepository
 
     // ========== Addresses ==========
 
-    public async Task<Address?> AddAddressAsync(Guid profileId, Address address)
+    public async Task<UserAddress?> AddAddressAsync(Guid profileId, UserAddress address)
     {
         var profile = await _context
             .UserProfiles.Include(up => up.Addresses)
@@ -175,7 +176,7 @@ public class UserProfileRepository : IUserProfileRepository
         return true;
     }
 
-    public async Task<Address?> UpdateAddressAsync(Guid profileId, Guid addressId, Address address)
+    public async Task<UserAddress?> UpdateAddressAsync(Guid profileId, Guid addressId, UserAddress address)
     {
         var profile = await _context
             .UserProfiles.Include(up => up.Addresses)
@@ -189,12 +190,8 @@ public class UserProfileRepository : IUserProfileRepository
             return null;
 
         // Update the existing entity
-        existing.Line1 = address.Line1;
-        existing.Line2 = address.Line2;
-        existing.Suburb = address.Suburb;
-        existing.StateProvince = address.StateProvince;
-        existing.Country = address.Country;
-        existing.Postcode = address.Postcode;
+        existing.Type = address.Type;
+        existing.Address = address.Address;
 
         profile.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync();
@@ -272,7 +269,7 @@ public class UserProfileRepository : IUserProfileRepository
 
     // ========== Consents ==========
 
-    public async Task<Consent?> AddConsentAsync(Guid profileId, Consent consent)
+    public async Task<UserConsent?> AddConsentAsync(Guid profileId, UserConsent consent)
     {
         var profile = await _context
             .UserProfiles.Include(up => up.Consents)
@@ -309,7 +306,7 @@ public class UserProfileRepository : IUserProfileRepository
         return true;
     }
 
-    public async Task<Consent?> UpdateConsentAsync(Guid profileId, Guid consentId, Consent consent)
+    public async Task<UserConsent?> UpdateConsentAsync(Guid profileId, Guid consentId, UserConsent consent)
     {
         var profile = await _context
             .UserProfiles.Include(up => up.Consents)
@@ -322,11 +319,142 @@ public class UserProfileRepository : IUserProfileRepository
         if (existing == null)
             return null;
 
-        // Update the existing entity (only updatable fields)
-        existing.TermId = consent.TermId;
-        existing.TermLink = consent.TermLink;
-        existing.TermsVersion = consent.TermsVersion;
-        // Note: AcceptedAt and IpAddress are typically not updated after creation
+        // Update the existing entity
+        existing.Consent = consent.Consent;
+
+        profile.UpdatedAt = DateTime.UtcNow;
+        await _context.SaveChangesAsync();
+        return existing;
+    }
+
+    // ========== Educations ==========
+
+    public async Task<Education?> AddEducationAsync(Guid profileId, Education education)
+    {
+        var profile = await _context
+            .UserProfiles.Include(up => up.Educations)
+            .FirstOrDefaultAsync(up => up.Id == profileId);
+
+        if (profile == null)
+            return null;
+
+        education.UserProfileId = profileId;
+        profile.Educations.Add(education);
+        profile.UpdatedAt = DateTime.UtcNow;
+
+        await _context.AddAsync(education);
+        await _context.SaveChangesAsync();
+        return education;
+    }
+
+    public async Task<bool> RemoveEducationAsync(Guid profileId, Guid educationId)
+    {
+        var profile = await _context
+            .UserProfiles.Include(up => up.Educations)
+            .FirstOrDefaultAsync(up => up.Id == profileId);
+
+        if (profile == null)
+            return false;
+
+        var education = profile.Educations.FirstOrDefault(e => e.Id == educationId);
+        if (education == null)
+            return false;
+
+        profile.Educations.Remove(education);
+        profile.UpdatedAt = DateTime.UtcNow;
+
+        await _context.SaveChangesAsync();
+        return true;
+    }
+
+    public async Task<Education?> UpdateEducationAsync(Guid profileId, Guid educationId, Education education)
+    {
+        var profile = await _context
+            .UserProfiles.Include(up => up.Educations)
+            .FirstOrDefaultAsync(up => up.Id == profileId);
+
+        if (profile == null)
+            return null;
+
+        var existing = profile.Educations.FirstOrDefault(e => e.Id == educationId);
+        if (existing == null)
+            return null;
+
+        // Update the existing entity
+        existing.Institution = education.Institution;
+        existing.Degree = education.Degree;
+        existing.FieldOfStudy = education.FieldOfStudy;
+        existing.StartDate = education.StartDate;
+        existing.EndDate = education.EndDate;
+        existing.Grade = education.Grade;
+        existing.CertificateNumber = education.CertificateNumber;
+        existing.IsVerified = education.IsVerified;
+
+        profile.UpdatedAt = DateTime.UtcNow;
+        await _context.SaveChangesAsync();
+        return existing;
+    }
+
+    // ========== Bank Accounts ==========
+
+    public async Task<BankAccount?> AddBankAccountAsync(Guid profileId, BankAccount bankAccount)
+    {
+        var profile = await _context
+            .UserProfiles.Include(up => up.BankAccounts)
+            .FirstOrDefaultAsync(up => up.Id == profileId);
+
+        if (profile == null)
+            return null;
+
+        bankAccount.UserProfileId = profileId;
+        profile.BankAccounts.Add(bankAccount);
+        profile.UpdatedAt = DateTime.UtcNow;
+
+        await _context.AddAsync(bankAccount);
+        await _context.SaveChangesAsync();
+        return bankAccount;
+    }
+
+    public async Task<bool> RemoveBankAccountAsync(Guid profileId, Guid bankAccountId)
+    {
+        var profile = await _context
+            .UserProfiles.Include(up => up.BankAccounts)
+            .FirstOrDefaultAsync(up => up.Id == profileId);
+
+        if (profile == null)
+            return false;
+
+        var bankAccount = profile.BankAccounts.FirstOrDefault(ba => ba.Id == bankAccountId);
+        if (bankAccount == null)
+            return false;
+
+        profile.BankAccounts.Remove(bankAccount);
+        profile.UpdatedAt = DateTime.UtcNow;
+
+        await _context.SaveChangesAsync();
+        return true;
+    }
+
+    public async Task<BankAccount?> UpdateBankAccountAsync(Guid profileId, Guid bankAccountId, BankAccount bankAccount)
+    {
+        var profile = await _context
+            .UserProfiles.Include(up => up.BankAccounts)
+            .FirstOrDefaultAsync(up => up.Id == profileId);
+
+        if (profile == null)
+            return null;
+
+        var existing = profile.BankAccounts.FirstOrDefault(ba => ba.Id == bankAccountId);
+        if (existing == null)
+            return null;
+
+        // Update the existing entity
+        existing.BankName = bankAccount.BankName;
+        existing.AccountType = bankAccount.AccountType;
+        existing.AccountHolderName = bankAccount.AccountHolderName;
+        existing.AccountNumber = bankAccount.AccountNumber;
+        existing.BranchCode = bankAccount.BranchCode;
+        existing.IsVerified = bankAccount.IsVerified;
 
         profile.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync();

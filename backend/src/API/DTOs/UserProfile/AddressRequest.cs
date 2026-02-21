@@ -1,7 +1,7 @@
 namespace API.DTOs.UserProfile;
 
 /// <summary>
-/// Request DTO for adding an address.
+/// Request DTO for address value object.
 /// </summary>
 public class AddressRequest
 {
@@ -14,11 +14,12 @@ public class AddressRequest
 }
 
 /// <summary>
-/// Response DTO for address.
+/// Response DTO for UserAddress entity.
 /// </summary>
 public class AddressResponse
 {
     public Guid Id { get; set; }
+    public string Type { get; set; } = "Home";
     public string Line1 { get; set; } = string.Empty;
     public string? Line2 { get; set; }
     public string Suburb { get; set; } = string.Empty;

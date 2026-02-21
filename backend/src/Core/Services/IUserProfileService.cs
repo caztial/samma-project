@@ -74,12 +74,12 @@ public interface IUserProfileService
     /// <summary>
     /// Gets all addresses for a profile.
     /// </summary>
-    Task<IEnumerable<Address>> GetAddressesAsync(Guid profileId);
+    Task<IEnumerable<UserAddress>> GetAddressesAsync(Guid profileId);
 
     /// <summary>
     /// Adds an address to the profile.
     /// </summary>
-    Task<Address?> AddAddressAsync(Guid profileId, Address address);
+    Task<UserAddress?> AddAddressAsync(Guid profileId, UserAddress address);
 
     /// <summary>
     /// Removes an address from the profile.
@@ -89,10 +89,10 @@ public interface IUserProfileService
     /// <summary>
     /// Updates an address in the profile.
     /// </summary>
-    Task<Address?> UpdateAddressAsync(
+    Task<UserAddress?> UpdateAddressAsync(
         Guid profileId,
         Guid addressId,
-        Address address
+        UserAddress address
     );
 
     // ========== Identifications ==========
@@ -126,12 +126,12 @@ public interface IUserProfileService
     /// <summary>
     /// Gets all consents for a profile.
     /// </summary>
-    Task<IEnumerable<Consent>> GetConsentsAsync(Guid profileId);
+    Task<IEnumerable<UserConsent>> GetConsentsAsync(Guid profileId);
 
     /// <summary>
     /// Adds a consent to the profile.
     /// </summary>
-    Task<Consent?> AddConsentAsync(Guid profileId, Consent consent);
+    Task<UserConsent?> AddConsentAsync(Guid profileId, UserConsent consent);
 
     /// <summary>
     /// Removes a consent from the profile.
@@ -141,9 +141,61 @@ public interface IUserProfileService
     /// <summary>
     /// Updates a consent in the profile.
     /// </summary>
-    Task<Consent?> UpdateConsentAsync(
+    Task<UserConsent?> UpdateConsentAsync(
         Guid profileId,
         Guid consentId,
-        Consent consent
+        UserConsent consent
+    );
+
+    // ========== Educations ==========
+
+    /// <summary>
+    /// Gets all educations for a profile.
+    /// </summary>
+    Task<IEnumerable<Education>> GetEducationsAsync(Guid profileId);
+
+    /// <summary>
+    /// Adds an education to the profile.
+    /// </summary>
+    Task<Education?> AddEducationAsync(Guid profileId, Education education);
+
+    /// <summary>
+    /// Removes an education from the profile.
+    /// </summary>
+    Task<bool> RemoveEducationAsync(Guid profileId, Guid educationId);
+
+    /// <summary>
+    /// Updates an education in the profile.
+    /// </summary>
+    Task<Education?> UpdateEducationAsync(
+        Guid profileId,
+        Guid educationId,
+        Education education
+    );
+
+    // ========== Bank Accounts ==========
+
+    /// <summary>
+    /// Gets all bank accounts for a profile.
+    /// </summary>
+    Task<IEnumerable<BankAccount>> GetBankAccountsAsync(Guid profileId);
+
+    /// <summary>
+    /// Adds a bank account to the profile.
+    /// </summary>
+    Task<BankAccount?> AddBankAccountAsync(Guid profileId, BankAccount bankAccount);
+
+    /// <summary>
+    /// Removes a bank account from the profile.
+    /// </summary>
+    Task<bool> RemoveBankAccountAsync(Guid profileId, Guid bankAccountId);
+
+    /// <summary>
+    /// Updates a bank account in the profile.
+    /// </summary>
+    Task<BankAccount?> UpdateBankAccountAsync(
+        Guid profileId,
+        Guid bankAccountId,
+        BankAccount bankAccount
     );
 }

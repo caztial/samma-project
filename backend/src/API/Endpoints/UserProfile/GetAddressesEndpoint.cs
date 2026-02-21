@@ -60,12 +60,13 @@ public class GetAddressesEndpoint : EndpointWithoutRequest
         var response = addresses.Select(a => new AddressResponse
         {
             Id = a.Id,
-            Line1 = a.Line1,
-            Line2 = a.Line2,
-            Suburb = a.Suburb,
-            StateProvince = a.StateProvince,
-            Country = a.Country,
-            Postcode = a.Postcode
+            Type = a.Type,
+            Line1 = a.Address.Line1,
+            Line2 = a.Address.Line2,
+            Suburb = a.Address.Suburb,
+            StateProvince = a.Address.StateProvince,
+            Country = a.Address.Country,
+            Postcode = a.Address.Postcode
         });
 
         await HttpContext.Response.SendAsync(response, 200, cancellation: ct);

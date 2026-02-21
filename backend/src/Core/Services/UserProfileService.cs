@@ -117,13 +117,13 @@ public class UserProfileService : IUserProfileService
 
     // ========== Addresses ==========
 
-    public async Task<IEnumerable<Address>> GetAddressesAsync(Guid profileId)
+    public async Task<IEnumerable<UserAddress>> GetAddressesAsync(Guid profileId)
     {
         var profile = await _userProfileRepository.GetByIdAsync(profileId);
-        return profile?.Addresses ?? Enumerable.Empty<Address>();
+        return profile?.Addresses ?? Enumerable.Empty<UserAddress>();
     }
 
-    public async Task<Address?> AddAddressAsync(Guid profileId, Address address)
+    public async Task<UserAddress?> AddAddressAsync(Guid profileId, UserAddress address)
     {
         return await _userProfileRepository.AddAddressAsync(profileId, address);
     }
@@ -133,10 +133,10 @@ public class UserProfileService : IUserProfileService
         return await _userProfileRepository.RemoveAddressAsync(profileId, addressId);
     }
 
-    public async Task<Address?> UpdateAddressAsync(
+    public async Task<UserAddress?> UpdateAddressAsync(
         Guid profileId,
         Guid addressId,
-        Address address
+        UserAddress address
     )
     {
         return await _userProfileRepository.UpdateAddressAsync(profileId, addressId, address);
@@ -175,13 +175,13 @@ public class UserProfileService : IUserProfileService
 
     // ========== Consents ==========
 
-    public async Task<IEnumerable<Consent>> GetConsentsAsync(Guid profileId)
+    public async Task<IEnumerable<UserConsent>> GetConsentsAsync(Guid profileId)
     {
         var profile = await _userProfileRepository.GetByIdAsync(profileId);
-        return profile?.Consents ?? Enumerable.Empty<Consent>();
+        return profile?.Consents ?? Enumerable.Empty<UserConsent>();
     }
 
-    public async Task<Consent?> AddConsentAsync(Guid profileId, Consent consent)
+    public async Task<UserConsent?> AddConsentAsync(Guid profileId, UserConsent consent)
     {
         return await _userProfileRepository.AddConsentAsync(profileId, consent);
     }
@@ -191,12 +191,66 @@ public class UserProfileService : IUserProfileService
         return await _userProfileRepository.RemoveConsentAsync(profileId, consentId);
     }
 
-    public async Task<Consent?> UpdateConsentAsync(
+    public async Task<UserConsent?> UpdateConsentAsync(
         Guid profileId,
         Guid consentId,
-        Consent consent
+        UserConsent consent
     )
     {
         return await _userProfileRepository.UpdateConsentAsync(profileId, consentId, consent);
+    }
+
+    // ========== Educations ==========
+
+    public async Task<IEnumerable<Education>> GetEducationsAsync(Guid profileId)
+    {
+        var profile = await _userProfileRepository.GetByIdAsync(profileId);
+        return profile?.Educations ?? Enumerable.Empty<Education>();
+    }
+
+    public async Task<Education?> AddEducationAsync(Guid profileId, Education education)
+    {
+        return await _userProfileRepository.AddEducationAsync(profileId, education);
+    }
+
+    public async Task<bool> RemoveEducationAsync(Guid profileId, Guid educationId)
+    {
+        return await _userProfileRepository.RemoveEducationAsync(profileId, educationId);
+    }
+
+    public async Task<Education?> UpdateEducationAsync(
+        Guid profileId,
+        Guid educationId,
+        Education education
+    )
+    {
+        return await _userProfileRepository.UpdateEducationAsync(profileId, educationId, education);
+    }
+
+    // ========== Bank Accounts ==========
+
+    public async Task<IEnumerable<BankAccount>> GetBankAccountsAsync(Guid profileId)
+    {
+        var profile = await _userProfileRepository.GetByIdAsync(profileId);
+        return profile?.BankAccounts ?? Enumerable.Empty<BankAccount>();
+    }
+
+    public async Task<BankAccount?> AddBankAccountAsync(Guid profileId, BankAccount bankAccount)
+    {
+        return await _userProfileRepository.AddBankAccountAsync(profileId, bankAccount);
+    }
+
+    public async Task<bool> RemoveBankAccountAsync(Guid profileId, Guid bankAccountId)
+    {
+        return await _userProfileRepository.RemoveBankAccountAsync(profileId, bankAccountId);
+    }
+
+    public async Task<BankAccount?> UpdateBankAccountAsync(
+        Guid profileId,
+        Guid bankAccountId,
+        BankAccount bankAccount
+    )
+    {
+        return await _userProfileRepository.UpdateBankAccountAsync(profileId, bankAccountId, bankAccount);
     }
 }

@@ -61,9 +61,9 @@ public class GetEmergencyContactsEndpoint : EndpointWithoutRequest
         {
             Id = ec.Id,
             Name = ec.Name,
-            ContactNumber = ec.ContactNumber,
+            ContactNumber = ec.Contact.ContactNumber,
             Relationship = ec.Relationship,
-            Email = ec.Email
+            Email = ec.Contact.Email
         });
 
         await HttpContext.Response.SendAsync(response, 200, cancellation: ct);
