@@ -38,10 +38,7 @@ public class ProfileMapper : Mapper<UpdateProfileRequest, ProfileResponse, UserP
 
         if (!string.IsNullOrEmpty(r.ContactNumber) || !string.IsNullOrEmpty(r.Email))
         {
-            profile.Contact = new Contact(
-                r.ContactNumber ?? string.Empty,
-                r.Email ?? string.Empty
-            );
+            profile.Contact = new Contact(r.ContactNumber ?? string.Empty, r.Email ?? string.Empty);
         }
 
         return profile;
@@ -113,6 +110,34 @@ public class ProfileMapper : Mapper<UpdateProfileRequest, ProfileResponse, UserP
                     AcceptedAt = c.Consent.AcceptedAt,
                     IpAddress = c.Consent.IpAddress
                 })
+            ],
+            Educations =
+            [
+                .. e.Educations.Select(ed => new EducationResponse
+                {
+                    Id = ed.Id,
+                    Institution = ed.Institution,
+                    Degree = ed.Degree,
+                    FieldOfStudy = ed.FieldOfStudy,
+                    StartDate = ed.StartDate,
+                    EndDate = ed.EndDate,
+                    Grade = ed.Grade,
+                    CertificateNumber = ed.CertificateNumber,
+                    IsVerified = ed.IsVerified
+                })
+            ],
+            BankAccounts =
+            [
+                .. e.BankAccounts.Select(ba => new BankAccountResponse
+                {
+                    Id = ba.Id,
+                    BankName = ba.BankName,
+                    AccountType = ba.AccountType,
+                    AccountHolderName = ba.AccountHolderName,
+                    AccountNumber = ba.AccountNumber,
+                    BranchCode = ba.BranchCode,
+                    IsVerified = ba.IsVerified
+                })
             ]
         };
 }
@@ -150,7 +175,14 @@ public class AddressMapper : Mapper<AddressRequest, AddressResponse, UserAddress
     public override UserAddress ToEntity(AddressRequest r) =>
         new()
         {
-            Address = new Address(r.Line1, r.Suburb, r.StateProvince, r.Country, r.Postcode, r.Line2)
+            Address = new Address(
+                r.Line1,
+                r.Suburb,
+                r.StateProvince,
+                r.Country,
+                r.Postcode,
+                r.Line2
+            )
         };
 
     public override AddressResponse FromEntity(UserAddress e) =>
@@ -173,7 +205,8 @@ public class AddressMapper : Mapper<AddressRequest, AddressResponse, UserAddress
 public class IdentificationMapper
     : Mapper<IdentificationRequest, IdentificationResponse, Identification>
 {
-    public override Identification ToEntity(IdentificationRequest r) => new() { Type = r.Type, Value = r.Value };
+    public override Identification ToEntity(IdentificationRequest r) =>
+        new() { Type = r.Type, Value = r.Value };
 
     public override IdentificationResponse FromEntity(Identification e) =>
         new()
@@ -192,10 +225,7 @@ public class ConsentMapper : Mapper<ConsentRequest, ConsentResponse, UserConsent
     public override UserConsent ToEntity(ConsentRequest r)
     {
         // IP address will be set by the endpoint
-        return new()
-        {
-            Consent = new Consent(r.TermId, r.TermLink, r.TermsVersion, string.Empty)
-        };
+        return new() { Consent = new Consent(r.TermId, r.TermLink, r.TermsVersion, string.Empty) };
     }
 
     public override ConsentResponse FromEntity(UserConsent e) =>
@@ -219,4 +249,66 @@ public class BiometricsMapper : Mapper<BiometricsRequest, BiometricsResponse, Bi
 
     public override BiometricsResponse FromEntity(Biometrics e) =>
         new() { FingerPrint = e.FingerPrint, Face = e.Face };
+}
+
+/// <summary>
+/// Mapper for Education entity.
+/// </summary>
+public class EducationMapper : Mapper<EducationRequest, EducationResponse, Education>
+{
+    public override Education ToEntity(EducationRequest r) =>
+        new()
+        {
+            Institution = r.Institution,
+            Degree = r.Degree,
+            FieldOfStudy = r.FieldOfStudy,
+            StartDate = r.StartDate,
+            EndDate = r.EndDate,
+            Grade = r.Grade,
+            CertificateNumber = r.CertificateNumber,
+            IsVerified = r.IsVerified
+        };
+
+    public override EducationResponse FromEntity(Education e) =>
+        new()
+        {
+            Id = e.Id,
+            Institution = e.Institution,
+            Degree = e.Degree,
+            FieldOfStudy = e.FieldOfStudy,
+            StartDate = e.StartDate,
+            EndDate = e.EndDate,
+            Grade = e.Grade,
+            CertificateNumber = e.CertificateNumber,
+            IsVerified = e.IsVerified
+        };
+}
+
+/// <summary>
+/// Mapper for BankAccount entity.
+/// </summary>
+public class BankAccountMapper : Mapper<BankAccountRequest, BankAccountResponse, BankAccount>
+{
+    public override BankAccount ToEntity(BankAccountRequest r) =>
+        new()
+        {
+            BankName = r.BankName,
+            AccountType = r.AccountType,
+            AccountHolderName = r.AccountHolderName,
+            AccountNumber = r.AccountNumber,
+            BranchCode = r.BranchCode,
+            IsVerified = r.IsVerified
+        };
+
+    public override BankAccountResponse FromEntity(BankAccount e) =>
+        new()
+        {
+            Id = e.Id,
+            BankName = e.BankName,
+            AccountType = e.AccountType,
+            AccountHolderName = e.AccountHolderName,
+            AccountNumber = e.AccountNumber,
+            BranchCode = e.BranchCode,
+            IsVerified = e.IsVerified
+        };
 }

@@ -39,6 +39,7 @@ public class Education : BaseEntity
     /// <summary>
     /// Certificate or transcript reference number (optional)
     /// </summary>
+    [Encrypt]
     public string? CertificateNumber { get; set; }
 
     /// <summary>

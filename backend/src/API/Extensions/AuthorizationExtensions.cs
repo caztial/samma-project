@@ -17,7 +17,7 @@ public static class AuthorizationExtensions
     public static bool CanEditProfile(this IEnumerable<Claim> claims, string profileUserId)
     {
         var claimList = claims.ToList();
-        
+
         // Check if user is the owner
         var userIdClaim = claimList.FirstOrDefault(c => c.Type == "UserId");
         if (userIdClaim != null && userIdClaim.Value == profileUserId)
@@ -47,9 +47,10 @@ public static class AuthorizationExtensions
     /// </summary>
     public static bool HasRole(this IEnumerable<Claim> claims, string role)
     {
-        return claims.Any(c => 
-            (c.Type == ClaimTypes.Role || c.Type == "role") && 
-            c.Value.Equals(role, StringComparison.OrdinalIgnoreCase));
+        return claims.Any(c =>
+            (c.Type == ClaimTypes.Role || c.Type == "role")
+            && c.Value.Equals(role, StringComparison.OrdinalIgnoreCase)
+        );
     }
 
     /// <summary>
@@ -58,7 +59,7 @@ public static class AuthorizationExtensions
     public static bool HasElevatedRole(this IEnumerable<Claim> claims)
     {
         return claims.HasRole(ApplicationRoles.Admin.ToValueString())
-               || claims.HasRole(ApplicationRoles.Moderator.ToValueString());
+            || claims.HasRole(ApplicationRoles.Moderator.ToValueString());
     }
 
     /// <summary>

@@ -377,36 +377,132 @@ public class AuditBehavior<TRequest, TResponse> : IPipelineBehavior<...>
 
 ## Value Object Patterns
 
-### Contact (PII - Encrypted)
+### ValueObject Base Class (DDD Pattern)
+Following Microsoft's DDD guidelines, all value objects inherit from an abstract base class:
+
 ```csharp
-public record Contact
+public abstract class ValueObject
 {
-    public string PhoneNumber { get; init; }
-    public string Email { get; init; }
-    public string EmergencyContactName { get; init; }
-    public string EmergencyContactPhone { get; init; }
+    protected abstract IEnumerable<object?> GetEqualityComponents();
+
+    public override bool Equals(object? obj)
+    {
+        if (obj is null || obj.GetType() != GetType())
+            return false;
+
+        var other = (ValueObject)obj;
+        return GetEqualityComponents().SequenceEqual(other.GetEqualityComponents());
+    }
+
+    public override int GetHashCode()
+    {
+        return GetEqualityComponents()
+            .Select(x => x?.GetHashCode() ?? 0)
+            .Aggregate((x, y) => x ^ y);
+    }
+
+    public static bool operator ==(ValueObject? left, ValueObject? right)
+    {
+        if (left is null)
+            return right is null;
+        return left.Equals(right);
+    }
+
+    public static bool operator !=(ValueObject? left, ValueObject? right)
+    {
+        return !(left == right);
+    }
 }
 ```
 
-### Address
+### Value Object Implementation Pattern
+Value objects implement `GetEqualityComponents()` to define equality:
+
 ```csharp
-public record Address
+public sealed class Address : ValueObject
 {
-    public string Street { get; init; }
-    public string City { get; init; }
-    public string State { get; init; }
-    public string PostalCode { get; init; }
-    public string Country { get; init; }
+    public Guid Id { get; set; }  // For EF Core (1:N relationships)
+    public string Line1 { get; set; } = string.Empty;
+    public string Suburb { get; set; } = string.Empty;
+    // ...
+
+    protected override IEnumerable<object?> GetEqualityComponents()
+    {
+        // Id excluded from equality - value objects compare by value, not identity
+        yield return Line1;
+        yield return Suburb;
+        // ...
+    }
 }
 ```
 
-### Consent
+### 1:N Value Objects with EF Core
+For value objects stored in separate tables (1:N relationship):
+- Keep `Id` property for EF Core primary key
+- Keep `UserProfileId` foreign key for navigation
+- **Exclude `Id` from `GetEqualityComponents()`** - ensures value semantics
+
+### Identification Value Object (Refactored)
 ```csharp
-public record Consent
+public sealed class Identification : ValueObject
 {
-    public string Type { get; init; }  // e.g., "DataProcessing", "Marketing"
-    public bool Granted { get; init; }
-    public DateTime GrantedAt { get; init; }
+    public Guid Id { get; private set; } = Guid.NewGuid();
+    
+    public string Type { get; set; } = string.Empty;  // e.g., "Passport", "SSN"
+    
+    [Encrypt]
+    public string Value { get; set; } = string.Empty;  // e.g., "N60019023"
+    
+    public Guid UserProfileId { get; set; }
+
+    protected override IEnumerable<object?> GetEqualityComponents()
+    {
+        // Id excluded from equality
+        yield return Type;
+        yield return Value;
+    }
+}
+```
+
+### Contact (PII - Encrypted, 1:1)
+```csharp
+public sealed class Contact : ValueObject
+{
+    [Encrypt]
+    public string ContactNumber { get; private set; } = string.Empty;
+    
+    [Encrypt]
+    public string Email { get; private set; } = string.Empty;
+
+    protected override IEnumerable<object?> GetEqualityComponents()
+    {
+        yield return ContactNumber;
+        yield return Email;
+    }
+}
+```
+
+### Consent (1:N)
+```csharp
+public sealed class Consent : ValueObject
+{
+    public Guid Id { get; set; } = Guid.NewGuid();
+    public string TermId { get; set; } = string.Empty;
+    public string TermLink { get; set; } = string.Empty;
+    public string TermsVersion { get; set; } = string.Empty;
+    public DateTime AcceptedAt { get; init; }
+    public string IpAddress { get; init; } = string.Empty;
+    public Guid UserProfileId { get; set; }
+
+    protected override IEnumerable<object?> GetEqualityComponents()
+    {
+        // Id excluded from equality
+        yield return TermId;
+        yield return TermLink;
+        yield return TermsVersion;
+        yield return AcceptedAt;
+        yield return IpAddress;
+    }
 }
 ```
 

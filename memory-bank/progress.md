@@ -9,7 +9,16 @@
 - ✅ IUserProfileService with full CRUD operations for profile and collections
 - ✅ UserProfileService implementation with update methods
 - ✅ IUserProfileRepository with collection-specific methods
-- ✅ Value Objects: Contact, Biometrics, EmergencyContact, Address, Identification, Consent
+- ✅ **ValueObject base class** - Abstract base for DDD value object pattern
+- ✅ **True Value Objects** (1:1, no identity): `Contact`, `Biometrics`
+- ✅ **Nested Value Objects** (embedded in entities): `Address`, `Consent`
+- ✅ **Entities** (1:N, inherit from `BaseEntity`):
+  - `UserAddress` - wraps `Address` value object, adds `Type` field
+  - `UserConsent` - wraps `Consent` value object
+  - `EmergencyContact` - contains `Contact` value object
+  - `Identification` - `Type` and `Value` fields (encrypted)
+  - `Education` - Education qualifications
+  - `BankAccount` - Bank account details (encrypted)
 - ✅ IAggregatedRoot marker interface
 - ✅ IEncryptionService interface
 - ✅ AdminOwnerRequirement for authorization
@@ -20,36 +29,40 @@
 - ✅ UserProfileRepository with EF Core implementations for all collection operations
 - ✅ Supports add, remove, update, and get operations for:
   - EmergencyContacts
-  - Addresses
+  - Addresses (UserAddress)
   - Identifications
-  - Consents
-  - Biometrics
+  - Consents (UserConsent)
+  - Educations
+  - BankAccounts
 - ✅ EncryptionService implementation using ASP.NET DataProtection
 - ✅ UserCreatedEventConsumer
 
 ### API Layer - Security
 - ✅ AdminOwnerAuthorizationHandler - Custom authorization for admin/owner checks
-- ✅ ProfileOwnerAuthorizationHandler (replaced by AdminOwnerAuthorizationHandler)
 - ✅ AuthorizationExtensions for policy registration
 
 ### API Layer - DTOs
-- ✅ ProfileResponse - Full aggregate response with all collections
+- ✅ ProfileResponse - Full aggregate response with all collections (includes Educations, BankAccounts)
 - ✅ UpdateProfileRequest - Profile update request
 - ✅ Collection requests:
-  - AddAddressRequest, UpdateAddressRequest, RemoveAddressRequest
+  - AddAddressRequest, UpdateAddressRequest, RemoveAddressRequest (includes `Type` field)
   - AddConsentRequest, UpdateConsentRequest, RemoveConsentRequest
   - AddEmergencyContactRequest, UpdateEmergencyContactRequest, RemoveEmergencyContactRequest
   - AddIdentificationRequest, UpdateIdentificationRequest, RemoveIdentificationRequest
   - BiometricsRequest
-- ✅ Collection responses
+  - AddEducationRequest, UpdateEducationRequest, RemoveEducationRequest
+  - AddBankAccountRequest, UpdateBankAccountRequest, RemoveBankAccountRequest
+- ✅ Collection responses (EducationResponse, BankAccountResponse)
 
 ### API Layer - Mappers
-- ✅ ProfileMapper - Maps full aggregate to ProfileResponse (updated for flattened fields)
-- ✅ EmergencyContactMapper - Maps to/from EmergencyContact
-- ✅ AddressMapper - Maps to/from Address
+- ✅ ProfileMapper - Maps full aggregate to ProfileResponse (includes Educations, BankAccounts)
+- ✅ EmergencyContactMapper - Maps to/from EmergencyContact (uses `Contact` value object)
+- ✅ AddressMapper - Maps to/from UserAddress (uses `Address` value object)
 - ✅ IdentificationMapper - Maps to/from Identification
-- ✅ ConsentMapper - Maps to/from Consent
+- ✅ ConsentMapper - Maps to/from UserConsent (uses `Consent` value object)
 - ✅ BiometricsMapper
+- ✅ EducationMapper - Maps to/from Education
+- ✅ BankAccountMapper - Maps to/from BankAccount
 
 ### API Layer - Validators
 - ✅ UpdateProfileRequestValidator - FluentValidation for UpdateProfileRequest
@@ -60,8 +73,7 @@
 
 ### API Layer - Endpoints
 All endpoints use:
-- `Roles("Admin", "Moderator")` - Role-based authorization
-- `Policies("ProfileOwner")` - Custom owner verification
+- AdminOwnerRequirement for authorization
 - Mapper pattern for DTO/Entity mapping
 
 | Endpoint | Method | Route |
@@ -86,6 +98,14 @@ All endpoints use:
 | RemoveConsentEndpoint | DELETE | /api/profile/{id}/consents/{consentId} |
 | GetBiometricsEndpoint | GET | /api/profile/{id}/biometrics |
 | UpdateBiometricsEndpoint | PUT | /api/profile/{id}/biometrics |
+| AddEducationEndpoint | POST | /api/profile/{id}/educations |
+| GetEducationsEndpoint | GET | /api/profile/{id}/educations |
+| UpdateEducationEndpoint | PUT | /api/profile/{id}/educations/{educationId} |
+| RemoveEducationEndpoint | DELETE | /api/profile/{id}/educations/{educationId} |
+| AddBankAccountEndpoint | POST | /api/profile/{id}/bank-accounts |
+| GetBankAccountsEndpoint | GET | /api/profile/{id}/bank-accounts |
+| UpdateBankAccountEndpoint | PUT | /api/profile/{id}/bank-accounts/{bankAccountId} |
+| RemoveBankAccountEndpoint | DELETE | /api/profile/{id}/bank-accounts/{bankAccountId} |
 
 ### Authentication
 - ✅ LoginEndpoint - Returns FirstName/LastName from UserProfile
@@ -101,8 +121,10 @@ All endpoints use:
 - ✅ Optional route parameters with fallback to claims
 - ✅ Flattened DTOs for simpler JSON payloads
 - ✅ FluentValidation with built-in validators and custom rules
+- ✅ **Entity wrapping Value Object pattern** - 1:N entities wrap value objects for reusable data
 
 ## What's Left
+- ❌ Database migration
 - ❌ Frontend integration with these endpoints
 - ❌ Testing
 - ❌ Question Bank domain
@@ -110,11 +132,13 @@ All endpoints use:
 - ❌ SignalR Hub implementation
 - ❌ Presentation Mode
 
-## Recent Commits Summary
-| Commit | Date | Description |
+## Recent Changes Summary
+| Change | Date | Description |
 |--------|------|-------------|
-| 8b18adb | Feb 17, 2026 | refactor encryption service |
-| 8705ea3 | Feb 16, 2026 | Add Profile endpoints with Auth |
-| 2f4b614 | Feb 15, 2026 | Add REST endpoints for UserProfile |
-| d51dbd2 | Feb 15, 2026 | add UserCreatedEventHandler and PII data |
-| bc105dc | Feb 15, 2026 | Add UserProfile AggregatedRoot |
+| Education CRUD Endpoints | Feb 22, 2026 | Added full CRUD endpoints for Education |
+| BankAccount CRUD Endpoints | Feb 22, 2026 | Added full CRUD endpoints for BankAccount |
+| ProfileResponse Update | Feb 22, 2026 | Added Educations and BankAccounts collections |
+| Entity Refactoring | Feb 22, 2026 | Converted 1:N value objects to proper entities |
+| Education Entity | Feb 22, 2026 | Added Education entity for qualifications |
+| BankAccount Entity | Feb 22, 2026 | Added BankAccount entity for bank details |
+| Value Object Restructure | Feb 22, 2026 | Created nested value objects for Address, Consent |

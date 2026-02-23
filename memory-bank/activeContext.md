@@ -1,34 +1,64 @@
 # Active Context
 
-## Current Phase: UserProfile API Enhanced ✅
+## Current Phase: Education & BankAccount Endpoints Complete ✅
 
-The UserProfile API has been enhanced with improved claim-based authorization and validation.
+Added full CRUD endpoints for Education and BankAccount entities, and updated ProfileResponse to include both new collections.
 
-## Recent Changes (Feb 18, 2026)
+## Recent Changes (Feb 22, 2026)
 
-### Enhancement: GetProfileEndpoint & UpdateProfileEndpoint
-- Added `[FromClaim("sub")]` attribute to request DTOs for automatic JWT claim binding
-- Made route ID optional - falls back to deriving ProfileId from UserId in claims
-- Route ID takes precedence over claims when both are provided
-- Updated validation documentation in FASTENDPOINTS_GUIDE.md
+### Education CRUD Endpoints Added
+| Endpoint | Method | Route |
+|----------|--------|-------|
+| AddEducationEndpoint | POST | /profile/{id}/educations |
+| GetEducationsEndpoint | GET | /profile/{id}/educations |
+| UpdateEducationEndpoint | PUT | /profile/{id}/educations/{educationId} |
+| RemoveEducationEndpoint | DELETE | /profile/{id}/educations/{educationId} |
 
-### Enhancement: UpdateProfileRequest Validation
-- Flattened ContactNumber and Email to top-level fields
-- Added UpdateProfileRequestValidator with FluentValidation
-- Uses built-in `.EmailAddress()` validator
-- Added validation examples for string-to-enum and date parsing
+### BankAccount CRUD Endpoints Added
+| Endpoint | Method | Route |
+|----------|--------|-------|
+| AddBankAccountEndpoint | POST | /profile/{id}/bank-accounts |
+| GetBankAccountsEndpoint | GET | /profile/{id}/bank-accounts |
+| UpdateBankAccountEndpoint | PUT | /profile/{id}/bank-accounts/{bankAccountId} |
+| RemoveBankAccountEndpoint | DELETE | /profile/{id}/bank-accounts/{bankAccountId} |
 
-### Commit: 8b18adb - refactor encryption service
-- Refactored IEncryptionService interface
-- Updated appsettings configuration
-- Added Infrastructure project dependencies
-- Removed appsettings.Production.json
+### ProfileResponse Updated
+- Added `List<EducationResponse> Educations` collection
+- Added `List<BankAccountResponse> BankAccounts` collection
+- ProfileMapper updated to map both new collections
 
-### Commit: 8705ea3 - Add Profile endpoints with Auth
-- Added Update endpoints for: Address, Consent, EmergencyContact, Identification
-- New AdminOwnerAuthorizationHandler (replaced ProfileOwnerAuthorizationHandler)
-- New ApplicationRoles enum (Participant, Moderator, Admin)
-- New ValueFetchFrom enum for PII retrieval
+### Mappers Added
+- `EducationMapper` - Maps EducationRequest/EducationResponse to/from Education entity
+- `BankAccountMapper` - Maps BankAccountRequest/BankAccountResponse to/from BankAccount entity
+
+### DTOs Created
+- `EducationRequest`, `EducationResponse`
+- `AddEducationRequest`, `UpdateEducationRequest`, `RemoveEducationRequest`
+- `BankAccountRequest`, `BankAccountResponse`
+- `AddBankAccountRequest`, `UpdateBankAccountRequest`, `RemoveBankAccountRequest`
+
+## Entity/Value Object Architecture
+
+```
+UserProfile (Aggregate Root)
+├── Contact (Value Object, 1:1)
+├── Biometrics (Value Object, 1:1)
+├── Addresses (1:N)
+│   └── UserAddress (Entity)
+│       └── Address (Value Object)
+├── EmergencyContacts (1:N)
+│   └── EmergencyContact (Entity)
+│       └── Contact (Value Object)
+├── Identifications (1:N)
+│   └── Identification (Entity)
+├── Consents (1:N)
+│   └── UserConsent (Entity)
+│       └── Consent (Value Object)
+├── Educations (1:N)
+│   └── Education (Entity)
+└── BankAccounts (1:N)
+    └── BankAccount (Entity)
+```
 
 ## Running Services
 - API: http://localhost:8080 (Docker)
@@ -36,43 +66,22 @@ The UserProfile API has been enhanced with improved claim-based authorization an
 
 ## Current Decisions
 
-### Authorization Model
-- **AdminOwnerRequirement**: Admins can access all profiles, owners can access their own
-- **Roles**: Participant, Moderator, Admin
-- **ValueFetchFrom**: Determines where to fetch PII (Database vs JWT)
-- **[FromClaim]**: FastEndpoints attribute for automatic JWT claim binding
+### Entity Pattern for 1:N Relationships
+- 1:N relationships are modeled as **Entities** (inherit from `BaseEntity`)
+- Entities have `Id`, `CreatedAt`, `UpdatedAt` for audit trail
+- Value objects inside entities are stored as owned types via EF Core `OwnsOne`
 
-### Endpoint Pattern
-- Use `[FromClaim("sub")]` on request DTO properties to bind UserId from JWT
-- Route ID takes precedence: route → claims → error
-- Flattened DTOs for simpler JSON payloads
+### Value Object Pattern
+- True value objects (1:1, immutable, no identity) remain in `ValueObjects/`
+- `Contact`, `Biometrics` are true value objects (no Id)
+- Reusable value objects: `Address`, `Consent`, `Contact`
 
-### Validation
-- FastEndpoints validators inherit from `Validator<TRequest>`
-- Use built-in FluentValidation rules where possible (e.g., `.EmailAddress()`)
-- Custom validators for string-to-enum and date parsing
-
-## Project Structure
-```
-backend/src/
-├── API/
-│   ├── Endpoints/UserProfile/   # 15+ endpoints
-│   ├── DTOs/UserProfile/       # Request/Response DTOs
-│   ├── Validators/              # FluentValidation validators
-│   ├── Security/                # AdminOwnerAuthorizationHandler
-│   └── Mappers/                 # UserProfileMappers
-├── Core/
-│   ├── Entities/UserProfiles/   # UserProfile aggregate
-│   ├── Entities/ValueObjects/  # Contact, Address, etc.
-│   ├── Services/               # IUserProfileService, IEncryptionService
-│   └── Authorization/          # AdminOwnerRequirement
-└── Infrastructure/
-    ├── Services/                # EncryptionService, AuthService
-    └── PostgreSQL/             # UserProfileRepository
-```
+### PII Encryption
+- Fields marked with `[Encrypt]` attribute are encrypted at database level
+- Encrypted fields: `AccountHolderName`, `AccountNumber`, identification `Value`, etc.
 
 ## Next Steps
-1. Frontend integration with UserProfile endpoints
+1. Run database migration
 2. Testing
-3. Question Bank domain
-4. Session Management
+3. Frontend integration
+4. Question Bank domain

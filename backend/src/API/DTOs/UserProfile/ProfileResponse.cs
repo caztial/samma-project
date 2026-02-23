@@ -26,6 +26,8 @@ public class ProfileResponse
     public List<AddressResponse> Addresses { get; set; } = [];
     public List<IdentificationResponse> Identifications { get; set; } = [];
     public List<ConsentResponse> Consents { get; set; } = [];
+    public List<EducationResponse> Educations { get; set; } = [];
+    public List<BankAccountResponse> BankAccounts { get; set; } = [];
 }
 
 public class ContactDto
