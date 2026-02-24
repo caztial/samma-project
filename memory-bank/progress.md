@@ -107,6 +107,44 @@ All endpoints use:
 | UpdateBankAccountEndpoint | PUT | /api/profile/{id}/bank-accounts/{bankAccountId} |
 | RemoveBankAccountEndpoint | DELETE | /api/profile/{id}/bank-accounts/{bankAccountId} |
 
+### Question Aggregate (Feb 24, 2026)
+- ✅ **Question** - Aggregate Root with MCQ validation
+- ✅ **AnswerOption** - Entity for MCQ options with points
+- ✅ **Tag** - Entity for question tags with normalized name
+- ✅ **MediaMetadata** - Value Object for audio/video attachments
+- ✅ **QuestionType** enum - MCQ type
+- ✅ **MediaType** enum - Audio/Video types
+- ✅ IQuestionRepository with search and pagination
+- ✅ IQuestionService with full CRUD and tag operations
+- ✅ QuestionRepository implementation
+- ✅ QuestionService implementation with MCQ validation
+
+### Question API Layer
+- ✅ QuestionDto - Create/Update/Response DTOs
+- ✅ AnswerOptionDto - Answer option DTOs
+- ✅ TagDto - Tag DTOs
+- ✅ MediaMetadataDto - Media metadata DTO
+- ✅ QuestionMappers - Mappers for Question entity
+- ✅ QuestionRequestValidator - FluentValidation validators
+
+### Question Endpoints
+| Endpoint | Method | Route | Roles |
+|----------|--------|-------|-------|
+| CreateMCQQuestionEndpoint | POST | /questions/mcq | Admin, Moderator |
+| GetMCQQuestionEndpoint | GET | /questions/mcq/{id} | Admin, Moderator, Presenter |
+| ListQuestionsEndpoint | GET | /questions | Anonymous |
+| UpdateMCQQuestionEndpoint | PUT | /questions/mcq/{id} | Admin, Moderator |
+| DeleteQuestionEndpoint | DELETE | /questions/{id} | Admin, Moderator |
+| AddTagEndpoint | POST | /questions/{QuestionId}/tags | Admin, Moderator |
+| RemoveTagEndpoint | DELETE | /questions/{QuestionId}/tags/{TagId} | Admin, Moderator |
+| SearchTagsEndpoint | GET | /tags | Anonymous |
+| AddAnswerOptionEndpoint | POST | /questions/{QuestionId}/answer-options | Admin, Moderator |
+| UpdateAnswerOptionEndpoint | PUT | /questions/{QuestionId}/answer-options/{OptionId} | Admin, Moderator |
+| DeleteAnswerOptionEndpoint | DELETE | /questions/{QuestionId}/answer-options/{OptionId} | Admin, Moderator |
+| AddMediaEndpoint | POST | /questions/{QuestionId}/media | Admin, Moderator |
+| UpdateMediaEndpoint | PUT | /questions/{QuestionId}/media/{MediaId} | Admin, Moderator |
+| DeleteMediaEndpoint | DELETE | /questions/{QuestionId}/media/{MediaId} | Admin, Moderator |
+
 ### Authentication
 - ✅ LoginEndpoint - Returns FirstName/LastName from UserProfile
 - ✅ RegisterEndpoint - Creates ApplicationUser and publishes UserCreatedEvent
@@ -127,7 +165,7 @@ All endpoints use:
 - ❌ Database migration
 - ❌ Frontend integration with these endpoints
 - ❌ Testing
-- ❌ Question Bank domain
+- ✅ Question Bank domain (Feb 24, 2026)
 - ❌ Session Management
 - ❌ SignalR Hub implementation
 - ❌ Presentation Mode
@@ -135,6 +173,15 @@ All endpoints use:
 ## Recent Changes Summary
 | Change | Date | Description |
 |--------|------|-------------|
+| Tag M:N Refactoring | Feb 24, 2026 | Tags now reusable via QuestionTag join table |
+| Delete Question Endpoint | Feb 24, 2026 | DELETE /questions/{id} for Admin/Moderator |
+| ITagService/ITagRepository | Feb 24, 2026 | New services for tag management with typeahead search |
+| Question Aggregate | Feb 24, 2026 | Full Question aggregate with MCQ support |
+| Question Endpoints | Feb 24, 2026 | CRUD + Search endpoints for questions |
+| QuestionType/MediaType Enums | Feb 24, 2026 | Enums for question classification |
+| MediaMetadata Value Object | Feb 24, 2026 | Audio/Video attachment support |
+| AnswerOption Entity | Feb 24, 2026 | MCQ options with points and correctness |
+| Tag Entity | Feb 24, 2026 | Question tags with normalized search |
 | Education CRUD Endpoints | Feb 22, 2026 | Added full CRUD endpoints for Education |
 | BankAccount CRUD Endpoints | Feb 22, 2026 | Added full CRUD endpoints for BankAccount |
 | ProfileResponse Update | Feb 22, 2026 | Added Educations and BankAccounts collections |

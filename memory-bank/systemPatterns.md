@@ -5,7 +5,7 @@
 ### Core Aggregates
 1. **User** - Participant/Admin/Moderator accounts (ASP.NET Identity)
 2. **UserProfile** - Extended user information with PII encryption
-3. **Question** - Question bank items with answer options
+3. **Question** - Question bank items with answer options, tags, media (✅ Implemented)
 4. **Session** - Dhamma session lifecycle
 5. **Answer** - Participant answer submissions
 6. **AuditLog** - Activity tracking

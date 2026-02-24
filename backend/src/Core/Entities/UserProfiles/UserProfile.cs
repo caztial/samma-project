@@ -54,33 +54,34 @@ public class UserProfile : BaseEntity, IAggregatedRoot
     /// <summary>
     /// Addresses - 1:N
     /// </summary>
-    public ICollection<UserAddress> Addresses { get; set; } = new List<UserAddress>();
+    public virtual ICollection<UserAddress> Addresses { get; set; } = new List<UserAddress>();
 
     /// <summary>
     /// Emergency contacts (PII - encrypted) - 1:N
     /// </summary>
-    public ICollection<EmergencyContact> EmergencyContacts { get; set; } =
+    public virtual ICollection<EmergencyContact> EmergencyContacts { get; set; } =
         new List<EmergencyContact>();
 
     /// <summary>
     /// Identification numbers (PII - encrypted) - 1:N
     /// </summary>
-    public ICollection<Identification> Identifications { get; set; } = new List<Identification>();
+    public virtual ICollection<Identification> Identifications { get; set; } =
+        new List<Identification>();
 
     /// <summary>
     /// Consent records - 1:N
     /// </summary>
-    public ICollection<UserConsent> Consents { get; set; } = new List<UserConsent>();
+    public virtual ICollection<UserConsent> Consents { get; set; } = new List<UserConsent>();
 
     /// <summary>
     /// Education qualifications - 1:N
     /// </summary>
-    public ICollection<Education> Educations { get; set; } = new List<Education>();
+    public virtual ICollection<Education> Educations { get; set; } = new List<Education>();
 
     /// <summary>
     /// Bank account details (PII - encrypted) - 1:N
     /// </summary>
-    public ICollection<BankAccount> BankAccounts { get; set; } = new List<BankAccount>();
+    public virtual ICollection<BankAccount> BankAccounts { get; set; } = new List<BankAccount>();
 
     /// <summary>
     /// Factory method to create UserProfile from UserCreatedEvent

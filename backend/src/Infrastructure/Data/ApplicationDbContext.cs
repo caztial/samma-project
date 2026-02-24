@@ -1,4 +1,6 @@
 using Core.Entities;
+using Core.Entities.Questions;
+using Core.Entities.Questions.ValueObjects;
 using Core.Entities.UserProfiles;
 using Core.Entities.ValueObjects;
 using Core.Services;
@@ -34,6 +36,13 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<Identification> Identifications { get; set; } = null!;
     public DbSet<Education> Educations { get; set; } = null!;
     public DbSet<BankAccount> BankAccounts { get; set; } = null!;
+
+    // DbSets for Question aggregate
+    public DbSet<Question> Questions { get; set; } = null!;
+    public DbSet<McqQuestion> MCQQuestions { get; set; } = null!;
+    public DbSet<McqAnswerOption> AnswerOptions { get; set; } = null!;
+    public DbSet<Tag> Tags { get; set; } = null!;
+    public DbSet<QuestionTag> QuestionTags { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -149,7 +158,10 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
                 {
                     address.Property(a => a.Line1).HasMaxLength(500).HasColumnName("AddressLine1");
                     address.Property(a => a.Line2).HasMaxLength(500).HasColumnName("AddressLine2");
-                    address.Property(a => a.Suburb).HasMaxLength(200).HasColumnName("AddressSuburb");
+                    address
+                        .Property(a => a.Suburb)
+                        .HasMaxLength(200)
+                        .HasColumnName("AddressSuburb");
                     address
                         .Property(a => a.StateProvince)
                         .HasMaxLength(200)
@@ -211,7 +223,10 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
                 uc => uc.Consent,
                 consent =>
                 {
-                    consent.Property(c => c.TermId).HasMaxLength(100).HasColumnName("ConsentTermId");
+                    consent
+                        .Property(c => c.TermId)
+                        .HasMaxLength(100)
+                        .HasColumnName("ConsentTermId");
                     consent
                         .Property(c => c.TermLink)
                         .HasMaxLength(2000)
@@ -220,9 +235,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
                         .Property(c => c.TermsVersion)
                         .HasMaxLength(50)
                         .HasColumnName("ConsentTermsVersion");
-                    consent
-                        .Property(c => c.AcceptedAt)
-                        .HasColumnName("ConsentAcceptedAt");
+                    consent.Property(c => c.AcceptedAt).HasColumnName("ConsentAcceptedAt");
                     consent
                         .Property(c => c.IpAddress)
                         .HasMaxLength(45)
@@ -255,6 +268,100 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             entity.Property(ba => ba.AccountHolderName).HasMaxLength(500);
             entity.Property(ba => ba.AccountNumber).HasMaxLength(500);
             entity.Property(ba => ba.BranchCode).HasMaxLength(50);
+        });
+
+        // ============================================
+        // Question Configuration (TPT - Table Per Type)
+        // ============================================
+        // Base Question table
+        builder.Entity<Question>(entity =>
+        {
+            entity.HasKey(q => q.Id);
+            entity.Property(q => q.Text).HasMaxLength(2000).IsRequired();
+            entity.Property(q => q.Description).HasMaxLength(5000);
+            entity.Property(q => q.CreatedBy).HasMaxLength(450).IsRequired();
+
+            // Index for searching by creator
+            entity.HasIndex(q => q.CreatedBy);
+
+            // OwnsMany for MediaMetadatas (1:N) - Collection of media attachments
+            entity.OwnsMany(
+                q => q.MediaMetadatas,
+                media =>
+                {
+                    media.WithOwner().HasForeignKey("QuestionId");
+                    media.Property(m => m.Url).HasMaxLength(2000);
+                    media.Property(m => m.DurationSeconds);
+                    media.Property(m => m.MimeType).HasMaxLength(100);
+                    media.Property(m => m.ThumbnailUrl).HasMaxLength(2000);
+                    media.Property(m => m.MediaType);
+                }
+            );
+        });
+
+        // ============================================
+        // MCQQuestion Configuration (TPT - inherits from Question)
+        // ============================================
+        builder.Entity<McqQuestion>(entity =>
+        {
+            // TPT mapping: MCQQuestions table has Id as FK to Questions table
+            entity.ToTable("MCQQuestions");
+
+            // HasMany for AnswerOptions (1:N) - Only MCQ questions have answer options
+            entity
+                .HasMany(q => q.AnswerOptions)
+                .WithOne(o => o.McqQuestion)
+                .HasForeignKey(o => o.McqQuestionId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // ============================================
+        // AnswerOption Configuration
+        // ============================================
+        builder.Entity<McqAnswerOption>(entity =>
+        {
+            entity.HasKey(o => o.Id);
+            entity.Property(o => o.Text).HasMaxLength(1000).IsRequired();
+
+            // Index for ordering
+            entity.HasIndex(o => new { o.McqQuestionId, o.Order });
+        });
+
+        // ============================================
+        // Tag Configuration
+        // ============================================
+        builder.Entity<Tag>(entity =>
+        {
+            entity.HasKey(t => t.Id);
+            entity.Property(t => t.Name).HasMaxLength(100).IsRequired();
+            entity.Property(t => t.NormalizedName).HasMaxLength(100).IsRequired();
+
+            // Unique index for normalized name (tags are reusable)
+            entity.HasIndex(t => t.NormalizedName).IsUnique();
+        });
+
+        // ============================================
+        // QuestionTag Configuration (Join Table)
+        // ============================================
+        builder.Entity<QuestionTag>(entity =>
+        {
+            entity.HasKey(qt => qt.Id);
+
+            // Composite unique index to prevent duplicate tag assignments
+            entity.HasIndex(qt => new { qt.QuestionId, qt.TagId }).IsUnique();
+
+            // Relationships
+            entity
+                .HasOne(qt => qt.Question)
+                .WithMany(q => q.QuestionTags)
+                .HasForeignKey(qt => qt.QuestionId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity
+                .HasOne(qt => qt.Tag)
+                .WithMany(t => t.QuestionTags)
+                .HasForeignKey(qt => qt.TagId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
 
         // ============================================

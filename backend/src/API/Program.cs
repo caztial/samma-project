@@ -109,8 +109,14 @@ builder.Services.AddMassTransit(x =>
 // ============================================
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IUserProfileRepository, UserProfileRepository>();
+builder.Services.AddScoped<IQuestionRepository, QuestionRepository>();
+builder.Services.AddScoped<IMcqQuestionRepository, McqQuestionRepository>();
+builder.Services.AddScoped<ITagRepository, TagRepository>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUserProfileService, UserProfileService>();
+builder.Services.AddScoped<IQuestionService, QuestionService>();
+builder.Services.AddScoped<IMcqQuestionService, McqQuestionService>();
+builder.Services.AddScoped<ITagService, TagService>();
 
 // ============================================
 // FAST ENDPOINTS

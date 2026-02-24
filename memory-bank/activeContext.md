@@ -1,87 +1,149 @@
 # Active Context
 
-## Current Phase: Education & BankAccount Endpoints Complete ✅
+## Current Phase: Question Domain Enhancements Complete ✅
 
-Added full CRUD endpoints for Education and BankAccount entities, and updated ProfileResponse to include both new collections.
+Recent work completed on the Question aggregate:
+1. **Tag Refactoring** - Changed from 1:N to M:N (many-to-many) relationship
+2. **Delete Question Endpoint** - Added for Admin/Moderator roles
 
-## Recent Changes (Feb 22, 2026)
+## Recent Changes (Feb 24, 2026)
 
-### Education CRUD Endpoints Added
-| Endpoint | Method | Route |
-|----------|--------|-------|
-| AddEducationEndpoint | POST | /profile/{id}/educations |
-| GetEducationsEndpoint | GET | /profile/{id}/educations |
-| UpdateEducationEndpoint | PUT | /profile/{id}/educations/{educationId} |
-| RemoveEducationEndpoint | DELETE | /profile/{id}/educations/{educationId} |
+### Tag Refactoring (M:N Relationship)
 
-### BankAccount CRUD Endpoints Added
-| Endpoint | Method | Route |
-|----------|--------|-------|
-| AddBankAccountEndpoint | POST | /profile/{id}/bank-accounts |
-| GetBankAccountsEndpoint | GET | /profile/{id}/bank-accounts |
-| UpdateBankAccountEndpoint | PUT | /profile/{id}/bank-accounts/{bankAccountId} |
-| RemoveBankAccountEndpoint | DELETE | /profile/{id}/bank-accounts/{bankAccountId} |
+Tags are now **reusable** across questions via a join table.
 
-### ProfileResponse Updated
-- Added `List<EducationResponse> Educations` collection
-- Added `List<BankAccountResponse> BankAccounts` collection
-- ProfileMapper updated to map both new collections
+#### Entity Structure
+```
+Tag : BaseEntity
+├── Name: string
+├── NormalizedName: string (unique, lowercase)
+├── UsageCount: int (popularity tracking)
+└── QuestionTags: ICollection<QuestionTag>
 
-### Mappers Added
-- `EducationMapper` - Maps EducationRequest/EducationResponse to/from Education entity
-- `BankAccountMapper` - Maps BankAccountRequest/BankAccountResponse to/from BankAccount entity
+QuestionTag : BaseEntity (Join Table)
+├── QuestionId: Guid
+├── TagId: Guid
+├── Question: Question?
+└── Tag: Tag?
 
-### DTOs Created
-- `EducationRequest`, `EducationResponse`
-- `AddEducationRequest`, `UpdateEducationRequest`, `RemoveEducationRequest`
-- `BankAccountRequest`, `BankAccountResponse`
-- `AddBankAccountRequest`, `UpdateBankAccountRequest`, `RemoveBankAccountRequest`
+Question
+└── QuestionTags: ICollection<QuestionTag> (changed from Tags)
+```
 
-## Entity/Value Object Architecture
+#### New Services
+- **ITagRepository / TagRepository** - Tag data access
+- **ITagService / TagService** - Tag business logic with find-or-create pattern
+
+#### New/Updated Endpoints
+
+| Endpoint | Method | Route | Description |
+|----------|--------|-------|-------------|
+| SearchTagsEndpoint | GET | `/tags?search={text}` | Top 10 matching tags (typeahead) |
+| AddTagEndpoint | POST | `/questions/{QuestionId}/tags` | Add tag by name (reuse if exists) |
+| RemoveTagEndpoint | DELETE | `/questions/{QuestionId}/tags/{TagId}` | Remove tag from question only |
+| DeleteQuestionEndpoint | DELETE | `/questions/{Id}` | Delete question (Admin/Moderator) |
+
+#### Key Behavior
+- Adding tag by name: Creates new tag if not exists (case-insensitive), otherwise reuses
+- Removing tag: Only removes QuestionTag association, preserves Tag entity
+- Tag search: Returns top 10 results ordered by UsageCount (popularity)
+
+### Question Hierarchy Implementation
+
+#### Class Structure
+```
+Question (Abstract Aggregate Root)
+├── Text: string
+├── Description: string?
+├── DurationSeconds: int?
+├── MediaMetadatas: ICollection<MediaMetadata> (owned)
+├── QuestionTags: ICollection<QuestionTag> (M:N)
+├── CreatedBy: string
+├── IsVerified: bool
+├── QuestionType: string (protected set)
+└── AddMedia(MediaMetadata)
+
+McqQuestion : Question
+├── AnswerOptions: ICollection<McqAnswerOption>
+├── AddAnswerOption(text, order, points, isCorrect)
+└── ValidateMCQ() - validates exactly one correct answer
+```
+
+### Service Architecture
+
+**IQuestionService** (Generic):
+- `GetByIdAsync`, `GetAllAsync`
+- `DeleteAsync`
+- `AddTagAsync`, `RemoveTagAsync`, `GetAllTagsAsync`, `GetByTagAsync`
+- `AddMediaAsync`, `UpdateMediaAsync`, `RemoveMediaAsync`
+
+**IMcqQuestionService** (MCQ-specific):
+- `CreateAsync` - Create MCQ with answer options
+- `GetByIdAsync`, `UpdateAsync`
+- `AddAnswerOptionAsync`, `RemoveAnswerOptionAsync`, `UpdateAnswerOptionAsync`
+
+**ITagService** (Tag operations):
+- `SearchAsync` - Typeahead search (top 10)
+- `AddTagToQuestionAsync` - Find or create tag, add to question
+- `RemoveTagFromQuestionAsync` - Remove association only
+
+### Database Schema (TPT)
 
 ```
-UserProfile (Aggregate Root)
-├── Contact (Value Object, 1:1)
-├── Biometrics (Value Object, 1:1)
-├── Addresses (1:N)
-│   └── UserAddress (Entity)
-│       └── Address (Value Object)
-├── EmergencyContacts (1:N)
-│   └── EmergencyContact (Entity)
-│       └── Contact (Value Object)
-├── Identifications (1:N)
-│   └── Identification (Entity)
-├── Consents (1:N)
-│   └── UserConsent (Entity)
-│       └── Consent (Value Object)
-├── Educations (1:N)
-│   └── Education (Entity)
-└── BankAccounts (1:N)
-    └── BankAccount (Entity)
+Questions Table (Base)
+├── Id (PK)
+├── Text
+├── Description
+├── DurationSeconds
+├── CreatedBy
+├── IsVerified
+├── QuestionType
+├── CreatedAt
+└── UpdatedAt
+
+MCQQuestions Table (Inherits from Questions)
+└── Id (PK, FK to Questions.Id)
+
+AnswerOptions Table
+├── Id (PK)
+├── McqQuestionId (FK)
+├── Text
+├── Order
+├── Points
+├── IsCorrect
+├── CreatedAt
+└── UpdatedAt
+
+Tags Table (Reusable)
+├── Id (PK)
+├── Name
+├── NormalizedName (Unique Index)
+├── UsageCount
+├── CreatedAt
+└── UpdatedAt
+
+QuestionTags Table (Join Table)
+├── Id (PK)
+├── QuestionId (FK)
+├── TagId (FK)
+├── CreatedAt
+└── UpdatedAt
+└── Unique Index (QuestionId, TagId)
 ```
+
+## Key Design Decisions
+
+1. **M:N Tags**: Tags are now reusable entities with usage count for popularity
+2. **Tag Search**: Typeahead behavior with top 10 results, ordered by popularity
+3. **Abstract Question Class**: Question is abstract, cannot be instantiated directly
+4. **QuestionType Property**: Set by derived classes in constructor (e.g., "MCQ")
+5. **Separated Services**: IMcqQuestionService for create/update, IQuestionService for generic operations
 
 ## Running Services
 - API: http://localhost:8080 (Docker)
 - PostgreSQL: localhost:5432
 
-## Current Decisions
-
-### Entity Pattern for 1:N Relationships
-- 1:N relationships are modeled as **Entities** (inherit from `BaseEntity`)
-- Entities have `Id`, `CreatedAt`, `UpdatedAt` for audit trail
-- Value objects inside entities are stored as owned types via EF Core `OwnsOne`
-
-### Value Object Pattern
-- True value objects (1:1, immutable, no identity) remain in `ValueObjects/`
-- `Contact`, `Biometrics` are true value objects (no Id)
-- Reusable value objects: `Address`, `Consent`, `Contact`
-
-### PII Encryption
-- Fields marked with `[Encrypt]` attribute are encrypted at database level
-- Encrypted fields: `AccountHolderName`, `AccountNumber`, identification `Value`, etc.
-
 ## Next Steps
-1. Run database migration
-2. Testing
-3. Frontend integration
-4. Question Bank domain
+1. Add more question types (TrueFalseQuestion, ShortAnswerQuestion)
+2. Session Management domain
+3. Real-time Q&A with SignalR
