@@ -76,6 +76,7 @@ public class ListQuestionsEndpoint : Endpoint<ListQuestionsRequest, QuestionList
         return new QuestionResponse
         {
             Id = q.Id,
+            Number = q.Number,
             Text = q.Text,
             Description = q.Description,
             QuestionType = q.QuestionType,

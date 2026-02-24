@@ -15,6 +15,7 @@ public class MCQQuestionMapper : Mapper<CreateMCQQuestionRequest, MCQQuestionRes
     {
         var question = new McqQuestion
         {
+            Number = r.Number,
             Text = r.Text,
             Description = r.Description,
             DurationSeconds = r.DurationSeconds,
@@ -64,6 +65,7 @@ public class MCQQuestionMapper : Mapper<CreateMCQQuestionRequest, MCQQuestionRes
         return new MCQQuestionResponse
         {
             Id = e.Id,
+            Number = e.Number,
             Text = e.Text,
             Description = e.Description,
             QuestionType = "MCQ",
@@ -116,6 +118,7 @@ public class MCQQuestionResponseMapper : ResponseMapper<MCQQuestionResponse, Mcq
         return new MCQQuestionResponse
         {
             Id = e.Id,
+            Number = e.Number,
             Text = e.Text,
             Description = e.Description,
             QuestionType = "MCQ",

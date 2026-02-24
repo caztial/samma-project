@@ -277,12 +277,16 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
         builder.Entity<Question>(entity =>
         {
             entity.HasKey(q => q.Id);
+            entity.Property(q => q.Number).HasMaxLength(50).IsRequired();
             entity.Property(q => q.Text).HasMaxLength(2000).IsRequired();
             entity.Property(q => q.Description).HasMaxLength(5000);
             entity.Property(q => q.CreatedBy).HasMaxLength(450).IsRequired();
 
             // Index for searching by creator
             entity.HasIndex(q => q.CreatedBy);
+
+            // Index for searching by number
+            entity.HasIndex(q => q.Number);
 
             // OwnsMany for MediaMetadatas (1:N) - Collection of media attachments
             entity.OwnsMany(

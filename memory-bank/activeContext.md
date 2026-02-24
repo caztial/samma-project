@@ -5,6 +5,38 @@
 Recent work completed on the Question aggregate:
 1. **Tag Refactoring** - Changed from 1:N to M:N (many-to-many) relationship
 2. **Delete Question Endpoint** - Added for Admin/Moderator roles
+3. **Question Number Field** - Added mandatory `Number` field (string, max 50 chars)
+
+### Question Number Field Implementation (Feb 25, 2026)
+
+Added a mandatory `Number` field to the Question aggregate root for question identification.
+
+#### Entity Changes
+```
+Question (Abstract Aggregate Root)
+├── Number: string (required, max 50 chars)  <-- NEW
+├── Text: string
+├── Description: string?
+├── DurationSeconds: int?
+├── MediaMetadatas: ICollection<MediaMetadata>
+├── QuestionTags: ICollection<QuestionTag>
+├── CreatedBy: string
+├── IsVerified: bool
+└── QuestionType: string
+```
+
+#### API Changes
+- **CreateMCQQuestionRequest**: Added `Number` (required)
+- **UpdateMCQQuestionRequest**: Added `Number` (optional)
+- **QuestionResponse/MCQQuestionResponse**: Added `Number` field
+
+#### Search Enhancement
+- `SearchText` parameter now searches both `Text` and `Number` fields
+- Example: Searching "Q1" will find questions with number "Q1"
+
+#### Validation
+- `Number` is required on create (non-empty, max 50 characters)
+- `Number` cannot be empty when provided on update
 
 ## Recent Changes (Feb 24, 2026)
 

@@ -9,6 +9,11 @@ namespace Core.Entities.Questions;
 public abstract class Question : BaseEntity, IAggregatedRoot
 {
     /// <summary>
+    /// The question number/identifier (e.g., "Q1", "1.1", "A-001")
+    /// </summary>
+    public string Number { get; set; } = string.Empty;
+
+    /// <summary>
     /// The question text
     /// </summary>
     public string Text { get; set; } = string.Empty;

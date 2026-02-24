@@ -61,6 +61,7 @@ public class CreateMcqQuestionEndpoint
         try
         {
             var question = await _mcqQuestionService.CreateAsync(
+                req.Number,
                 req.Text,
                 req.Description,
                 req.DurationSeconds,

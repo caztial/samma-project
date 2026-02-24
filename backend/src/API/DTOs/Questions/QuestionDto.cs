@@ -8,6 +8,11 @@ namespace API.DTOs.Questions;
 public class CreateMCQQuestionRequest
 {
     /// <summary>
+    /// The question number/identifier (e.g., "Q1", "1.1", "A-001")
+    /// </summary>
+    public string Number { get; set; } = string.Empty;
+
+    /// <summary>
     /// The question text
     /// </summary>
     public string Text { get; set; } = string.Empty;
@@ -53,6 +58,11 @@ public class UpdateMCQQuestionRequest
     /// Question ID from route
     /// </summary>
     public Guid Id { get; set; }
+
+    /// <summary>
+    /// Updated question number/identifier
+    /// </summary>
+    public string? Number { get; set; }
 
     /// <summary>
     /// Updated question text
@@ -294,6 +304,7 @@ public class DeleteMediaRequest
 public class QuestionResponse
 {
     public Guid Id { get; set; }
+    public string Number { get; set; } = string.Empty;
     public string Text { get; set; } = string.Empty;
     public string? Description { get; set; }
     public string QuestionType { get; set; } = string.Empty;

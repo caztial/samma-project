@@ -52,6 +52,7 @@ public class UpdateMCQQuestionEndpoint
 
         var question = await _mcqQuestionService.UpdateAsync(
             req.Id,
+            req.Number,
             req.Text,
             req.Description,
             req.DurationSeconds,

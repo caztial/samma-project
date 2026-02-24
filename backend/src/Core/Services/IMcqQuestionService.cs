@@ -12,6 +12,7 @@ public interface IMcqQuestionService
     /// Creates a new MCQ question.
     /// </summary>
     Task<McqQuestion> CreateAsync(
+        string number,
         string text,
         string? description,
         int? durationSeconds,
@@ -31,6 +32,7 @@ public interface IMcqQuestionService
     /// </summary>
     Task<McqQuestion?> UpdateAsync(
         Guid id,
+        string? number = null,
         string? text = null,
         string? description = null,
         int? durationSeconds = null,

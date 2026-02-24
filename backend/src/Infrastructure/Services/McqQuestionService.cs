@@ -18,6 +18,7 @@ public class McqQuestionService : IMcqQuestionService
     }
 
     public async Task<McqQuestion> CreateAsync(
+        string number,
         string text,
         string? description,
         int? durationSeconds,
@@ -29,6 +30,7 @@ public class McqQuestionService : IMcqQuestionService
     {
         var question = new McqQuestion
         {
+            Number = number,
             Text = text,
             Description = description,
             DurationSeconds = durationSeconds,
@@ -79,6 +81,7 @@ public class McqQuestionService : IMcqQuestionService
 
     public async Task<McqQuestion?> UpdateAsync(
         Guid id,
+        string? number = null,
         string? text = null,
         string? description = null,
         int? durationSeconds = null,
@@ -89,6 +92,9 @@ public class McqQuestionService : IMcqQuestionService
         var question = await _mcqQuestionRepository.GetByIdAsync(id);
         if (question == null)
             return null;
+
+        if (number != null)
+            question.Number = number;
 
         if (text != null)
             question.Text = text;

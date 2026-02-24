@@ -11,6 +11,12 @@ public class CreateMCQQuestionRequestValidator : Validator<CreateMCQQuestionRequ
 {
     public CreateMCQQuestionRequestValidator()
     {
+        RuleFor(x => x.Number)
+            .NotEmpty()
+            .WithMessage("Question number is required")
+            .MaximumLength(50)
+            .WithMessage("Question number must not exceed 50 characters");
+
         RuleFor(x => x.Text)
             .NotEmpty()
             .WithMessage("Question text is required")
@@ -103,6 +109,13 @@ public class UpdateMCQQuestionRequestValidator : Validator<UpdateMCQQuestionRequ
     public UpdateMCQQuestionRequestValidator()
     {
         RuleFor(x => x.Id).NotEmpty().WithMessage("Question ID is required");
+
+        RuleFor(x => x.Number)
+            .NotEmpty()
+            .WithMessage("Question number cannot be empty when provided")
+            .MaximumLength(50)
+            .WithMessage("Question number must not exceed 50 characters")
+            .When(x => !string.IsNullOrEmpty(x.Number));
 
         RuleFor(x => x.Text)
             .NotEmpty()

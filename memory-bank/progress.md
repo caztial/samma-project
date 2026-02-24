@@ -173,6 +173,8 @@ All endpoints use:
 ## Recent Changes Summary
 | Change | Date | Description |
 |--------|------|-------------|
+| Question Number Field | Feb 25, 2026 | Added mandatory `Number` field (string, max 50 chars) to Question aggregate |
+| Search Enhancement | Feb 25, 2026 | SearchText now searches both Text and Number fields |
 | Tag M:N Refactoring | Feb 24, 2026 | Tags now reusable via QuestionTag join table |
 | Delete Question Endpoint | Feb 24, 2026 | DELETE /questions/{id} for Admin/Moderator |
 | ITagService/ITagRepository | Feb 24, 2026 | New services for tag management with typeahead search |

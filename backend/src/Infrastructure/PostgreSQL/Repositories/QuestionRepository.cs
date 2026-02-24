@@ -37,6 +37,7 @@ public class QuestionRepository : IQuestionRepository
         var query = _context
             .Questions.Include(q => q.QuestionTags)
             .ThenInclude(qt => qt.Tag)
+            .AsSplitQuery()
             .AsQueryable();
 
         // Apply question type filter
@@ -45,11 +46,13 @@ public class QuestionRepository : IQuestionRepository
             query = query.Where(q => q.QuestionType == questionType);
         }
 
-        // Apply text search filter
+        // Apply text search filter (searches in both Number and Text fields)
         if (!string.IsNullOrWhiteSpace(searchText))
         {
             var searchLower = searchText.ToLower();
-            query = query.Where(q => q.Text.ToLower().Contains(searchLower));
+            query = query.Where(q =>
+                q.Text.ToLower().Contains(searchLower) || q.Number.ToLower().Contains(searchLower)
+            );
         }
 
         // Apply tags filter
