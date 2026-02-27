@@ -31,18 +31,30 @@ The frontend has been rebuilt from scratch with a focus on internationalization 
 ```
 frontend/
 ├── src/
+│   ├── config.js                 ← API_BASE_URL from VITE_API_URL; central config
 │   ├── i18n/
 │   │   ├── LocaleContext.jsx
 │   │   ├── useTranslation.js
 │   │   └── locales/
-│   │       ├── en-US.json
-│   │       └── si-LK.json
-│   ├── contexts/          (empty)
-│   ├── pages/             (empty)
-│   ├── App.jsx            (default Vite template)
-│   └── main.jsx           (default Vite template)
-├── .env.development
-└── vite.config.js
+│   │       ├── en-US.json        (login, signup, auth, theme, language, common keys)
+│   │       └── si-LK.json        (full Sinhala translations)
+│   ├── contexts/
+│   │   └── ThemeContext.jsx      (dark/light mode - persisted to localStorage)
+│   ├── pages/
+│   │   └── auth/
+│   │       ├── AuthLayout.jsx    (top bar: language picker + dark mode switch)
+│   │       ├── LoginPage.jsx     (email, password, validation, server errors)
+│   │       └── SignupPage.jsx    (firstName, lastName, email, password)
+│   ├── services/
+│   │   └── authService.js        (login + register; baseURL from config.js)
+│   ├── App.jsx                   (ThemeProvider → LocaleProvider → BrowserRouter → S2 Provider → Routes)
+│   ├── main.jsx
+│   ├── index.css                 (minimal reset, 100vh body)
+│   └── App.css                   (empty - layout handled by S2 style macro)
+├── .env.development              (VITE_API_URL=http://localhost:5001/api)
+├── .env.production               (VITE_API_URL=https://api.yourdomain.com/api)
+├── .env.example                  (documents all env variables)
+└── vite.config.js                (uses loadEnv to derive proxy target from VITE_API_URL)
 ```
 
 ### Key Decisions
@@ -51,6 +63,10 @@ frontend/
 - **JSX** (not TypeScript)
 - **Mobile-first** for client pages, tablet/laptop for admin pages
 - **i18n from day one** - English and Sinhala supported
+- **ThemeContext** wraps outside LocaleProvider so colorScheme is available to S2 Provider
+- **S2 style macro quirks**: use `'end'` not `'flex-end'`; use `paddingLeft`/`paddingRight` not `paddingStart`/`paddingEnd`
+- **AuthLayout pattern** - shared layout component for top bar + centered content area
+- **Global API config**: `VITE_API_URL` in `.env.*` files controls both the axios `baseURL` (via `src/config.js`) AND the Vite dev proxy target (via `loadEnv` in `vite.config.js`)
 
 ### Environment Variables
 ```
@@ -63,10 +79,18 @@ VITE_ENV=development
 - Backend API: http://localhost:5001 (or Docker port 8080)
 
 ### Next Steps
-1. Create AuthContext for authentication state
-2. Create Login page with language switcher
-3. Set up routing with React Router
-4. Build dashboard pages incrementally
+1. Create AuthContext for authentication state (store JWT token, user info, logged-in state)
+2. Create protected route wrapper (redirect to /login if not authenticated)
+3. Build main dashboard/home page
+4. Implement React Router client-side routing with auth guards
+
+### Environment Variables
+| Variable | Purpose | Default |
+|----------|---------|---------|
+| `VITE_API_URL` | Full backend API URL (scheme + host + port + /api) | `http://localhost:5001/api` |
+| `VITE_ENV` | Environment label string | `development` |
+
+**To change the backend domain/port:** edit only `VITE_API_URL` in `.env.development` (dev) or `.env.production` (prod build). No code changes needed.
 
 ## React Spectrum S2 MCP Server
 

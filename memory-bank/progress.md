@@ -191,7 +191,7 @@
 - ✅ **Async Command Pattern** (Feb 27, 2026) - Queue-based processing for high-frequency operations
 - ✅ **Idempotency Pattern** (Feb 27, 2026) - Command deduplication using CommandId
 
-## Frontend (Feb 27, 2026 - Rebuild)
+## Frontend (Feb 27, 2026 - Rebuild + Auth Pages)
 
 ### Project Setup
 - ✅ Vite + React 18 project (JSX, not TypeScript)
@@ -209,20 +209,39 @@
 ### i18n System
 - ✅ `LocaleContext.jsx` - React Context for language state
 - ✅ `useTranslation.js` - Hook for accessing translations
-- ✅ `en-US.json` - English translations
-- ✅ `si-LK.json` - Sinhala translations
+- ✅ `en-US.json` - Full English translations (login, signup, auth, theme, language, common)
+- ✅ `si-LK.json` - Full Sinhala translations (all keys)
+
+### Auth Pages (Feb 27, 2026)
+- ✅ `ThemeContext.jsx` - Dark/light mode state, persisted to localStorage, respects OS preference
+- ✅ `authService.js` - Login + register API calls; baseURL from `config.js`
+- ✅ `AuthLayout.jsx` - Shared layout with top bar (S2 Picker for language, S2 Switch for dark mode)
+- ✅ `LoginPage.jsx` - Email/password form with validation, server error InlineAlert, translations
+- ✅ `SignupPage.jsx` - First/Last name, email, password with validation and translations
+- ✅ `App.jsx` - ThemeProvider → LocaleProvider → BrowserRouter → AppRoutes → S2 Provider → Routes
+- ✅ Routes: `/login`, `/signup`, `/` → redirect to `/login`
+
+### Global API Configuration (Feb 27, 2026)
+- ✅ `src/config.js` - Exports `API_BASE_URL` from `import.meta.env.VITE_API_URL` (fallback: `http://localhost:5001/api`)
+- ✅ `authService.js` - Uses `API_BASE_URL` from `config.js` (no more hardcoded URL)
+- ✅ `vite.config.js` - Uses `loadEnv()` to derive proxy target from `VITE_API_URL`
+- ✅ `.env.development` - `VITE_API_URL=http://localhost:5001/api` (with clear comments)
+- ✅ `.env.production` - `VITE_API_URL=https://api.yourdomain.com/api` (placeholder)
+- ✅ `.env.example` - Documents all variables with usage examples
 
 ### Key Decisions
 - React Context for state management (not Zustand)
 - JSX (not TypeScript)
 - Mobile-first for client pages, tablet/laptop for admin pages
 - i18n from day one - English and Sinhala supported
+- S2 style macro: `'end'` not `'flex-end'`; `paddingLeft`/`paddingRight` not `paddingStart`/`paddingEnd`
+- API URL configured once in `.env.*` — drives both axios `baseURL` and Vite dev proxy target
 
 ## What's Left
 - ❌ Database migration
-- ❌ Frontend: AuthContext and Login page
-- ❌ Frontend: Routing setup
-- ❌ Frontend: Dashboard pages
+- ❌ Frontend: AuthContext (store JWT, user info, logged-in state)
+- ❌ Frontend: Protected route wrapper (redirect to /login if not authenticated)
+- ❌ Frontend: Home/Dashboard page
 - ❌ Frontend: SignalR integration
 - ❌ Testing
 - ❌ Session timer/auto-deactivation

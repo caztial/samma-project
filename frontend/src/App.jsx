@@ -1,35 +1,42 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
+import { Provider } from '@react-spectrum/s2';
+import { LocaleProvider, useLocale } from './i18n/LocaleContext';
+import { ThemeProvider, useTheme } from './contexts/ThemeContext';
+import LoginPage from './pages/auth/LoginPage';
+import SignupPage from './pages/auth/SignupPage';
 
-function App() {
-  const [count, setCount] = useState(0)
+/**
+ * Inner routes - placed inside BrowserRouter so useNavigate works,
+ * and inside LocaleProvider + ThemeProvider so we can read their state
+ * to pass into the S2 Provider.
+ */
+function AppRoutes() {
+  const navigate = useNavigate();
+  const { locale } = useLocale();
+  const { colorScheme } = useTheme();
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    <Provider locale={locale} colorScheme={colorScheme} router={{ navigate }}>
+      <Routes>
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/signup" element={<SignupPage />} />
+        <Route path="/" element={<Navigate to="/login" replace />} />
+        <Route path="*" element={<Navigate to="/login" replace />} />
+      </Routes>
+    </Provider>
+  );
 }
 
-export default App
+function App() {
+  return (
+    <ThemeProvider>
+      <LocaleProvider>
+        <BrowserRouter>
+          <AppRoutes />
+        </BrowserRouter>
+      </LocaleProvider>
+    </ThemeProvider>
+  );
+}
+
+export default App;
