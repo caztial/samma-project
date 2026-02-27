@@ -23,13 +23,23 @@
 | Component | Technology | Version |
 |-----------|-----------|---------|
 | Framework | React | 18 |
-| Build Tool | Vite | 5+ |
-| Language | TypeScript | 5+ |
-| UI Components | @shopify/polaris-web-components | Latest |
-| State Management | Zustand | - |
+| Build Tool | Vite | 7+ |
+| Language | JavaScript (JSX) | - |
+| UI Components | @react-spectrum/s2 | Latest |
+| State Management | React Context | - |
 | HTTP Client | Axios | - |
-| QR Generation | qrcode.react | - |
-| QR Scanning | html5-qrcode | - |
+| i18n | Custom (LocaleContext) | - |
+| Build Plugin | unplugin-parcel-macros | - |
+| Locale Optimization | @react-aria/optimize-locales-plugin | - |
+
+### Supported Languages
+- English (en-US)
+- Sinhala (si-LK)
+
+### Design System Documentation
+- **React Spectrum S2 MCP Server** - Available for looking up component documentation
+- **Server**: `React Spectrum (S2)` 
+- **Guide**: See `memory-bank/react-spectrum-s2-mcp.md`
 
 ### Infrastructure
 | Component | Technology |

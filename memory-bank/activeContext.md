@@ -1,98 +1,87 @@
 # Active Context
 
-## Current Phase: Async Answer Submission Implementation ✅
+## Current Phase: Frontend Rebuild
 
-Recent work completed on answer submission refactoring:
+### Recent Work
+The frontend has been rebuilt from scratch with a focus on internationalization (i18n) support.
 
-### Problem Statement
-The `SubmitMCQAnswerEndpoint` was processing answers synchronously, which could cause issues during high-frequency answer submission periods (many participants answering simultaneously).
+### What Was Done
+1. **Deleted old frontend** - Removed existing React/Polaris implementation
+2. **Created fresh Vite + React project** - Using JSX (not TypeScript)
+3. **Installed dependencies:**
+   - `@react-spectrum/s2` - React Spectrum S2 design system
+   - `unplugin-parcel-macros` - Required for S2 styling
+   - `@react-aria/optimize-locales-plugin` - Locale optimization
+   - `react-router-dom` - Routing
+   - `axios` - HTTP client
 
-### Solution: Queue-Based Async Processing
-Implemented async command pattern using MassTransit for queue-based processing:
+4. **Configured Vite for S2:**
+   - Macros plugin (must be first)
+   - Locale optimization for `en-US` and `si-LK`
+   - CSS bundling for S2 styles
+   - API proxy to backend
 
-1. **Endpoint publishes command** → Returns 202 Accepted immediately
-2. **MassTransit queue** → Commands processed in order
-3. **Consumer processes** → Calls SessionService, handles errors
-4. **SignalR notification** → Result sent to specific user
+5. **Created i18n system:**
+   - `LocaleContext.jsx` - React Context for language state
+   - `useTranslation.js` - Hook for accessing translations
+   - `en-US.json` - English translations
+   - `si-LK.json` - Sinhala translations
 
-### Route Structure Change
-- **Old**: `POST /sessions/{Id}/answers`
-  - Body: `{ QuestionId, AttemptNumber, SelectedOptionId }`
-- **New**: `POST /sessions/{Id}/questions/{QuestionId}/attempts/{AttemptNumber}/answers`
-  - Body: `{ SelectedOptionId }`
-  - Response: `202 Accepted` with `{ CommandId, Status, Message, SessionId, QuestionId, AttemptNumber }`
-
-### New Events/Commands Added
-
-#### SubmitAnswerCommand
-```csharp
-public record SubmitAnswerCommand
-{
-    public Guid CommandId { get; init; } = Guid.NewGuid();
-    public DateTime CreatedAt { get; init; } = DateTime.UtcNow;
-    public Guid SessionId { get; init; }
-    public Guid QuestionId { get; init; }
-    public int AttemptNumber { get; init; }
-    public Guid SelectedOptionId { get; init; }
-    public string UserId { get; init; } = string.Empty;
-}
+### Current Frontend Structure
+```
+frontend/
+├── src/
+│   ├── i18n/
+│   │   ├── LocaleContext.jsx
+│   │   ├── useTranslation.js
+│   │   └── locales/
+│   │       ├── en-US.json
+│   │       └── si-LK.json
+│   ├── contexts/          (empty)
+│   ├── pages/             (empty)
+│   ├── App.jsx            (default Vite template)
+│   └── main.jsx           (default Vite template)
+├── .env.development
+└── vite.config.js
 ```
 
-#### AnswerSubmissionResultEvent
-```csharp
-public record AnswerSubmissionResultEvent
-{
-    public Guid CommandId { get; init; }
-    public DateTime CompletedAt { get; init; } = DateTime.UtcNow;
-    public Guid SessionId { get; init; }
-    public Guid QuestionId { get; init; }
-    public bool Success { get; init; }
-    public string? ErrorMessage { get; init; }
-    public Guid? AnswerId { get; init; }
-    public int AttemptNumber { get; init; }
-    public Guid SelectedOptionId { get; init; }
-    public bool IsCorrect { get; init; }
-    public double Score { get; init; }
-}
+### Key Decisions
+- **React Context** for state management (not Zustand)
+- **React Spectrum S2** for UI components
+- **JSX** (not TypeScript)
+- **Mobile-first** for client pages, tablet/laptop for admin pages
+- **i18n from day one** - English and Sinhala supported
+
+### Environment Variables
+```
+VITE_API_URL=http://localhost:5001/api
+VITE_ENV=development
 ```
 
-### Idempotency Implementation
-The `SubmitAnswerCommandConsumer` includes in-memory idempotency tracking:
-- Tracks processed `CommandId` values in a `HashSet<Guid>`
-- Skips duplicate commands with warning log
-- Auto-cleanup when exceeding 10,000 entries
-- **Note**: For production, replace with distributed cache (Redis)
+### Running Services
+- Frontend Dev Server: http://localhost:5173
+- Backend API: http://localhost:5001 (or Docker port 8080)
 
-### SignalR Client Integration
-Clients should:
-1. POST to endpoint → receive `202 Accepted` with `CommandId`
-2. Listen for `AnswerResult` event on SignalR
-3. Match `CommandId` to correlate response
-4. Handle both success (`Success: true`) and error (`Success: false`, `ErrorMessage`)
+### Next Steps
+1. Create AuthContext for authentication state
+2. Create Login page with language switcher
+3. Set up routing with React Router
+4. Build dashboard pages incrementally
 
-### Files Modified
-| File | Change |
-|------|--------|
-| Core/Events/SessionEvents.cs | Added SubmitAnswerCommand, AnswerSubmissionResultEvent |
-| API/DTOs/Sessions/SessionDtos.cs | Added SubmitMCQAnswerRequestBody, SubmitAnswerAcceptedResponse |
-| API/Endpoints/Sessions/AnswerAndScoringEndpoints.cs | Refactored endpoint with route params and async publishing |
-| API/Consumers/SessionEventConsumers.cs | Added SubmitAnswerCommandConsumer with idempotency |
-| API/Program.cs | Registered SubmitAnswerCommandConsumer in MassTransit |
+## React Spectrum S2 MCP Server
 
-## Key Design Decisions
+A React Spectrum S2 MCP server is available for looking up component documentation, props, icons, and style values.
 
-1. **Async Everything**: All validation happens in the consumer, errors sent via SignalR
-2. **Idempotency**: CommandId prevents duplicate processing (essential for retries)
-3. **User-Specific Notification**: Results sent to specific user via `Clients.User(userId)`
-4. **202 Accepted Pattern**: Client gets immediate response, processes result async
-5. **Route Parameters**: sessionId, questionId, attemptNumber from route, only SelectedOptionId in body
+**Server Name**: `React Spectrum (S2)`
 
-## Running Services
-- API: http://localhost:8080 (Docker)
-- PostgreSQL: localhost:5432
+### Available Tools
+| Tool | Purpose |
+|------|---------|
+| `list_s2_pages` | List all documentation pages |
+| `get_s2_page_info` | Get page description and sections |
+| `get_s2_page` | Get full page or section content |
+| `search_s2_icons` | Search workflow icons |
+| `search_s2_illustrations` | Search illustrations |
+| `get_style_macro_property_values` | Get allowed style property values |
 
-## Next Steps
-1. Replace in-memory idempotency with Redis distributed cache
-2. Add frontend SignalR client integration
-3. Consider rate limiting per user/session
-4. Add monitoring/metrics for queue processing times
+> See `memory-bank/react-spectrum-s2-mcp.md` for full usage guide.

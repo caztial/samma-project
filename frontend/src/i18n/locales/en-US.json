@@ -1,0 +1,38 @@
+{
+  "app": {
+    "name": "Dhamma Session"
+  },
+  "login": {
+    "title": "Sign In",
+    "subtitle": "Welcome back! Please enter your credentials.",
+    "email": "Email",
+    "emailPlaceholder": "Enter your email",
+    "password": "Password",
+    "passwordPlaceholder": "Enter your password",
+    "rememberMe": "Remember me",
+    "forgotPassword": "Forgot password?",
+    "signIn": "Sign In",
+    "signingIn": "Signing in...",
+    "noAccount": "Don't have an account?",
+    "signUp": "Sign up",
+    "errors": {
+      "invalidCredentials": "Invalid email or password",
+      "emailRequired": "Email is required",
+      "passwordRequired": "Password is required",
+      "invalidEmail": "Please enter a valid email"
+    }
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "retry": "Retry",
+    "cancel": "Cancel",
+    "save": "Save",
+    "submit": "Submit"
+  },
+  "language": {
+    "switch": "Switch Language",
+    "english": "English",
+    "sinhala": "සිංහල"
+  }
+}

@@ -191,12 +191,45 @@
 - ✅ **Async Command Pattern** (Feb 27, 2026) - Queue-based processing for high-frequency operations
 - ✅ **Idempotency Pattern** (Feb 27, 2026) - Command deduplication using CommandId
 
+## Frontend (Feb 27, 2026 - Rebuild)
+
+### Project Setup
+- ✅ Vite + React 18 project (JSX, not TypeScript)
+- ✅ React Spectrum S2 design system
+- ✅ Vite configuration with macros plugin for S2 styling
+- ✅ Locale optimization for en-US and si-LK
+
+### Dependencies Installed
+- ✅ `@react-spectrum/s2` - UI components
+- ✅ `unplugin-parcel-macros` - S2 style macros
+- ✅ `@react-aria/optimize-locales-plugin` - Locale optimization
+- ✅ `react-router-dom` - Routing
+- ✅ `axios` - HTTP client
+
+### i18n System
+- ✅ `LocaleContext.jsx` - React Context for language state
+- ✅ `useTranslation.js` - Hook for accessing translations
+- ✅ `en-US.json` - English translations
+- ✅ `si-LK.json` - Sinhala translations
+
+### Key Decisions
+- React Context for state management (not Zustand)
+- JSX (not TypeScript)
+- Mobile-first for client pages, tablet/laptop for admin pages
+- i18n from day one - English and Sinhala supported
+
 ## What's Left
 - ❌ Database migration
-- ❌ Frontend integration with these endpoints
+- ❌ Frontend: AuthContext and Login page
+- ❌ Frontend: Routing setup
+- ❌ Frontend: Dashboard pages
+- ❌ Frontend: SignalR integration
 - ❌ Testing
 - ❌ Session timer/auto-deactivation
 - ❌ Distributed cache for idempotency (currently in-memory)
+
+## Documentation Added
+- ✅ `memory-bank/react-spectrum-s2-mcp.md` - React Spectrum S2 MCP server guide
 
 ## Recent Changes Summary
 | Change | Date | Description |
