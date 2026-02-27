@@ -223,6 +223,22 @@
 - ✅ `App.jsx` - ThemeProvider → LocaleProvider → BrowserRouter → AppRoutes → S2 Provider → Routes
 - ✅ Routes: `/login`, `/signup`, `/` → redirect to `/login`
 
+### Authentication & Role-Based Routing (Feb 28, 2026)
+- ✅ `AuthContext.jsx` - Authentication context with JWT token, user info (email, firstName, lastName, profileId, roles)
+- ✅ `AuthProvider` - Wraps app, provides `login()`, `logout()`, `isAuthenticated`, `isAdmin`, `isModerator`, `hasAnyRole()`
+- ✅ `ProtectedRoute.jsx` - Route wrapper that checks authentication and optional role requirements
+- ✅ `MainLayout.jsx` - Layout for authenticated pages with language toggle, dark mode toggle, logout button
+- ✅ `MyProfilePage.jsx` - Placeholder page for user profile (all authenticated users)
+- ✅ `AdminPortalPage.jsx` - Placeholder page for admin portal (Admin/Moderator only)
+- ✅ Role-based redirect after login: Admin/Moderator → `/admin`, others → `/profile`
+- ✅ Updated routes with protection:
+  - `/login` → LoginPage (public)
+  - `/signup` → SignupPage (public)
+  - `/profile` → MyProfilePage (protected, all authenticated)
+  - `/admin` → AdminPortalPage (protected, Admin/Moderator only)
+  - `/` → Smart redirect based on auth status and role
+- ✅ Translations for navigation, profile, and admin pages (en-US, si-LK)
+
 ### Global API Configuration (Feb 27, 2026)
 - ✅ `src/config.js` - Exports `API_BASE_URL` from `import.meta.env.VITE_API_URL` (fallback: `http://localhost:5001/api`)
 - ✅ `authService.js` - Uses `API_BASE_URL` from `config.js` (no more hardcoded URL)
@@ -241,9 +257,11 @@
 
 ## What's Left
 - ❌ Database migration
-- ❌ Frontend: AuthContext (store JWT, user info, logged-in state)
-- ❌ Frontend: Protected route wrapper (redirect to /login if not authenticated)
-- ❌ Frontend: Home/Dashboard page
+- ✅ Frontend: AuthContext (store JWT, user info, logged-in state) - Done Feb 28, 2026
+- ✅ Frontend: Protected route wrapper (redirect to /login if not authenticated) - Done Feb 28, 2026
+- ✅ Frontend: MyProfile/AdminPortal placeholder pages - Done Feb 28, 2026
+- ❌ Frontend: Build out profile page with user profile form
+- ❌ Frontend: Build out admin portal page with admin features
 - ❌ Frontend: SignalR integration
 - ❌ Testing
 - ❌ Session timer/auto-deactivation

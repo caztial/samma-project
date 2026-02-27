@@ -67,5 +67,17 @@
     "switch": "Switch Language",
     "english": "English",
     "sinhala": "සිංහල"
+  },
+  "navigation": {
+    "greeting": "Hello, {name}",
+    "logout": "Log out"
+  },
+  "profile": {
+    "title": "My Profile",
+    "comingSoon": "Profile features coming soon. Check back later!"
+  },
+  "admin": {
+    "title": "Admin Portal",
+    "comingSoon": "Admin features coming soon. Check back later!"
   }
 }

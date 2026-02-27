@@ -82,11 +82,24 @@ VITE_ENV=development
 - **LoginResponse now includes user roles** - Added `Roles` property (List<string>) to return user's assigned roles (Admin, Moderator, Presenter, Participant) on login
 - **LoginEndpoint** - Now injects `UserManager<ApplicationUser>` to fetch roles via `_userManager.GetRolesAsync(user)`
 
+### Recent Frontend Changes (Feb 28, 2026)
+- **AuthContext** - Created authentication context that stores JWT token, user info (email, firstName, lastName, profileId, roles), and provides login/logout functions
+- **MainLayout** - Created layout for authenticated pages with language toggle, dark mode toggle, and logout button
+- **MyProfilePage** - Created placeholder page for user profile (all authenticated users)
+- **AdminPortalPage** - Created placeholder page for admin portal (Admin/Moderator only)
+- **ProtectedRoute** - Created route wrapper that checks authentication and optional role requirements
+- **Role-based redirection** - After login, Admin/Moderator users redirect to /admin, others redirect to /profile
+- **Routing structure**:
+  - `/login` → LoginPage (public)
+  - `/signup` → SignupPage (public)
+  - `/profile` → MyProfilePage (protected, all authenticated)
+  - `/admin` → AdminPortalPage (protected, Admin/Moderator only)
+  - `/` → Redirects based on auth status and role
+
 ### Next Steps
-1. Create AuthContext for authentication state (store JWT token, user info, roles, logged-in state)
-2. Create protected route wrapper (redirect to /login if not authenticated)
-3. Build main dashboard/home page
-4. Implement React Router client-side routing with auth guards
+1. Build out MyProfile page with user profile form
+2. Build out AdminPortal page with admin features
+3. Add navigation menu for switching between pages
 
 ### Environment Variables
 | Variable | Purpose | Default |

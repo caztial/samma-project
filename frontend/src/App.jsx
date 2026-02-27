@@ -2,8 +2,12 @@ import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-route
 import { Provider } from '@react-spectrum/s2';
 import { LocaleProvider, useLocale } from './i18n/LocaleContext';
 import { ThemeProvider, useTheme } from './contexts/ThemeContext';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
 import LoginPage from './pages/auth/LoginPage';
 import SignupPage from './pages/auth/SignupPage';
+import MyProfilePage from './pages/profile/MyProfilePage';
+import AdminPortalPage from './pages/admin/AdminPortalPage';
+import ProtectedRoute from './components/ProtectedRoute';
 
 /**
  * Inner routes - placed inside BrowserRouter so useNavigate works,
@@ -14,14 +18,53 @@ function AppRoutes() {
   const navigate = useNavigate();
   const { locale } = useLocale();
   const { colorScheme } = useTheme();
+  const { isAuthenticated, isAdminOrModerator } = useAuth();
 
   return (
     <Provider locale={locale} colorScheme={colorScheme} router={{ navigate }}>
       <Routes>
+        {/* Public routes */}
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignupPage />} />
-        <Route path="/" element={<Navigate to="/login" replace />} />
-        <Route path="*" element={<Navigate to="/login" replace />} />
+        
+        {/* Protected routes - all authenticated users */}
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute>
+              <MyProfilePage />
+            </ProtectedRoute>
+          }
+        />
+        
+        {/* Protected routes - Admin/Moderator only */}
+        <Route
+          path="/admin"
+          element={
+            <ProtectedRoute requiredRoles={['Admin', 'Moderator']}>
+              <AdminPortalPage />
+            </ProtectedRoute>
+          }
+        />
+        
+        {/* Root redirect based on auth status and role */}
+        <Route
+          path="/"
+          element={
+            isAuthenticated ? (
+              isAdminOrModerator ? (
+                <Navigate to="/admin" replace />
+              ) : (
+                <Navigate to="/profile" replace />
+              )
+            ) : (
+              <Navigate to="/login" replace />
+            )
+          }
+        />
+        
+        {/* Catch-all redirect */}
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Provider>
   );
@@ -31,9 +74,11 @@ function App() {
   return (
     <ThemeProvider>
       <LocaleProvider>
-        <BrowserRouter>
-          <AppRoutes />
-        </BrowserRouter>
+        <AuthProvider>
+          <BrowserRouter>
+            <AppRoutes />
+          </BrowserRouter>
+        </AuthProvider>
       </LocaleProvider>
     </ThemeProvider>
   );

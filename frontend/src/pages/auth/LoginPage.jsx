@@ -10,12 +10,14 @@ import {
 } from '@react-spectrum/s2';
 import { style } from '@react-spectrum/s2/style' with { type: 'macro' };
 import { useTranslation } from '../../i18n/useTranslation';
+import { useAuth } from '../../contexts/AuthContext';
 import authService from '../../services/authService';
 import AuthLayout from './AuthLayout';
 
 export default function LoginPage() {
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const { login } = useAuth();
 
   const [serverError, setServerError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -34,9 +36,19 @@ export default function LoginPage() {
     try {
       const response = await authService.login(email, password);
       if (response.data?.token) {
-        localStorage.setItem('token', response.data.token);
+        // Store all auth data using AuthContext
+        login(response.data);
+        
+        // Role-based redirect
+        const roles = response.data.roles || [];
+        const hasAdminAccess = roles.some(role => role === 'Admin' || role === 'Moderator');
+        
+        if (hasAdminAccess) {
+          navigate('/admin');
+        } else {
+          navigate('/profile');
+        }
       }
-      navigate('/');
     } catch (err) {
       if (err.response) {
         const status = err.response.status;
