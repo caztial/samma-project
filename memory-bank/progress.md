@@ -1,7 +1,7 @@
 # Progress
 
 ## Build Status
-✅ Build succeeded
+✅ Build succeeded (with 5 nullable warnings)
 
 ## What's Implemented
 
@@ -25,6 +25,123 @@
 - ✅ ApplicationRoles enum (Participant, Moderator, Admin)
 - ✅ ValueFetchFrom enum
 
+### Session Management (Feb 25, 2026)
+
+#### Core Layer - Session Entities
+- ✅ **Session** - Aggregate Root for session management
+  - Properties: Name, Code, Location, State, StartedAt, EndedAt
+  - State machine: Draft → Active ↔ Inactive → Ended
+  - Methods: Activate(), Deactivate(), Reactivate(), End(), CanJoin()
+- ✅ **SessionParticipant** - Entity for session participants
+  - Properties: SessionId, UserId, JoinedAt, LeftAt
+  - Methods: Leave(), IsActiveInSession()
+- ✅ **SessionQuestion** - Entity for assigned questions
+  - Properties: Order, IsPresented, ShowTitle, ShowOptionValues, MaxAttempts
+  - Methods: Present(), Deactivate(), UpdateOrder(), IsActive()
+- ✅ **QuestionAttempt** - Entity for question attempts
+  - Properties: AttemptNumber, IsActive, ScoreMultiplier
+  - Methods: Activate(), Deactivate(), IsAcceptingAnswers(), GetScoreMultiplier()
+- ✅ **ParticipantAnswer** - Abstract base for answers
+  - Properties: IsCorrect, BasePoints, FinalScore, AnswerType
+- ✅ **ParticipantMCQAnswer** - MCQ answer implementation
+  - Properties: SelectedOptionId (Guid)
+
+#### Core Layer - Session Enums
+- ✅ **SessionState** enum: Draft, Active, Inactive, Ended
+
+#### Core Layer - Session Events
+- ✅ SessionCreatedEvent
+- ✅ SessionActivatedEvent
+- ✅ SessionEndedEvent
+- ✅ ParticipantJoinedEvent
+- ✅ ParticipantLeftEvent
+- ✅ QuestionAssignedToSessionEvent
+- ✅ QuestionPresentedEvent
+- ✅ QuestionAttemptActivatedEvent
+- ✅ QuestionDeactivatedEvent
+- ✅ AnswerSubmittedEvent
+- ✅ **SubmitAnswerCommand** (Feb 27, 2026) - Async command for answer submission
+- ✅ **AnswerSubmissionResultEvent** (Feb 27, 2026) - Result event for SignalR notification
+
+#### Core Layer - Session Interfaces
+- ✅ ISessionRepository - Full repository interface
+- ✅ ISessionService - Full service interface with:
+  - Session Management: Create, Update, Delete, Activate, Deactivate, Reactivate, End
+  - Participant Management: Join, Leave, GetParticipants
+  - Question Assignment: Assign, Remove, Reorder
+  - Question Presentation: Present, Deactivate, ActivateAttempt
+  - Answer Submission: SubmitMCQAnswer
+  - Scoring: GetSessionScores, GetQuestionScores, GetParticipantTotalScore
+
+#### Infrastructure Layer - Session
+- ✅ SessionRepository implementation with EF Core
+- ✅ SessionService implementation with business logic
+- ✅ MassTransit event publishing
+
+#### API Layer - Session DTOs
+- ✅ CreateSessionRequest, UpdateSessionRequest
+- ✅ JoinSessionRequest, AssignQuestionRequest
+- ✅ PresentQuestionRequest, ActivateAttemptRequest
+- ✅ SubmitMCQAnswerRequest (legacy - SelectedOptionId as Guid)
+- ✅ **SubmitMCQAnswerRequestBody** (Feb 27, 2026) - Only SelectedOptionId in body
+- ✅ **SubmitAnswerAcceptedResponse** (Feb 27, 2026) - 202 Accepted response
+- ✅ SessionResponse, SessionParticipantResponse
+- ✅ SessionQuestionResponse, PresentedQuestionResponse
+- ✅ ActiveAttemptResponse, AvailableAttemptResponse
+- ✅ SubmitAnswerResponse
+- ✅ SessionScoresResponse, QuestionScoresResponse
+- ✅ SessionListResponse with pagination
+
+#### API Layer - Session Mappers
+- ✅ SessionMapper
+- ✅ SessionParticipantMapper
+- ✅ SessionQuestionMapper
+- ✅ PresentedQuestionMapper
+- ✅ SubmitAnswerMapper
+
+#### API Layer - Session Endpoints
+| Endpoint | Method | Route | Description |
+|----------|--------|-------|-------------|
+| CreateSessionEndpoint | POST | /sessions | Create new session |
+| GetSessionEndpoint | GET | /sessions/{id} | Get session by ID |
+| GetSessionByCodeEndpoint | GET | /sessions/code/{code} | Get session by code |
+| ListSessionsEndpoint | GET | /sessions | List sessions with pagination |
+| UpdateSessionEndpoint | PUT | /sessions/{id} | Update session |
+| DeleteSessionEndpoint | DELETE | /sessions/{id} | Delete session |
+| ActivateSessionEndpoint | POST | /sessions/{id}/activate | Activate session |
+| DeactivateSessionEndpoint | POST | /sessions/{id}/deactivate | Pause session |
+| ReactivateSessionEndpoint | POST | /sessions/{id}/reactivate | Resume session |
+| EndSessionEndpoint | POST | /sessions/{id}/end | End session |
+| JoinSessionEndpoint | POST | /sessions/{id}/join | Join session |
+| LeaveSessionEndpoint | POST | /sessions/{id}/leave | Leave session |
+| GetParticipantsEndpoint | GET | /sessions/{id}/participants | Get participants |
+| AssignQuestionEndpoint | POST | /sessions/{id}/questions | Assign question |
+| RemoveQuestionEndpoint | DELETE | /sessions/{id}/questions/{questionId} | Remove question |
+| ReorderQuestionsEndpoint | PUT | /sessions/{id}/questions/reorder | Reorder questions |
+| PresentQuestionEndpoint | POST | /sessions/{id}/present | Present question |
+| DeactivateQuestionEndpoint | POST | /sessions/{id}/questions/{questionId}/deactivate | Deactivate question |
+| ActivateAttemptEndpoint | POST | /sessions/{id}/attempts/activate | Activate attempt |
+| SubmitMCQAnswerEndpoint | POST | /sessions/{id}/questions/{questionId}/attempts/{attemptNumber}/answers | Submit answer (async) |
+| GetSessionScoresEndpoint | GET | /sessions/{id}/scores | Get session scores |
+| GetQuestionScoresEndpoint | GET | /sessions/{id}/questions/{questionId}/scores | Get question scores |
+
+#### API Layer - SignalR Hub
+- ✅ SessionHub - SignalR hub for real-time updates
+  - JoinSessionGroupAsync - Join session group
+  - LeaveSessionGroupAsync - Leave session group
+  - JoinAdminGroupAsync - Join admin group for session
+  - **AnswerResult** (Feb 27, 2026) - Receive answer submission results
+
+#### API Layer - Event Consumers
+- ✅ ParticipantJoinedEventConsumer - SSE notification to admin
+- ✅ ParticipantLeftEventConsumer - SSE notification to admin
+- ✅ QuestionPresentedEventConsumer - SSE notification to participants
+- ✅ QuestionAttemptActivatedEventConsumer - SSE notification to participants
+- ✅ QuestionDeactivatedEventConsumer - SSE notification to participants
+- ✅ SessionEndedEventConsumer - SSE notification to all
+- ✅ AnswerSubmittedEventConsumer - Audit logging
+- ✅ **SubmitAnswerCommandConsumer** (Feb 27, 2026) - Background answer processing with idempotency
+
 ### Infrastructure Layer
 - ✅ UserProfileRepository with EF Core implementations for all collection operations
 - ✅ Supports add, remove, update, and get operations for:
@@ -41,75 +158,10 @@
 - ✅ AdminOwnerAuthorizationHandler - Custom authorization for admin/owner checks
 - ✅ AuthorizationExtensions for policy registration
 
-### API Layer - DTOs
-- ✅ ProfileResponse - Full aggregate response with all collections (includes Educations, BankAccounts)
-- ✅ UpdateProfileRequest - Profile update request
-- ✅ Collection requests:
-  - AddAddressRequest, UpdateAddressRequest, RemoveAddressRequest (includes `Type` field)
-  - AddConsentRequest, UpdateConsentRequest, RemoveConsentRequest
-  - AddEmergencyContactRequest, UpdateEmergencyContactRequest, RemoveEmergencyContactRequest
-  - AddIdentificationRequest, UpdateIdentificationRequest, RemoveIdentificationRequest
-  - BiometricsRequest
-  - AddEducationRequest, UpdateEducationRequest, RemoveEducationRequest
-  - AddBankAccountRequest, UpdateBankAccountRequest, RemoveBankAccountRequest
-- ✅ Collection responses (EducationResponse, BankAccountResponse)
-
-### API Layer - Mappers
-- ✅ ProfileMapper - Maps full aggregate to ProfileResponse (includes Educations, BankAccounts)
-- ✅ EmergencyContactMapper - Maps to/from EmergencyContact (uses `Contact` value object)
-- ✅ AddressMapper - Maps to/from UserAddress (uses `Address` value object)
-- ✅ IdentificationMapper - Maps to/from Identification
-- ✅ ConsentMapper - Maps to/from UserConsent (uses `Consent` value object)
-- ✅ BiometricsMapper
-- ✅ EducationMapper - Maps to/from Education
-- ✅ BankAccountMapper - Maps to/from BankAccount
-
-### API Layer - Validators
-- ✅ UpdateProfileRequestValidator - FluentValidation for UpdateProfileRequest
-  - FirstName: Required, min 3 chars
-  - Gender: Required, valid enum values
-  - DateOfBirth: Required, valid date format
-  - Email: Optional, built-in .EmailAddress() validator
-
-### API Layer - Endpoints
-All endpoints use:
-- AdminOwnerRequirement for authorization
-- Mapper pattern for DTO/Entity mapping
-
-| Endpoint | Method | Route |
-|----------|--------|-------|
-| GetProfileEndpoint | GET | /api/profile/{id} |
-| UpdateProfileEndpoint | PUT | /api/profile/{id} |
-| AddEmergencyContactEndpoint | POST | /api/profile/{id}/emergency-contacts |
-| GetEmergencyContactsEndpoint | GET | /api/profile/{id}/emergency-contacts |
-| UpdateEmergencyContactEndpoint | PUT | /api/profile/{id}/emergency-contacts/{contactId} |
-| RemoveEmergencyContactEndpoint | DELETE | /api/profile/{id}/emergency-contacts/{contactId} |
-| AddAddressEndpoint | POST | /api/profile/{id}/addresses |
-| GetAddressesEndpoint | GET | /api/profile/{id}/addresses |
-| UpdateAddressEndpoint | PUT | /api/profile/{id}/addresses/{addressId} |
-| RemoveAddressEndpoint | DELETE | /api/profile/{id}/addresses/{addressId} |
-| AddIdentificationEndpoint | POST | /api/profile/{id}/identifications |
-| GetIdentificationsEndpoint | GET | /api/profile/{id}/identifications |
-| UpdateIdentificationEndpoint | PUT | /api/profile/{id}/identifications/{identificationId} |
-| RemoveIdentificationEndpoint | DELETE | /api/profile/{id}/identifications/{identificationId} |
-| AddConsentEndpoint | POST | /api/profile/{id}/consents |
-| GetConsentsEndpoint | GET | /api/profile/{id}/consents |
-| UpdateConsentEndpoint | PUT | /api/profile/{id}/consents/{consentId} |
-| RemoveConsentEndpoint | DELETE | /api/profile/{id}/consents/{consentId} |
-| GetBiometricsEndpoint | GET | /api/profile/{id}/biometrics |
-| UpdateBiometricsEndpoint | PUT | /api/profile/{id}/biometrics |
-| AddEducationEndpoint | POST | /api/profile/{id}/educations |
-| GetEducationsEndpoint | GET | /api/profile/{id}/educations |
-| UpdateEducationEndpoint | PUT | /api/profile/{id}/educations/{educationId} |
-| RemoveEducationEndpoint | DELETE | /api/profile/{id}/educations/{educationId} |
-| AddBankAccountEndpoint | POST | /api/profile/{id}/bank-accounts |
-| GetBankAccountsEndpoint | GET | /api/profile/{id}/bank-accounts |
-| UpdateBankAccountEndpoint | PUT | /api/profile/{id}/bank-accounts/{bankAccountId} |
-| RemoveBankAccountEndpoint | DELETE | /api/profile/{id}/bank-accounts/{bankAccountId} |
-
 ### Question Aggregate (Feb 24, 2026)
 - ✅ **Question** - Aggregate Root with MCQ validation
-- ✅ **AnswerOption** - Entity for MCQ options with points
+- ✅ **McqQuestion** - MCQ question type with answer options
+- ✅ **McqAnswerOption** - Entity for MCQ options with points (Id is Guid)
 - ✅ **Tag** - Entity for question tags with normalized name
 - ✅ **MediaMetadata** - Value Object for audio/video attachments
 - ✅ **QuestionType** enum - MCQ type
@@ -118,32 +170,6 @@ All endpoints use:
 - ✅ IQuestionService with full CRUD and tag operations
 - ✅ QuestionRepository implementation
 - ✅ QuestionService implementation with MCQ validation
-
-### Question API Layer
-- ✅ QuestionDto - Create/Update/Response DTOs
-- ✅ AnswerOptionDto - Answer option DTOs
-- ✅ TagDto - Tag DTOs
-- ✅ MediaMetadataDto - Media metadata DTO
-- ✅ QuestionMappers - Mappers for Question entity
-- ✅ QuestionRequestValidator - FluentValidation validators
-
-### Question Endpoints
-| Endpoint | Method | Route | Roles |
-|----------|--------|-------|-------|
-| CreateMCQQuestionEndpoint | POST | /questions/mcq | Admin, Moderator |
-| GetMCQQuestionEndpoint | GET | /questions/mcq/{id} | Admin, Moderator, Presenter |
-| ListQuestionsEndpoint | GET | /questions | Anonymous |
-| UpdateMCQQuestionEndpoint | PUT | /questions/mcq/{id} | Admin, Moderator |
-| DeleteQuestionEndpoint | DELETE | /questions/{id} | Admin, Moderator |
-| AddTagEndpoint | POST | /questions/{QuestionId}/tags | Admin, Moderator |
-| RemoveTagEndpoint | DELETE | /questions/{QuestionId}/tags/{TagId} | Admin, Moderator |
-| SearchTagsEndpoint | GET | /tags | Anonymous |
-| AddAnswerOptionEndpoint | POST | /questions/{QuestionId}/answer-options | Admin, Moderator |
-| UpdateAnswerOptionEndpoint | PUT | /questions/{QuestionId}/answer-options/{OptionId} | Admin, Moderator |
-| DeleteAnswerOptionEndpoint | DELETE | /questions/{QuestionId}/answer-options/{OptionId} | Admin, Moderator |
-| AddMediaEndpoint | POST | /questions/{QuestionId}/media | Admin, Moderator |
-| UpdateMediaEndpoint | PUT | /questions/{QuestionId}/media/{MediaId} | Admin, Moderator |
-| DeleteMediaEndpoint | DELETE | /questions/{QuestionId}/media/{MediaId} | Admin, Moderator |
 
 ### Authentication
 - ✅ LoginEndpoint - Returns FirstName/LastName from UserProfile
@@ -160,34 +186,29 @@ All endpoints use:
 - ✅ Flattened DTOs for simpler JSON payloads
 - ✅ FluentValidation with built-in validators and custom rules
 - ✅ **Entity wrapping Value Object pattern** - 1:N entities wrap value objects for reusable data
+- ✅ **Domain Events** - MassTransit for event publishing
+- ✅ **SignalR for real-time** - SSE notifications via hub context
+- ✅ **Async Command Pattern** (Feb 27, 2026) - Queue-based processing for high-frequency operations
+- ✅ **Idempotency Pattern** (Feb 27, 2026) - Command deduplication using CommandId
 
 ## What's Left
 - ❌ Database migration
 - ❌ Frontend integration with these endpoints
 - ❌ Testing
-- ✅ Question Bank domain (Feb 24, 2026)
-- ❌ Session Management
-- ❌ SignalR Hub implementation
-- ❌ Presentation Mode
+- ❌ Session timer/auto-deactivation
+- ❌ Distributed cache for idempotency (currently in-memory)
 
 ## Recent Changes Summary
 | Change | Date | Description |
 |--------|------|-------------|
+| Async Answer Submission | Feb 27, 2026 | Refactored SubmitMCQAnswerEndpoint for queue-based processing |
+| SubmitAnswerCommand | Feb 27, 2026 | New command for async answer submission with CommandId for idempotency |
+| SubmitAnswerCommandConsumer | Feb 27, 2026 | Background consumer with idempotency check and SignalR result notification |
+| Route Refactoring | Feb 27, 2026 | Changed answer endpoint to use route params for sessionId, questionId, attemptNumber |
+| 202 Accepted Response | Feb 27, 2026 | Endpoint returns immediately with CommandId, result sent via SignalR |
+| Session Management | Feb 25, 2026 | Full session aggregate with participants, questions, attempts, answers |
+| Session Events | Feb 25, 2026 | Domain events for session lifecycle |
+| SignalR Hub | Feb 25, 2026 | Real-time updates via SessionHub |
+| Event Consumers | Feb 25, 2026 | MassTransit consumers for SSE notifications |
+| McqAnswerOption.Id | Feb 25, 2026 | Changed from int to Guid for consistency |
 | Question Number Field | Feb 25, 2026 | Added mandatory `Number` field (string, max 50 chars) to Question aggregate |
-| Search Enhancement | Feb 25, 2026 | SearchText now searches both Text and Number fields |
-| Tag M:N Refactoring | Feb 24, 2026 | Tags now reusable via QuestionTag join table |
-| Delete Question Endpoint | Feb 24, 2026 | DELETE /questions/{id} for Admin/Moderator |
-| ITagService/ITagRepository | Feb 24, 2026 | New services for tag management with typeahead search |
-| Question Aggregate | Feb 24, 2026 | Full Question aggregate with MCQ support |
-| Question Endpoints | Feb 24, 2026 | CRUD + Search endpoints for questions |
-| QuestionType/MediaType Enums | Feb 24, 2026 | Enums for question classification |
-| MediaMetadata Value Object | Feb 24, 2026 | Audio/Video attachment support |
-| AnswerOption Entity | Feb 24, 2026 | MCQ options with points and correctness |
-| Tag Entity | Feb 24, 2026 | Question tags with normalized search |
-| Education CRUD Endpoints | Feb 22, 2026 | Added full CRUD endpoints for Education |
-| BankAccount CRUD Endpoints | Feb 22, 2026 | Added full CRUD endpoints for BankAccount |
-| ProfileResponse Update | Feb 22, 2026 | Added Educations and BankAccounts collections |
-| Entity Refactoring | Feb 22, 2026 | Converted 1:N value objects to proper entities |
-| Education Entity | Feb 22, 2026 | Added Education entity for qualifications |
-| BankAccount Entity | Feb 22, 2026 | Added BankAccount entity for bank details |
-| Value Object Restructure | Feb 22, 2026 | Created nested value objects for Address, Consent |

@@ -1,6 +1,7 @@
 using Core.Entities;
 using Core.Entities.Questions;
 using Core.Entities.Questions.ValueObjects;
+using Core.Entities.Sessions;
 using Core.Entities.UserProfiles;
 using Core.Entities.ValueObjects;
 using Core.Services;
@@ -43,6 +44,14 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<McqAnswerOption> AnswerOptions { get; set; } = null!;
     public DbSet<Tag> Tags { get; set; } = null!;
     public DbSet<QuestionTag> QuestionTags { get; set; } = null!;
+
+    // DbSets for Session aggregate
+    public DbSet<Session> Sessions { get; set; } = null!;
+    public DbSet<SessionParticipant> SessionParticipants { get; set; } = null!;
+    public DbSet<SessionQuestion> SessionQuestions { get; set; } = null!;
+    public DbSet<QuestionAttempt> QuestionAttempts { get; set; } = null!;
+    public DbSet<ParticipantAnswer> ParticipantAnswers { get; set; } = null!;
+    public DbSet<ParticipantMCQAnswer> ParticipantMCQAnswers { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -366,6 +375,134 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
                 .WithMany(t => t.QuestionTags)
                 .HasForeignKey(qt => qt.TagId)
                 .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // ============================================
+        // Session Configuration
+        // ============================================
+        builder.Entity<Session>(entity =>
+        {
+            entity.HasKey(s => s.Id);
+            entity.Property(s => s.Name).HasMaxLength(200).IsRequired();
+            entity.Property(s => s.Code).HasMaxLength(20).IsRequired();
+            entity.Property(s => s.Location).HasMaxLength(500);
+            entity.Property(s => s.CreatedBy).HasMaxLength(450).IsRequired();
+
+            // Unique index for session code
+            entity.HasIndex(s => s.Code).IsUnique();
+
+            // HasMany for Participants (1:N)
+            entity
+                .HasMany(s => s.Participants)
+                .WithOne(p => p.Session)
+                .HasForeignKey(p => p.SessionId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // HasMany for SessionQuestions (1:N)
+            entity
+                .HasMany(s => s.SessionQuestions)
+                .WithOne(sq => sq.Session)
+                .HasForeignKey(sq => sq.SessionId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // ============================================
+        // SessionParticipant Configuration
+        // ============================================
+        builder.Entity<SessionParticipant>(entity =>
+        {
+            entity.HasKey(sp => sp.Id);
+
+            // Unique constraint for session + user
+            entity.HasIndex(sp => new { sp.SessionId, sp.UserId }).IsUnique();
+
+            // Relationship to User
+            entity
+                .HasOne(sp => sp.User)
+                .WithMany()
+                .HasForeignKey(sp => sp.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // ============================================
+        // SessionQuestion Configuration
+        // ============================================
+        builder.Entity<SessionQuestion>(entity =>
+        {
+            entity.HasKey(sq => sq.Id);
+
+            // Unique constraint for session + question
+            entity.HasIndex(sq => new { sq.SessionId, sq.QuestionId }).IsUnique();
+
+            // Relationship to Question
+            entity
+                .HasOne(sq => sq.Question)
+                .WithMany()
+                .HasForeignKey(sq => sq.QuestionId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // HasMany for Attempts (1:N)
+            entity
+                .HasMany(sq => sq.Attempts)
+                .WithOne(a => a.SessionQuestion)
+                .HasForeignKey(a => a.SessionQuestionId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // ============================================
+        // QuestionAttempt Configuration
+        // ============================================
+        builder.Entity<QuestionAttempt>(entity =>
+        {
+            entity.HasKey(qa => qa.Id);
+
+            // Unique constraint for session question + attempt number
+            entity.HasIndex(qa => new { qa.SessionQuestionId, qa.AttemptNumber }).IsUnique();
+        });
+
+        // ============================================
+        // ParticipantAnswer Configuration (TPT - Table Per Type)
+        // ============================================
+        // Base ParticipantAnswer table
+        builder.Entity<ParticipantAnswer>(entity =>
+        {
+            entity.HasKey(pa => pa.Id);
+            entity.Property(pa => pa.AnswerType).HasMaxLength(50).IsRequired();
+
+            // Unique constraint for participant + attempt (one answer per participant per attempt)
+            entity
+                .HasIndex(pa => new { pa.SessionParticipantId, pa.QuestionAttemptId })
+                .IsUnique();
+
+            // Relationship to SessionParticipant
+            entity
+                .HasOne(pa => pa.Participant)
+                .WithMany(p => p.Answers)
+                .HasForeignKey(pa => pa.SessionParticipantId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Relationship to QuestionAttempt
+            entity
+                .HasOne(pa => pa.Attempt)
+                .WithMany(a => a.Answers)
+                .HasForeignKey(pa => pa.QuestionAttemptId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Relationship to Question
+            entity
+                .HasOne(pa => pa.Question)
+                .WithMany()
+                .HasForeignKey(pa => pa.QuestionId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // ============================================
+        // ParticipantMCQAnswer Configuration (TPT)
+        // ============================================
+        builder.Entity<ParticipantMCQAnswer>(entity =>
+        {
+            // TPT mapping: ParticipantMCQAnswers table has Id as FK to ParticipantAnswers table
+            entity.ToTable("ParticipantMCQAnswers");
         });
 
         // ============================================

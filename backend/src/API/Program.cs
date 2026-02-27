@@ -1,3 +1,4 @@
+using API.Consumers;
 using API.Hubs;
 using API.Security;
 using Core.Entities;
@@ -95,6 +96,14 @@ builder.Services.AddKeyedScoped<IResourceOwnerAuthorization, ProfileResourceOwne
 builder.Services.AddMassTransit(x =>
 {
     x.AddConsumer<UserCreatedEventConsumer>();
+    x.AddConsumer<ParticipantJoinedEventConsumer>();
+    x.AddConsumer<ParticipantLeftEventConsumer>();
+    x.AddConsumer<QuestionPresentedEventConsumer>();
+    x.AddConsumer<QuestionAttemptActivatedEventConsumer>();
+    x.AddConsumer<QuestionDeactivatedEventConsumer>();
+    x.AddConsumer<SessionEndedEventConsumer>();
+    x.AddConsumer<AnswerSubmittedEventConsumer>();
+    x.AddConsumer<SubmitAnswerCommandConsumer>();
 
     x.UsingInMemory(
         (context, cfg) =>
@@ -112,11 +121,13 @@ builder.Services.AddScoped<IUserProfileRepository, UserProfileRepository>();
 builder.Services.AddScoped<IQuestionRepository, QuestionRepository>();
 builder.Services.AddScoped<IMcqQuestionRepository, McqQuestionRepository>();
 builder.Services.AddScoped<ITagRepository, TagRepository>();
+builder.Services.AddScoped<ISessionRepository, SessionRepository>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUserProfileService, UserProfileService>();
 builder.Services.AddScoped<IQuestionService, QuestionService>();
 builder.Services.AddScoped<IMcqQuestionService, McqQuestionService>();
 builder.Services.AddScoped<ITagService, TagService>();
+builder.Services.AddScoped<ISessionService, SessionService>();
 
 // ============================================
 // FAST ENDPOINTS

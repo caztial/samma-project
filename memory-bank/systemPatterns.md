@@ -349,6 +349,156 @@ Attempt 3: 25% of base points
 Attempt 4+: 0 points
 ```
 
+## Async Command Pattern (High-Frequency Operations)
+
+### Overview
+For high-frequency operations like answer submission, use queue-based async processing to:
+- Prevent API bottlenecks during peak loads
+- Provide better user experience with immediate response
+- Enable retry mechanisms with idempotency
+
+### Pattern Structure
+
+```
+┌─────────────┐     ┌─────────────────┐     ┌──────────────────┐
+│   Endpoint  │────▶│  MassTransit    │────▶│    Consumer      │
+│   (202 OK)  │     │     Queue       │     │  (Background)    │
+└─────────────┘     └─────────────────┘     └──────────────────┘
+      │                                            │
+      │                                            ▼
+      │                                    ┌──────────────┐
+      └────────────────────────────────────│   SignalR    │
+            CommandId correlation          │ Notification │
+                                           └──────────────┘
+```
+
+### Command Definition
+```csharp
+public record SubmitAnswerCommand
+{
+    public Guid CommandId { get; init; } = Guid.NewGuid();  // For idempotency
+    public DateTime CreatedAt { get; init; } = DateTime.UtcNow;
+    public Guid SessionId { get; init; }
+    public Guid QuestionId { get; init; }
+    public int AttemptNumber { get; init; }
+    public Guid SelectedOptionId { get; init; }
+    public string UserId { get; init; } = string.Empty;
+}
+```
+
+### Endpoint Implementation
+```csharp
+public class SubmitMCQAnswerEndpoint : Endpoint<SubmitMCQAnswerRequestBody, SubmitAnswerAcceptedResponse>
+{
+    private readonly IPublishEndpoint _publishEndpoint;
+
+    public override async Task HandleAsync(SubmitMCQAnswerRequestBody req, CancellationToken ct)
+    {
+        var command = new SubmitAnswerCommand
+        {
+            CommandId = Guid.NewGuid(),
+            SessionId = Route<Guid>("Id"),
+            QuestionId = Route<Guid>("QuestionId"),
+            AttemptNumber = Route<int>("AttemptNumber"),
+            SelectedOptionId = req.SelectedOptionId,
+            UserId = User.FindFirst("UserId")?.Value!
+        };
+
+        await _publishEndpoint.Publish(command, ct);
+
+        await HttpContext.Response.SendAsync(new SubmitAnswerAcceptedResponse
+        {
+            CommandId = command.CommandId,
+            Status = "Accepted",
+            Message = "Answer submission is being processed"
+        }, 202, cancellation: ct);
+    }
+}
+```
+
+### Consumer Implementation with Idempotency
+```csharp
+public class SubmitAnswerCommandConsumer : IConsumer<SubmitAnswerCommand>
+{
+    private readonly ISessionService _sessionService;
+    private readonly IHubContext<SessionHub> _hubContext;
+    
+    // In-memory idempotency (use Redis for production)
+    private static readonly HashSet<Guid> _processedCommands = [];
+    private static readonly object _lock = new();
+
+    public async Task Consume(ConsumeContext<SubmitAnswerCommand> context)
+    {
+        var command = context.Message;
+
+        // Idempotency check
+        lock (_lock)
+        {
+            if (_processedCommands.Contains(command.CommandId))
+                return;  // Skip duplicate
+            _processedCommands.Add(command.CommandId);
+        }
+
+        try
+        {
+            var answer = await _sessionService.SubmitMCQAnswerAsync(...);
+            
+            await _hubContext.Clients.User(command.UserId)
+                .SendAsync("AnswerResult", new AnswerSubmissionResultEvent
+                {
+                    CommandId = command.CommandId,
+                    Success = true,
+                    AnswerId = answer.Id,
+                    IsCorrect = answer.IsCorrect,
+                    Score = answer.FinalScore
+                });
+        }
+        catch (Exception ex)
+        {
+            await _hubContext.Clients.User(command.UserId)
+                .SendAsync("AnswerResult", new AnswerSubmissionResultEvent
+                {
+                    CommandId = command.CommandId,
+                    Success = false,
+                    ErrorMessage = ex.Message
+                });
+        }
+    }
+}
+```
+
+### Client Integration
+```javascript
+// 1. Submit answer
+const response = await fetch('/sessions/{id}/questions/{qid}/attempts/{attempt}/answers', {
+    method: 'POST',
+    body: JSON.stringify({ selectedOptionId: '...' }),
+    headers: { 'Authorization': 'Bearer ...' }
+});
+const { commandId } = await response.json();  // 202 Accepted
+
+// 2. Listen for result via SignalR
+connection.on('AnswerResult', (result) => {
+    if (result.commandId === commandId) {
+        if (result.success) {
+            console.log('Correct:', result.isCorrect, 'Score:', result.score);
+        } else {
+            console.error('Error:', result.errorMessage);
+        }
+    }
+});
+```
+
+### Route Parameter Pattern
+For RESTful design, use route parameters instead of request body:
+- **Route**: `POST /sessions/{sessionId}/questions/{questionId}/attempts/{attemptNumber}/answers`
+- **Body**: Only `{ selectedOptionId }`
+
+This makes the endpoint:
+- More cacheable
+- Easier to test
+- Self-documenting via URL structure
+
 ### Cooldown Period
 - Time delay between attempts (configurable)
 - Frontend countdown

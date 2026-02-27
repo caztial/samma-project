@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: dhamma-api
+    ports:
+      - "5001:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:8080
+      - ConnectionStrings__DefaultConnection=Host=postgres;Database=dhamma_db;Username=dhamma_user;Password=dhamma_pass
+      - CORS__AllowedOrigins=http://localhost:5173,http://frontend:5173
+    depends_on:
+      - postgres
+    networks:
+      - dhamma-network
+
+  # PostgreSQL database
+  postgres:
+    image: postgres:16
+    container_name: dhamma-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=dhamma_db
+      - POSTGRES_USER=dhamma_user
+      - POSTGRES_PASSWORD=dhamma_pass
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      #- ./backend/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - dhamma-network
+
+volumes:
+  postgres_data:
+
+networks:
+  dhamma-network:
+    driver: bridge

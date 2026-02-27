@@ -1,181 +1,98 @@
 # Active Context
 
-## Current Phase: Question Domain Enhancements Complete ✅
+## Current Phase: Async Answer Submission Implementation ✅
 
-Recent work completed on the Question aggregate:
-1. **Tag Refactoring** - Changed from 1:N to M:N (many-to-many) relationship
-2. **Delete Question Endpoint** - Added for Admin/Moderator roles
-3. **Question Number Field** - Added mandatory `Number` field (string, max 50 chars)
+Recent work completed on answer submission refactoring:
 
-### Question Number Field Implementation (Feb 25, 2026)
+### Problem Statement
+The `SubmitMCQAnswerEndpoint` was processing answers synchronously, which could cause issues during high-frequency answer submission periods (many participants answering simultaneously).
 
-Added a mandatory `Number` field to the Question aggregate root for question identification.
+### Solution: Queue-Based Async Processing
+Implemented async command pattern using MassTransit for queue-based processing:
 
-#### Entity Changes
-```
-Question (Abstract Aggregate Root)
-├── Number: string (required, max 50 chars)  <-- NEW
-├── Text: string
-├── Description: string?
-├── DurationSeconds: int?
-├── MediaMetadatas: ICollection<MediaMetadata>
-├── QuestionTags: ICollection<QuestionTag>
-├── CreatedBy: string
-├── IsVerified: bool
-└── QuestionType: string
-```
+1. **Endpoint publishes command** → Returns 202 Accepted immediately
+2. **MassTransit queue** → Commands processed in order
+3. **Consumer processes** → Calls SessionService, handles errors
+4. **SignalR notification** → Result sent to specific user
 
-#### API Changes
-- **CreateMCQQuestionRequest**: Added `Number` (required)
-- **UpdateMCQQuestionRequest**: Added `Number` (optional)
-- **QuestionResponse/MCQQuestionResponse**: Added `Number` field
+### Route Structure Change
+- **Old**: `POST /sessions/{Id}/answers`
+  - Body: `{ QuestionId, AttemptNumber, SelectedOptionId }`
+- **New**: `POST /sessions/{Id}/questions/{QuestionId}/attempts/{AttemptNumber}/answers`
+  - Body: `{ SelectedOptionId }`
+  - Response: `202 Accepted` with `{ CommandId, Status, Message, SessionId, QuestionId, AttemptNumber }`
 
-#### Search Enhancement
-- `SearchText` parameter now searches both `Text` and `Number` fields
-- Example: Searching "Q1" will find questions with number "Q1"
+### New Events/Commands Added
 
-#### Validation
-- `Number` is required on create (non-empty, max 50 characters)
-- `Number` cannot be empty when provided on update
-
-## Recent Changes (Feb 24, 2026)
-
-### Tag Refactoring (M:N Relationship)
-
-Tags are now **reusable** across questions via a join table.
-
-#### Entity Structure
-```
-Tag : BaseEntity
-├── Name: string
-├── NormalizedName: string (unique, lowercase)
-├── UsageCount: int (popularity tracking)
-└── QuestionTags: ICollection<QuestionTag>
-
-QuestionTag : BaseEntity (Join Table)
-├── QuestionId: Guid
-├── TagId: Guid
-├── Question: Question?
-└── Tag: Tag?
-
-Question
-└── QuestionTags: ICollection<QuestionTag> (changed from Tags)
+#### SubmitAnswerCommand
+```csharp
+public record SubmitAnswerCommand
+{
+    public Guid CommandId { get; init; } = Guid.NewGuid();
+    public DateTime CreatedAt { get; init; } = DateTime.UtcNow;
+    public Guid SessionId { get; init; }
+    public Guid QuestionId { get; init; }
+    public int AttemptNumber { get; init; }
+    public Guid SelectedOptionId { get; init; }
+    public string UserId { get; init; } = string.Empty;
+}
 ```
 
-#### New Services
-- **ITagRepository / TagRepository** - Tag data access
-- **ITagService / TagService** - Tag business logic with find-or-create pattern
-
-#### New/Updated Endpoints
-
-| Endpoint | Method | Route | Description |
-|----------|--------|-------|-------------|
-| SearchTagsEndpoint | GET | `/tags?search={text}` | Top 10 matching tags (typeahead) |
-| AddTagEndpoint | POST | `/questions/{QuestionId}/tags` | Add tag by name (reuse if exists) |
-| RemoveTagEndpoint | DELETE | `/questions/{QuestionId}/tags/{TagId}` | Remove tag from question only |
-| DeleteQuestionEndpoint | DELETE | `/questions/{Id}` | Delete question (Admin/Moderator) |
-
-#### Key Behavior
-- Adding tag by name: Creates new tag if not exists (case-insensitive), otherwise reuses
-- Removing tag: Only removes QuestionTag association, preserves Tag entity
-- Tag search: Returns top 10 results ordered by UsageCount (popularity)
-
-### Question Hierarchy Implementation
-
-#### Class Structure
-```
-Question (Abstract Aggregate Root)
-├── Text: string
-├── Description: string?
-├── DurationSeconds: int?
-├── MediaMetadatas: ICollection<MediaMetadata> (owned)
-├── QuestionTags: ICollection<QuestionTag> (M:N)
-├── CreatedBy: string
-├── IsVerified: bool
-├── QuestionType: string (protected set)
-└── AddMedia(MediaMetadata)
-
-McqQuestion : Question
-├── AnswerOptions: ICollection<McqAnswerOption>
-├── AddAnswerOption(text, order, points, isCorrect)
-└── ValidateMCQ() - validates exactly one correct answer
+#### AnswerSubmissionResultEvent
+```csharp
+public record AnswerSubmissionResultEvent
+{
+    public Guid CommandId { get; init; }
+    public DateTime CompletedAt { get; init; } = DateTime.UtcNow;
+    public Guid SessionId { get; init; }
+    public Guid QuestionId { get; init; }
+    public bool Success { get; init; }
+    public string? ErrorMessage { get; init; }
+    public Guid? AnswerId { get; init; }
+    public int AttemptNumber { get; init; }
+    public Guid SelectedOptionId { get; init; }
+    public bool IsCorrect { get; init; }
+    public double Score { get; init; }
+}
 ```
 
-### Service Architecture
+### Idempotency Implementation
+The `SubmitAnswerCommandConsumer` includes in-memory idempotency tracking:
+- Tracks processed `CommandId` values in a `HashSet<Guid>`
+- Skips duplicate commands with warning log
+- Auto-cleanup when exceeding 10,000 entries
+- **Note**: For production, replace with distributed cache (Redis)
 
-**IQuestionService** (Generic):
-- `GetByIdAsync`, `GetAllAsync`
-- `DeleteAsync`
-- `AddTagAsync`, `RemoveTagAsync`, `GetAllTagsAsync`, `GetByTagAsync`
-- `AddMediaAsync`, `UpdateMediaAsync`, `RemoveMediaAsync`
+### SignalR Client Integration
+Clients should:
+1. POST to endpoint → receive `202 Accepted` with `CommandId`
+2. Listen for `AnswerResult` event on SignalR
+3. Match `CommandId` to correlate response
+4. Handle both success (`Success: true`) and error (`Success: false`, `ErrorMessage`)
 
-**IMcqQuestionService** (MCQ-specific):
-- `CreateAsync` - Create MCQ with answer options
-- `GetByIdAsync`, `UpdateAsync`
-- `AddAnswerOptionAsync`, `RemoveAnswerOptionAsync`, `UpdateAnswerOptionAsync`
-
-**ITagService** (Tag operations):
-- `SearchAsync` - Typeahead search (top 10)
-- `AddTagToQuestionAsync` - Find or create tag, add to question
-- `RemoveTagFromQuestionAsync` - Remove association only
-
-### Database Schema (TPT)
-
-```
-Questions Table (Base)
-├── Id (PK)
-├── Text
-├── Description
-├── DurationSeconds
-├── CreatedBy
-├── IsVerified
-├── QuestionType
-├── CreatedAt
-└── UpdatedAt
-
-MCQQuestions Table (Inherits from Questions)
-└── Id (PK, FK to Questions.Id)
-
-AnswerOptions Table
-├── Id (PK)
-├── McqQuestionId (FK)
-├── Text
-├── Order
-├── Points
-├── IsCorrect
-├── CreatedAt
-└── UpdatedAt
-
-Tags Table (Reusable)
-├── Id (PK)
-├── Name
-├── NormalizedName (Unique Index)
-├── UsageCount
-├── CreatedAt
-└── UpdatedAt
-
-QuestionTags Table (Join Table)
-├── Id (PK)
-├── QuestionId (FK)
-├── TagId (FK)
-├── CreatedAt
-└── UpdatedAt
-└── Unique Index (QuestionId, TagId)
-```
+### Files Modified
+| File | Change |
+|------|--------|
+| Core/Events/SessionEvents.cs | Added SubmitAnswerCommand, AnswerSubmissionResultEvent |
+| API/DTOs/Sessions/SessionDtos.cs | Added SubmitMCQAnswerRequestBody, SubmitAnswerAcceptedResponse |
+| API/Endpoints/Sessions/AnswerAndScoringEndpoints.cs | Refactored endpoint with route params and async publishing |
+| API/Consumers/SessionEventConsumers.cs | Added SubmitAnswerCommandConsumer with idempotency |
+| API/Program.cs | Registered SubmitAnswerCommandConsumer in MassTransit |
 
 ## Key Design Decisions
 
-1. **M:N Tags**: Tags are now reusable entities with usage count for popularity
-2. **Tag Search**: Typeahead behavior with top 10 results, ordered by popularity
-3. **Abstract Question Class**: Question is abstract, cannot be instantiated directly
-4. **QuestionType Property**: Set by derived classes in constructor (e.g., "MCQ")
-5. **Separated Services**: IMcqQuestionService for create/update, IQuestionService for generic operations
+1. **Async Everything**: All validation happens in the consumer, errors sent via SignalR
+2. **Idempotency**: CommandId prevents duplicate processing (essential for retries)
+3. **User-Specific Notification**: Results sent to specific user via `Clients.User(userId)`
+4. **202 Accepted Pattern**: Client gets immediate response, processes result async
+5. **Route Parameters**: sessionId, questionId, attemptNumber from route, only SelectedOptionId in body
 
 ## Running Services
 - API: http://localhost:8080 (Docker)
 - PostgreSQL: localhost:5432
 
 ## Next Steps
-1. Add more question types (TrueFalseQuestion, ShortAnswerQuestion)
-2. Session Management domain
-3. Real-time Q&A with SignalR
+1. Replace in-memory idempotency with Redis distributed cache
+2. Add frontend SignalR client integration
+3. Consider rate limiting per user/session
+4. Add monitoring/metrics for queue processing times
