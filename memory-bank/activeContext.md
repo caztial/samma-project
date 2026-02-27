@@ -78,8 +78,12 @@ VITE_ENV=development
 - Frontend Dev Server: http://localhost:5173
 - Backend API: http://localhost:5001 (or Docker port 8080)
 
+### Recent Backend Changes (Feb 28, 2026)
+- **LoginResponse now includes user roles** - Added `Roles` property (List<string>) to return user's assigned roles (Admin, Moderator, Presenter, Participant) on login
+- **LoginEndpoint** - Now injects `UserManager<ApplicationUser>` to fetch roles via `_userManager.GetRolesAsync(user)`
+
 ### Next Steps
-1. Create AuthContext for authentication state (store JWT token, user info, logged-in state)
+1. Create AuthContext for authentication state (store JWT token, user info, roles, logged-in state)
 2. Create protected route wrapper (redirect to /login if not authenticated)
 3. Build main dashboard/home page
 4. Implement React Router client-side routing with auth guards

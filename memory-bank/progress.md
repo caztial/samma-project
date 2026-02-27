@@ -173,6 +173,8 @@
 
 ### Authentication
 - ✅ LoginEndpoint - Returns FirstName/LastName from UserProfile
+- ✅ LoginEndpoint - Returns user roles (List<string>) via UserManager.GetRolesAsync (Feb 28, 2026)
+- ✅ LoginResponse - Added `Roles` property for frontend role-based UI (Feb 28, 2026)
 - ✅ RegisterEndpoint - Creates ApplicationUser and publishes UserCreatedEvent
 - ✅ JWT authentication via FastEndpoints.Security
 
@@ -253,6 +255,7 @@
 ## Recent Changes Summary
 | Change | Date | Description |
 |--------|------|-------------|
+| LoginResponse Roles | Feb 28, 2026 | Added `Roles` property to LoginResponse; LoginEndpoint returns user roles |
 | Async Answer Submission | Feb 27, 2026 | Refactored SubmitMCQAnswerEndpoint for queue-based processing |
 | SubmitAnswerCommand | Feb 27, 2026 | New command for async answer submission with CommandId for idempotency |
 | SubmitAnswerCommandConsumer | Feb 27, 2026 | Background consumer with idempotency check and SignalR result notification |
