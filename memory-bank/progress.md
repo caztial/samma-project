@@ -239,6 +239,15 @@
   - `/` → Smart redirect based on auth status and role
 - ✅ Translations for navigation, profile, and admin pages (en-US, si-LK)
 
+### Mobile-First Responsive Menu (Feb 28, 2026)
+- ✅ `MainLayout.jsx` - Responsive header with mobile hamburger menu
+- ✅ Mobile menu (`< 640px`): MenuTrigger + Menu with settings section and logout
+- ✅ Desktop controls (`>= 640px`): Inline Picker, Switch, Button
+- ✅ S2 style macro responsive breakpoints: `sm: { display: 'none' }` / `sm: { display: 'flex' }`
+- ✅ Icons used: `MenuHamburger`, `Translate`, `Lightbulb`, `Leave`
+- ✅ Translation keys added: `navigation.menu`, `navigation.settings`, `navigation.language`
+- ✅ Build verified with `npm run build`
+
 ### Global API Configuration (Feb 27, 2026)
 - ✅ `src/config.js` - Exports `API_BASE_URL` from `import.meta.env.VITE_API_URL` (fallback: `http://localhost:5001/api`)
 - ✅ `authService.js` - Uses `API_BASE_URL` from `config.js` (no more hardcoded URL)
@@ -273,6 +282,8 @@
 ## Recent Changes Summary
 | Change | Date | Description |
 |--------|------|-------------|
+| Mobile Responsive Menu | Feb 28, 2026 | MainLayout hamburger menu for mobile (<640px) with S2 style macro breakpoints |
+| Frontend Workflow Rules | Feb 28, 2026 | Added memory bank rules: no `npm run dev`, use inline styles via S2 macro, check MCP for options |
 | LoginResponse Roles | Feb 28, 2026 | Added `Roles` property to LoginResponse; LoginEndpoint returns user roles |
 | Async Answer Submission | Feb 27, 2026 | Refactored SubmitMCQAnswerEndpoint for queue-based processing |
 | SubmitAnswerCommand | Feb 27, 2026 | New command for async answer submission with CommandId for idempotency |

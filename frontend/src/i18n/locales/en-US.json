@@ -70,7 +70,10 @@
   },
   "navigation": {
     "greeting": "Hello, {name}",
-    "logout": "Log out"
+    "logout": "Log out",
+    "menu": "Menu",
+    "settings": "Settings",
+    "language": "Language"
   },
   "profile": {
     "title": "My Profile",

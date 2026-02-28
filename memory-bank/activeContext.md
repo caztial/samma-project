@@ -59,6 +59,8 @@ frontend/
 
 ### Key Decisions
 - **React Context** for state management (not Zustand)
+- **Frontend Development Workflow**: Do NOT run `npm run dev`. Instead, ask the user to start the dev server. Verify builds using `npm run build` with full logs to catch and fix errors.
+- **Styling Approach**: Always use inline styles via the S2 `style` macro (not CSS files). Always check component options and props using the React Spectrum S2 MCP server before implementing.
 - **React Spectrum S2** for UI components
 - **JSX** (not TypeScript)
 - **Mobile-first** for client pages, tablet/laptop for admin pages

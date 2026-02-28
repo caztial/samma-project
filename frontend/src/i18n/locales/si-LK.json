@@ -70,7 +70,10 @@
   },
   "navigation": {
     "greeting": "ආයුබෝවන්, {name}",
-    "logout": "පිටවෙන්න"
+    "logout": "පිටවෙන්න",
+    "menu": "මෙනුව",
+    "settings": "සැකසුම්",
+    "language": "භාෂාව"
   },
   "profile": {
     "title": "මාගේ පැතිකඩ",
