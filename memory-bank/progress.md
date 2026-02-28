@@ -244,9 +244,22 @@
 - ✅ Mobile menu (`< 640px`): MenuTrigger + Menu with settings section and logout
 - ✅ Desktop controls (`>= 640px`): Inline Picker, Switch, Button
 - ✅ S2 style macro responsive breakpoints: `sm: { display: 'none' }` / `sm: { display: 'flex' }`
-- ✅ Icons used: `MenuHamburger`, `Translate`, `Lightbulb`, `Leave`
+- ✅ Icons used: `Settings`, `Translate`, `Lightbulb`, `Leave`
 - ✅ Translation keys added: `navigation.menu`, `navigation.settings`, `navigation.language`
 - ✅ Build verified with `npm run build`
+
+### Profile Pages with Navigation (Feb 28, 2026)
+- ✅ `ProfileNavigation.jsx` - Collapsible navigation component with React Router integration
+- ✅ `ProfileLayout.jsx` - Layout wrapper with mobile navigation drawer
+- ✅ `ProfileOverviewPage.jsx` - Profile overview page at `/profile/overview`
+- ✅ `EducationPage.jsx` - Education management page at `/profile/education`
+- ✅ `BankAccountsPage.jsx` - Bank accounts page at `/profile/bank-accounts`
+- ✅ `SessionsPage.jsx` - Session history page at `/profile/sessions`
+- ✅ `MyProfilePage.jsx` - Redirects to `/profile/overview`
+- ✅ Profile routes added to App.jsx with ProtectedRoute wrapper
+- ✅ Navigation icons: `User`, `Education`, `Wallet`, `Calendar`, `ChevronRight`, `MenuHamburger`, `Close`
+- ✅ Translation keys for profile navigation and content sections
+- ✅ Light/dark mode support via S2 Provider colorScheme
 
 ### Global API Configuration (Feb 27, 2026)
 - ✅ `src/config.js` - Exports `API_BASE_URL` from `import.meta.env.VITE_API_URL` (fallback: `http://localhost:5001/api`)

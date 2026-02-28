@@ -1,117 +1,107 @@
 # Active Context
 
-## Current Phase: Frontend Rebuild
+## Current Phase: Frontend Profile Pages Development
 
-### Recent Work
-The frontend has been rebuilt from scratch with a focus on internationalization (i18n) support.
+### Recent Work (Feb 28, 2026)
+Created a complete profile section with mobile navigation, separate pages for each profile section, and a reusable ProfileLayout component.
 
-### What Was Done
-1. **Deleted old frontend** - Removed existing React/Polaris implementation
-2. **Created fresh Vite + React project** - Using JSX (not TypeScript)
-3. **Installed dependencies:**
-   - `@react-spectrum/s2` - React Spectrum S2 design system
-   - `unplugin-parcel-macros` - Required for S2 styling
-   - `@react-aria/optimize-locales-plugin` - Locale optimization
-   - `react-router-dom` - Routing
-   - `axios` - HTTP client
+### What Was Done Today
+1. **ProfileNavigation Component** (`frontend/src/components/profile/ProfileNavigation.jsx`)
+   - Collapsible navigation with expandable Profile section
+   - Uses React Router (`useNavigate`, `useLocation`) for navigation
+   - Disclosure component for expandable sections
+   - Nav items: Profile Overview, Education, Bank Accounts, Sessions
 
-4. **Configured Vite for S2:**
-   - Macros plugin (must be first)
-   - Locale optimization for `en-US` and `si-LK`
-   - CSS bundling for S2 styles
-   - API proxy to backend
+2. **ProfileLayout Component** (`frontend/src/layouts/ProfileLayout.jsx`)
+   - Wraps MainLayout with mobile navigation drawer
+   - Hamburger menu button (fixed position, top-left)
+   - Slide-out drawer with ProfileNavigation
+   - All profile pages use this layout
 
-5. **Created i18n system:**
-   - `LocaleContext.jsx` - React Context for language state
-   - `useTranslation.js` - Hook for accessing translations
-   - `en-US.json` - English translations
-   - `si-LK.json` - Sinhala translations
+3. **Separate Profile Pages** (each with own route):
+   - `ProfileOverviewPage.jsx` - `/profile/overview`
+   - `EducationPage.jsx` - `/profile/education`
+   - `BankAccountsPage.jsx` - `/profile/bank-accounts`
+   - `SessionsPage.jsx` - `/profile/sessions`
+
+4. **Route Structure**:
+   - `/profile` → Redirects to `/profile/overview`
+   - `/profile/overview` → ProfileOverviewPage
+   - `/profile/education` → EducationPage
+   - `/profile/bank-accounts` → BankAccountsPage
+   - `/profile/sessions` → SessionsPage
+
+5. **MainLayout Changes**:
+   - Replaced MenuHamburger icon with Settings (cogwheel) icon for mobile settings menu
+   - Settings menu contains language toggle, dark mode, and logout
+
+6. **Theme Support**:
+   - All pages respect light/dark mode through S2 Provider's `colorScheme` prop
+   - Semantic color tokens (e.g., `backgroundColor: 'base'`) auto-adapt to theme
 
 ### Current Frontend Structure
 ```
 frontend/
 ├── src/
-│   ├── config.js                 ← API_BASE_URL from VITE_API_URL; central config
+│   ├── components/
+│   │   ├── ProtectedRoute.jsx
+│   │   └── profile/
+│   │       └── ProfileNavigation.jsx
+│   ├── layouts/
+│   │   ├── MainLayout.jsx       (top bar, settings menu)
+│   │   ├── AuthLayout.jsx       (auth pages layout)
+│   │   └── ProfileLayout.jsx    (profile nav drawer)
+│   ├── pages/
+│   │   ├── auth/
+│   │   │   ├── AuthLayout.jsx
+│   │   │   ├── LoginPage.jsx
+│   │   │   └── SignupPage.jsx
+│   │   ├── profile/
+│   │   │   ├── MyProfilePage.jsx      (redirect only)
+│   │   │   ├── ProfileOverviewPage.jsx
+│   │   │   ├── EducationPage.jsx
+│   │   │   ├── BankAccountsPage.jsx
+│   │   │   └── SessionsPage.jsx
+│   │   └── admin/
+│   │       └── AdminPortalPage.jsx
+│   ├── contexts/
+│   │   ├── AuthContext.jsx
+│   │   └── ThemeContext.jsx
 │   ├── i18n/
 │   │   ├── LocaleContext.jsx
 │   │   ├── useTranslation.js
 │   │   └── locales/
-│   │       ├── en-US.json        (login, signup, auth, theme, language, common keys)
-│   │       └── si-LK.json        (full Sinhala translations)
-│   ├── contexts/
-│   │   └── ThemeContext.jsx      (dark/light mode - persisted to localStorage)
-│   ├── pages/
-│   │   └── auth/
-│   │       ├── AuthLayout.jsx    (top bar: language picker + dark mode switch)
-│   │       ├── LoginPage.jsx     (email, password, validation, server errors)
-│   │       └── SignupPage.jsx    (firstName, lastName, email, password)
+│   │       ├── en-US.json
+│   │       └── si-LK.json
 │   ├── services/
-│   │   └── authService.js        (login + register; baseURL from config.js)
-│   ├── App.jsx                   (ThemeProvider → LocaleProvider → BrowserRouter → S2 Provider → Routes)
-│   ├── main.jsx
-│   ├── index.css                 (minimal reset, 100vh body)
-│   └── App.css                   (empty - layout handled by S2 style macro)
-├── .env.development              (VITE_API_URL=http://localhost:5001/api)
-├── .env.production               (VITE_API_URL=https://api.yourdomain.com/api)
-├── .env.example                  (documents all env variables)
-└── vite.config.js                (uses loadEnv to derive proxy target from VITE_API_URL)
+│   │   └── authService.js
+│   ├── config.js
+│   ├── App.jsx
+│   └── main.jsx
 ```
 
 ### Key Decisions
-- **React Context** for state management (not Zustand)
-- **Frontend Development Workflow**: Do NOT run `npm run dev`. Instead, ask the user to start the dev server. Verify builds using `npm run build` with full logs to catch and fix errors.
-- **Styling Approach**: Always use inline styles via the S2 `style` macro (not CSS files). Always check component options and props using the React Spectrum S2 MCP server before implementing.
-- **React Spectrum S2** for UI components
-- **JSX** (not TypeScript)
-- **Mobile-first** for client pages, tablet/laptop for admin pages
-- **i18n from day one** - English and Sinhala supported
-- **ThemeContext** wraps outside LocaleProvider so colorScheme is available to S2 Provider
-- **S2 style macro quirks**: use `'end'` not `'flex-end'`; use `paddingLeft`/`paddingRight` not `paddingStart`/`paddingEnd`
-- **AuthLayout pattern** - shared layout component for top bar + centered content area
-- **Global API config**: `VITE_API_URL` in `.env.*` files controls both the axios `baseURL` (via `src/config.js`) AND the Vite dev proxy target (via `loadEnv` in `vite.config.js`)
-- **Dark mode backgrounds**: Use `backgroundColor: 'base'` on root containers for automatic light/dark adaptation
+- **Mobile-first approach** - Navigation as a slide-out drawer (no desktop sidebar)
+- **Separate pages per section** - Each profile section has its own route and page
+- **ProfileLayout pattern** - Reusable layout wrapper for all profile pages
+- **S2 style macro** - All styles defined as static module-level constants
 
 ### Environment Variables
-```
-VITE_API_URL=http://localhost:5001/api
-VITE_ENV=development
-```
+| Variable | Purpose | Default |
+|----------|---------|---------|
+| `VITE_API_URL` | Full backend API URL | `http://localhost:5001/api` |
+| `VITE_ENV` | Environment label | `development` |
 
 ### Running Services
 - Frontend Dev Server: http://localhost:5173
 - Backend API: http://localhost:5001 (or Docker port 8080)
 
-### Recent Backend Changes (Feb 28, 2026)
-- **LoginResponse now includes user roles** - Added `Roles` property (List<string>) to return user's assigned roles (Admin, Moderator, Presenter, Participant) on login
-- **LoginEndpoint** - Now injects `UserManager<ApplicationUser>` to fetch roles via `_userManager.GetRolesAsync(user)`
-
-### Recent Frontend Changes (Feb 28, 2026)
-- **AuthContext** - Created authentication context that stores JWT token, user info (email, firstName, lastName, profileId, roles), and provides login/logout functions
-- **MainLayout** - Created layout for authenticated pages with language toggle, dark mode toggle, and logout button
-- **MyProfilePage** - Created placeholder page for user profile (all authenticated users)
-- **AdminPortalPage** - Created placeholder page for admin portal (Admin/Moderator only)
-- **ProtectedRoute** - Created route wrapper that checks authentication and optional role requirements
-- **Role-based redirection** - After login, Admin/Moderator users redirect to /admin, others redirect to /profile
-- **Dark mode background fix** - Added `backgroundColor: 'base'` to MainLayout and AuthLayout root containers for proper dark mode support
-- **Routing structure**:
-  - `/login` → LoginPage (public)
-  - `/signup` → SignupPage (public)
-  - `/profile` → MyProfilePage (protected, all authenticated)
-  - `/admin` → AdminPortalPage (protected, Admin/Moderator only)
-  - `/` → Redirects based on auth status and role
-
 ### Next Steps
-1. Build out MyProfile page with user profile form
-2. Build out AdminPortal page with admin features
-3. Add navigation menu for switching between pages
-
-### Environment Variables
-| Variable | Purpose | Default |
-|----------|---------|---------|
-| `VITE_API_URL` | Full backend API URL (scheme + host + port + /api) | `http://localhost:5001/api` |
-| `VITE_ENV` | Environment label string | `development` |
-
-**To change the backend domain/port:** edit only `VITE_API_URL` in `.env.development` (dev) or `.env.production` (prod build). No code changes needed.
+1. Build out ProfileOverviewPage with actual user profile form
+2. Build out EducationPage with education management
+3. Build out BankAccountsPage with bank account management
+4. Build out SessionsPage with session history
+5. Add SignalR integration for real-time updates
 
 ## React Spectrum S2 MCP Server
 

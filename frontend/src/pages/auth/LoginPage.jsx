@@ -38,11 +38,11 @@ export default function LoginPage() {
       if (response.data?.token) {
         // Store all auth data using AuthContext
         login(response.data);
-        
+
         // Role-based redirect
         const roles = response.data.roles || [];
         const hasAdminAccess = roles.some(role => role === 'Admin' || role === 'Moderator');
-        
+
         if (hasAdminAccess) {
           navigate('/admin');
         } else {

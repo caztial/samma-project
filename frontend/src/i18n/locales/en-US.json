@@ -77,7 +77,34 @@
   },
   "profile": {
     "title": "My Profile",
-    "comingSoon": "Profile features coming soon. Check back later!"
+    "comingSoon": "Profile features coming soon. Check back later!",
+    "nav": {
+      "openMenu": "Open navigation menu",
+      "closeMenu": "Close navigation menu",
+      "profile": "Profile",
+      "profileOverview": "Profile Overview",
+      "education": "Education",
+      "bankAccounts": "Bank Accounts",
+      "sessions": "Sessions"
+    },
+    "content": {
+      "profile": {
+        "title": "Profile Overview",
+        "description": "Manage your personal information, contact details, and preferences."
+      },
+      "education": {
+        "title": "Education",
+        "description": "Add and manage your educational background and qualifications."
+      },
+      "bankAccounts": {
+        "title": "Bank Accounts",
+        "description": "Manage your bank account information for payments and withdrawals."
+      },
+      "sessions": {
+        "title": "Sessions",
+        "description": "View your session history and track your learning progress."
+      }
+    }
   },
   "admin": {
     "title": "Admin Portal",

@@ -6,6 +6,10 @@ import { AuthProvider, useAuth } from './contexts/AuthContext';
 import LoginPage from './pages/auth/LoginPage';
 import SignupPage from './pages/auth/SignupPage';
 import MyProfilePage from './pages/profile/MyProfilePage';
+import ProfileOverviewPage from './pages/profile/ProfileOverviewPage';
+import EducationPage from './pages/profile/EducationPage';
+import BankAccountsPage from './pages/profile/BankAccountsPage';
+import SessionsPage from './pages/profile/SessionsPage';
 import AdminPortalPage from './pages/admin/AdminPortalPage';
 import ProtectedRoute from './components/ProtectedRoute';
 
@@ -33,6 +37,38 @@ function AppRoutes() {
           element={
             <ProtectedRoute>
               <MyProfilePage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/profile/overview"
+          element={
+            <ProtectedRoute>
+              <ProfileOverviewPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/profile/education"
+          element={
+            <ProtectedRoute>
+              <EducationPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/profile/bank-accounts"
+          element={
+            <ProtectedRoute>
+              <BankAccountsPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/profile/sessions"
+          element={
+            <ProtectedRoute>
+              <SessionsPage />
             </ProtectedRoute>
           }
         />

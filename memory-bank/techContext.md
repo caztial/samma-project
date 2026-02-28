@@ -36,6 +36,30 @@
 - English (en-US)
 - Sinhala (si-LK)
 
+## Frontend Development Rules
+
+### Development Workflow
+- **Do NOT run `npm run dev`** - Ask the user to start the dev server instead
+- Verify builds using `npm run build` with full logs to catch and fix errors
+
+### Styling Approach
+- **Always use inline styles via the S2 `style` macro** (not CSS files)
+- All style values must be **static** - no dynamic values allowed in style macro
+- Define styles at module level as `const` for S2 style macro compatibility
+
+### S2 Style Macro Quirks
+- Use `'end'` not `'flex-end'`
+- Use `paddingLeft`/`paddingRight` not `paddingStart`/`paddingEnd`
+- Responsive breakpoints: `sm: { display: 'flex' }` for screens ≥640px
+
+### Component Development
+- **Always check component options and props using the React Spectrum S2 MCP server** before implementing
+- Use semantic color tokens (e.g., `backgroundColor: 'base'`) for automatic light/dark mode support
+
+### Mobile-First Approach
+- Design for mobile screens first, then adapt for desktop
+- Use S2 responsive breakpoints (`sm:`) for larger screens
+
 ### Design System Documentation
 - **React Spectrum S2 MCP Server** - Available for looking up component documentation
 - **Server**: `React Spectrum (S2)` 
