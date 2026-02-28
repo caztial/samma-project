@@ -67,6 +67,7 @@ frontend/
 - **S2 style macro quirks**: use `'end'` not `'flex-end'`; use `paddingLeft`/`paddingRight` not `paddingStart`/`paddingEnd`
 - **AuthLayout pattern** - shared layout component for top bar + centered content area
 - **Global API config**: `VITE_API_URL` in `.env.*` files controls both the axios `baseURL` (via `src/config.js`) AND the Vite dev proxy target (via `loadEnv` in `vite.config.js`)
+- **Dark mode backgrounds**: Use `backgroundColor: 'base'` on root containers for automatic light/dark adaptation
 
 ### Environment Variables
 ```
@@ -89,6 +90,7 @@ VITE_ENV=development
 - **AdminPortalPage** - Created placeholder page for admin portal (Admin/Moderator only)
 - **ProtectedRoute** - Created route wrapper that checks authentication and optional role requirements
 - **Role-based redirection** - After login, Admin/Moderator users redirect to /admin, others redirect to /profile
+- **Dark mode background fix** - Added `backgroundColor: 'base'` to MainLayout and AuthLayout root containers for proper dark mode support
 - **Routing structure**:
   - `/login` → LoginPage (public)
   - `/signup` → SignupPage (public)

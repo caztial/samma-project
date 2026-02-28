@@ -32,6 +32,7 @@ export default function MainLayout({ children }) {
         display: 'flex',
         flexDirection: 'column',
         minHeight: '100vh',
+        backgroundColor: 'base',
       })}
     >
       {/* ── Top bar ── */}
