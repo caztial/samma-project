@@ -39,9 +39,10 @@ const loadingContainerStyle = style({
 
 const fieldGridStyle = style({
   display: 'grid',
-  gap: 12,
-  sm: {
-    gridTemplateColumns: 'repeat(2, 1fr)',
+  gap: 20,
+  gridTemplateColumns: {
+    default: 'repeat(2, minmax(0, 1fr))',
+    sm: 'repeat(2, minmax(0, 1fr))'
   },
 });
 
