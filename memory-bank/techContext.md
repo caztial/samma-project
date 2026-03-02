@@ -104,6 +104,32 @@
 │   └── types/
 ```
 
+### Frontend Service Layer (API Client Pattern)
+```
+frontend/src/services/
+├── apiClient.js        # Shared axios instance factory
+│   ├── createApiClient({ getToken, onUnauthorized })  # Authenticated client
+│   └── createPublicApiClient()                        # Public client (no auth)
+├── authService.js      # Uses createPublicApiClient()
+└── profileService.js   # Uses createApiClient()
+```
+
+**Key Features:**
+- **Request Interceptor**: Auto-injects Bearer token via `getToken()`
+- **Response Interceptor**: Handles 401 globally via `onUnauthorized()`
+- **Single source of truth** for API base URL and headers
+- **Easy to extend** for future services
+
+**Usage Pattern:**
+```javascript
+// In components with AuthContext
+const { getToken, onUnauthorized } = useAuth();
+const profileService = useMemo(() => 
+  createProfileService({ getToken, onUnauthorized }), 
+  [getToken, onUnauthorized]
+);
+```
+
 ## Development Environment
 
 ### Prerequisites

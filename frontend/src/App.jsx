@@ -106,15 +106,24 @@ function AppRoutes() {
   );
 }
 
+/**
+ * AppWithProviders - AuthProvider must be inside BrowserRouter for useNavigate to work
+ */
+function AppWithProviders() {
+  return (
+    <AuthProvider>
+      <AppRoutes />
+    </AuthProvider>
+  );
+}
+
 function App() {
   return (
     <ThemeProvider>
       <LocaleProvider>
-        <AuthProvider>
-          <BrowserRouter>
-            <AppRoutes />
-          </BrowserRouter>
-        </AuthProvider>
+        <BrowserRouter>
+          <AppWithProviders />
+        </BrowserRouter>
       </LocaleProvider>
     </ThemeProvider>
   );

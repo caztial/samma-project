@@ -1,36 +1,16 @@
-import axios from 'axios';
-import { API_BASE_URL } from '../config';
+import { createApiClient } from './apiClient';
 
 /**
- * Create an axios instance for profile-related API calls.
- * This service handles user profile data fetching and updates.
+ * Create a profile service for fetching and updating user profile data.
+ * 
+ * @param {Object} options - Configuration options
+ * @param {function} options.getToken - Function that returns the current auth token
+ * @param {function} [options.onUnauthorized] - Callback for 401 responses
+ * @returns {Object} Profile service with CRUD methods
  */
-const createProfileApi = (getToken) => {
-  const api = axios.create({
-    baseURL: API_BASE_URL,
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  });
-
-  // Add auth token to requests
-  api.interceptors.request.use((config) => {
-    const token = getToken();
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  });
-
-  return api;
-};
-
-/**
- * Profile service for fetching and updating user profile data.
- * @param {function} getToken - Function that returns the current auth token
- */
-export const createProfileService = (getToken) => {
-  const api = createProfileApi(getToken);
+export function createProfileService({ getToken, onUnauthorized }) {
+  // Create API client with auth token injection and 401 handling
+  const api = createApiClient({ getToken, onUnauthorized });
 
   return {
     /**
@@ -94,6 +74,6 @@ export const createProfileService = (getToken) => {
     getBiometrics: () => api.get('/profile/biometrics'),
     updateBiometrics: (biometricsData) => api.put('/profile/biometrics', biometricsData),
   };
-};
+}
 
 export default createProfileService;

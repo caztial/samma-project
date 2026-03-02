@@ -1,12 +1,12 @@
-import axios from 'axios';
-import { API_BASE_URL } from '../config';
+import { createPublicApiClient } from './apiClient';
 
-const api = axios.create({
-  baseURL: API_BASE_URL,
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
+/**
+ * Auth service for public authentication endpoints.
+ * Uses a public API client without auth token injection.
+ */
+
+// Create a single public API instance for auth endpoints
+const publicApi = createPublicApiClient();
 
 export const authService = {
   /**
@@ -16,7 +16,7 @@ export const authService = {
    * @returns {Promise<import('axios').AxiosResponse>}
    */
   login: (email, password) =>
-    api.post('/auth/login', { email, password }),
+    publicApi.post('/auth/login', { email, password }),
 
   /**
    * Register a new user.
@@ -27,7 +27,7 @@ export const authService = {
    * @returns {Promise<import('axios').AxiosResponse>}
    */
   register: (firstName, lastName, email, password) =>
-    api.post('/auth/register', { firstName, lastName, email, password }),
+    publicApi.post('/auth/register', { firstName, lastName, email, password }),
 };
 
 export default authService;

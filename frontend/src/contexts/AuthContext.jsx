@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect, useMemo, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const AuthContext = createContext(undefined);
 
@@ -7,6 +8,8 @@ const TOKEN_KEY = 'dhamma-token';
 const USER_KEY = 'dhamma-user';
 
 export function AuthProvider({ children }) {
+  const navigate = useNavigate();
+  
   const [user, setUser] = useState(() => {
     const saved = localStorage.getItem(USER_KEY);
     if (saved) {
@@ -73,6 +76,18 @@ export function AuthProvider({ children }) {
     localStorage.removeItem(USER_KEY);
   }, []);
 
+  // Handle 401 Unauthorized responses - logout and redirect to login
+  const onUnauthorized = useCallback(() => {
+    console.warn('[AuthContext] Unauthorized - logging out and redirecting to login');
+    logout();
+    navigate('/login', { replace: true });
+  }, [logout, navigate]);
+
+  // Get the current token (for API client)
+  const getToken = useCallback(() => {
+    return token;
+  }, [token]);
+
   // Derived state
   const isAuthenticated = useMemo(() => !!token && !!user, [token, user]);
   const isAdmin = useMemo(() => hasRole('Admin'), [hasRole]);
@@ -90,7 +105,10 @@ export function AuthProvider({ children }) {
     hasAnyRole,
     login,
     logout,
-  }), [user, token, isAuthenticated, isAdmin, isModerator, isAdminOrModerator, hasRole, hasAnyRole, login, logout]);
+    // For API client
+    getToken,
+    onUnauthorized,
+  }), [user, token, isAuthenticated, isAdmin, isModerator, isAdminOrModerator, hasRole, hasAnyRole, login, logout, getToken, onUnauthorized]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

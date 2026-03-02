@@ -1,13 +1,44 @@
 # Active Context
 
-## Current Phase: Frontend Profile Overview Implementation
+## Current Phase: Frontend Architecture Improvements
 
-### Recent Work (Mar 2, 2026)
-Built out the ProfileOverviewPage with full API integration, Accordion sections, and edit buttons for each section.
+### Recent Work (Mar 3, 2026)
+Refactored API layer to use a shared API client module with global error handling.
 
 ### What Was Done Today
 
-#### Profile Overview Page Implementation (Mar 2, 2026)
+#### Shared API Client Module (Mar 3, 2026)
+1. **apiClient.js** (`frontend/src/services/apiClient.js`) - NEW
+   - `createApiClient({ getToken, onUnauthorized })` - Creates axios instance with:
+     - Request interceptor: Injects Bearer token via `getToken()`
+     - Response interceptor: Handles 401 responses via `onUnauthorized()`
+   - `createPublicApiClient()` - For public endpoints (login, register)
+   - Single source of truth for API configuration
+
+2. **authService.js** (`frontend/src/services/authService.js`)
+   - Refactored to use `createPublicApiClient()` from apiClient
+   - No auth token injection (public endpoints)
+
+3. **profileService.js** (`frontend/src/services/profileService.js`)
+   - Refactored to use `createApiClient()` from apiClient
+   - New signature: `createProfileService({ getToken, onUnauthorized })`
+   - Automatic auth token injection and 401 handling
+
+4. **AuthContext.jsx** (`frontend/src/contexts/AuthContext.jsx`)
+   - Added `getToken()` - Returns current token for API client
+   - Added `onUnauthorized()` - Handles 401 by logging out and redirecting to /login
+
+5. **App.jsx** (`frontend/src/App.jsx`)
+   - Fixed: `AuthProvider` moved inside `BrowserRouter` for `useNavigate` to work
+   - Added `AppWithProviders` component to maintain proper provider nesting
+
+#### Architecture Benefits
+- **Single source of truth** for API configuration
+- **Automatic 401 handling** - Users are logged out and redirected when token expires
+- **Consistent auth token injection** across all services
+- **Easy to extend** for future services (sessionService, questionService, etc.)
+
+#### Previous Work - Profile Overview Page (Mar 2, 2026)
 1. **Profile Service** (`frontend/src/services/profileService.js`)
    - Factory function `createProfileService(getToken)` for authenticated API calls
    - Auto-injects Bearer token via axios interceptor

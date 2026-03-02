@@ -284,6 +284,20 @@
 - ✅ `.env.production` - `VITE_API_URL=https://api.yourdomain.com/api` (placeholder)
 - ✅ `.env.example` - Documents all variables with usage examples
 
+### Shared API Client Module (Mar 3, 2026)
+- ✅ `apiClient.js` - NEW shared axios instance factory
+  - `createApiClient({ getToken, onUnauthorized })` - Authenticated API client
+  - `createPublicApiClient()` - Public API client (no auth)
+  - Request interceptor: Auto-injects Bearer token
+  - Response interceptor: Handles 401 globally, calls `onUnauthorized()`
+- ✅ `authService.js` - Refactored to use `createPublicApiClient()`
+- ✅ `profileService.js` - Refactored to use `createApiClient()`
+  - New signature: `createProfileService({ getToken, onUnauthorized })`
+- ✅ `AuthContext.jsx` - Added `getToken()` and `onUnauthorized()` callbacks
+- ✅ `App.jsx` - Fixed provider order (AuthProvider inside BrowserRouter)
+  - Added `AppWithProviders` component for proper nesting
+- ✅ Build verified successful
+
 ### Key Decisions
 - React Context for state management (not Zustand)
 - JSX (not TypeScript)
@@ -313,6 +327,7 @@
 ## Recent Changes Summary
 | Change | Date | Description |
 |--------|------|-------------|
+| Shared API Client Module | Mar 3, 2026 | Created `apiClient.js` with global 401 handling, refactored all services to use it |
 | Profile Overview Page | Mar 2, 2026 | Full API integration, Accordion sections, Edit buttons, Field mappings fixed |
 | Profile Service | Mar 2, 2026 | Factory-based service with Bearer token via axios interceptor |
 | Mobile Responsive Menu | Feb 28, 2026 | MainLayout hamburger menu for mobile (<640px) with S2 style macro breakpoints |

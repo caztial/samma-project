@@ -79,12 +79,12 @@ const emptyMessageStyle = style({
  */
 export default function ProfileOverviewPage() {
   const { t } = useTranslation();
-  const { token } = useAuth();
+  const { getToken, onUnauthorized, token } = useAuth();
 
-  // Create profile service with token getter
+  // Create profile service with token getter and unauthorized handler
   const profileService = useMemo(() => {
-    return createProfileService(() => token);
-  }, [token]);
+    return createProfileService({ getToken, onUnauthorized });
+  }, [getToken, onUnauthorized]);
 
   const [profile, setProfile] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
