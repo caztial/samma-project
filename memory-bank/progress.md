@@ -261,6 +261,21 @@
 - ✅ Translation keys for profile navigation and content sections
 - ✅ Light/dark mode support via S2 Provider colorScheme
 
+### Profile Overview Implementation (Mar 2, 2026)
+- ✅ `profileService.js` - Factory-based service with Bearer token authentication via axios interceptor
+- ✅ ProfileOverviewPage with full API integration (`GET /api/profile`)
+- ✅ S2 Accordion component with 8 collapsible sections
+- ✅ Edit button on each section (placeholder for future)
+- ✅ Loading state (ProgressCircle) and error state (IllustratedMessage)
+- ✅ Field mappings corrected for API payload:
+  - Emergency Contacts: `contactNumber`, `email`
+  - Identifications: `type`, `value`
+  - Consents: `termsVersion`, `acceptedAt`, `ipAddress`
+- ✅ Badge components for item counts and verified status
+- ✅ S2 style macro with valid tokens (`fontSize: 'detail-sm'`, `color: 'neutral-subdued'`)
+- ✅ i18n keys added: `termsVersion`, `acceptedAt`, `ipAddress` (en-US, si-LK)
+- ✅ Build verified successful
+
 ### Global API Configuration (Feb 27, 2026)
 - ✅ `src/config.js` - Exports `API_BASE_URL` from `import.meta.env.VITE_API_URL` (fallback: `http://localhost:5001/api`)
 - ✅ `authService.js` - Uses `API_BASE_URL` from `config.js` (no more hardcoded URL)
@@ -282,7 +297,10 @@
 - ✅ Frontend: AuthContext (store JWT, user info, logged-in state) - Done Feb 28, 2026
 - ✅ Frontend: Protected route wrapper (redirect to /login if not authenticated) - Done Feb 28, 2026
 - ✅ Frontend: MyProfile/AdminPortal placeholder pages - Done Feb 28, 2026
-- ❌ Frontend: Build out profile page with user profile form
+- ✅ Frontend: Profile Overview page with API integration - Done Mar 2, 2026
+- ❌ Frontend: Profile edit functionality
+- ❌ Frontend: Education page with add/edit/delete
+- ❌ Frontend: Bank Accounts page with add/edit/delete
 - ❌ Frontend: Build out admin portal page with admin features
 - ❌ Frontend: SignalR integration
 - ❌ Testing
@@ -295,6 +313,8 @@
 ## Recent Changes Summary
 | Change | Date | Description |
 |--------|------|-------------|
+| Profile Overview Page | Mar 2, 2026 | Full API integration, Accordion sections, Edit buttons, Field mappings fixed |
+| Profile Service | Mar 2, 2026 | Factory-based service with Bearer token via axios interceptor |
 | Mobile Responsive Menu | Feb 28, 2026 | MainLayout hamburger menu for mobile (<640px) with S2 style macro breakpoints |
 | Frontend Workflow Rules | Feb 28, 2026 | Added memory bank rules: no `npm run dev`, use inline styles via S2 macro, check MCP for options |
 | LoginResponse Roles | Feb 28, 2026 | Added `Roles` property to LoginResponse; LoginEndpoint returns user roles |

@@ -1,43 +1,54 @@
 # Active Context
 
-## Current Phase: Frontend Profile Pages Development
+## Current Phase: Frontend Profile Overview Implementation
 
-### Recent Work (Feb 28, 2026)
-Created a complete profile section with mobile navigation, separate pages for each profile section, and a reusable ProfileLayout component.
+### Recent Work (Mar 2, 2026)
+Built out the ProfileOverviewPage with full API integration, Accordion sections, and edit buttons for each section.
 
 ### What Was Done Today
-1. **ProfileNavigation Component** (`frontend/src/components/profile/ProfileNavigation.jsx`)
-   - Collapsible navigation with expandable Profile section
-   - Uses React Router (`useNavigate`, `useLocation`) for navigation
-   - Disclosure component for expandable sections
-   - Nav items: Profile Overview, Education, Bank Accounts, Sessions
 
-2. **ProfileLayout Component** (`frontend/src/layouts/ProfileLayout.jsx`)
-   - Wraps MainLayout with mobile navigation drawer
-   - Hamburger menu button (fixed position, top-left)
-   - Slide-out drawer with ProfileNavigation
-   - All profile pages use this layout
+#### Profile Overview Page Implementation (Mar 2, 2026)
+1. **Profile Service** (`frontend/src/services/profileService.js`)
+   - Factory function `createProfileService(getToken)` for authenticated API calls
+   - Auto-injects Bearer token via axios interceptor
+   - Full CRUD methods for all profile collections:
+     - `getProfile()`, `getProfileById()`, `updateProfile()`
+     - Addresses, Education, Bank Accounts, Emergency Contacts
+     - Identifications, Consents, Biometrics
 
-3. **Separate Profile Pages** (each with own route):
-   - `ProfileOverviewPage.jsx` - `/profile/overview`
-   - `EducationPage.jsx` - `/profile/education`
-   - `BankAccountsPage.jsx` - `/profile/bank-accounts`
-   - `SessionsPage.jsx` - `/profile/sessions`
+2. **ProfileOverviewPage Component** (`frontend/src/pages/profile/ProfileOverviewPage.jsx`)
+   - Fetches profile data from `GET /api/profile` on mount
+   - Loading state with ProgressCircle
+   - Error state with IllustratedMessage
+   - Uses S2 Accordion with `allowsMultipleExpanded` for collapsible sections
+   - Each section has Edit button (placeholder for future implementation)
 
-4. **Route Structure**:
-   - `/profile` → Redirects to `/profile/overview`
-   - `/profile/overview` → ProfileOverviewPage
-   - `/profile/education` → EducationPage
-   - `/profile/bank-accounts` → BankAccountsPage
-   - `/profile/sessions` → SessionsPage
+3. **Accordion Sections Implemented**:
+   | Section | Fields Displayed |
+   |---------|------------------|
+   | Personal Information | FirstName, LastName, Gender, DateOfBirth |
+   | Contact Information | Email, ContactNumber |
+   | Addresses | Type, Line1, Line2, Suburb, StateProvince, Country, Postcode |
+   | Emergency Contacts | Name, Relationship, ContactNumber, Email |
+   | Education | Institution, Degree, FieldOfStudy, StartDate, EndDate, Grade, Verified badge |
+   | Bank Accounts | BankName, AccountType, AccountHolderName, AccountNumber, BranchCode, Verified badge |
+   | Identifications | Type, Value |
+   | Consents | TermsVersion, AcceptedAt, IPAddress |
 
-5. **MainLayout Changes**:
-   - Replaced MenuHamburger icon with Settings (cogwheel) icon for mobile settings menu
-   - Settings menu contains language toggle, dark mode, and logout
+4. **API Payload Field Mappings Fixed**:
+   - Emergency Contacts: `contactNumber` (not `phoneNumber`), added `email`
+   - Identifications: `value` (not `number`), removed non-existent `expiryDate`, `isVerified`
+   - Consents: `termsVersion`, `acceptedAt`, `ipAddress` (not `type`, `isGranted`, `grantedAt`)
 
-6. **Theme Support**:
-   - All pages respect light/dark mode through S2 Provider's `colorScheme` prop
-   - Semantic color tokens (e.g., `backgroundColor: 'base'`) auto-adapt to theme
+5. **i18n Updates**:
+   - Added new translation keys: `termsVersion`, `acceptedAt`, `ipAddress`
+   - Both en-US and si-LK locales updated
+
+#### Previous Profile Work (Feb 28, 2026)
+1. **ProfileNavigation Component** - Collapsible navigation with React Router integration
+2. **ProfileLayout Component** - Mobile navigation drawer wrapper
+3. **Separate Profile Pages** - Each section has own route
+4. **Theme Support** - Light/dark mode via S2 Provider
 
 ### Current Frontend Structure
 ```
@@ -74,7 +85,8 @@ frontend/
 │   │       ├── en-US.json
 │   │       └── si-LK.json
 │   ├── services/
-│   │   └── authService.js
+│   │   ├── authService.js
+│   │   └── profileService.js
 │   ├── config.js
 │   ├── App.jsx
 │   └── main.jsx
@@ -97,11 +109,12 @@ frontend/
 - Backend API: http://localhost:5001 (or Docker port 8080)
 
 ### Next Steps
-1. Build out ProfileOverviewPage with actual user profile form
-2. Build out EducationPage with education management
-3. Build out BankAccountsPage with bank account management
-4. Build out SessionsPage with session history
-5. Add SignalR integration for real-time updates
+1. ~~Build out ProfileOverviewPage with actual user profile form~~ ✅ Done (Mar 2, 2026)
+2. Implement edit functionality for each profile section
+3. Build out EducationPage with education management (add/edit/delete)
+4. Build out BankAccountsPage with bank account management (add/edit/delete)
+5. Build out SessionsPage with session history
+6. Add SignalR integration for real-time updates
 
 ## React Spectrum S2 MCP Server
 
