@@ -48,9 +48,10 @@
 - Define styles at module level as `const` for S2 style macro compatibility
 
 ### S2 Style Macro Quirks
-- Use `'end'` not `'flex-end'`
+- Use `'end'` not `'flex-end'` for `justifyContent`
 - Use `paddingLeft`/`paddingRight` not `paddingStart`/`paddingEnd`
 - Responsive breakpoints: `sm: { display: 'flex' }` for screens ≥640px
+- All style values must be **static** - no dynamic values or function calls
 
 ### Component Development
 - **Always check component options and props using the React Spectrum S2 MCP server** before implementing

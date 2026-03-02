@@ -1,13 +1,46 @@
 # Active Context
 
-## Current Phase: Frontend Architecture Improvements
+## Current Phase: Frontend Profile UI Enhancements
 
-### Recent Work (Mar 3, 2026)
-Refactored API layer to use a shared API client module with global error handling.
+### Recent Work (Mar 3, 2026 - Evening)
+Enhanced ProfileOverviewPage with multi-item section actions and improved layout.
 
 ### What Was Done Today
 
-#### Shared API Client Module (Mar 3, 2026)
+#### Profile Overview UI Enhancement (Mar 3, 2026 - Evening)
+1. **ProfileOverviewPage.jsx** - UI improvements for multi-item sections
+   - Replaced Edit button with Add (+) button in multi-item section headers
+   - Added Edit and Delete action buttons to each item within multi-item sections
+   - Added Divider component between items for visual separation
+   - Updated all sections to use `inlineFieldGroupStyle` for consistent label-value display
+   - New style: `listItemActionsStyle` for action button alignment
+
+2. **Multi-item vs Single-item Sections**:
+   | Section Type | Header Action | Item Actions |
+   |--------------|---------------|--------------|
+   | Personal Info | Edit | - |
+   | Contact Info | Edit | - |
+   | Addresses | Add (+) | Edit, Delete per item |
+   | Emergency Contacts | Add (+) | Edit, Delete per item |
+   | Education | Add (+) | Edit, Delete per item |
+   | Bank Accounts | Add (+) | Edit, Delete per item |
+   | Identifications | Add (+) | Edit, Delete per item |
+   | Consents | Add (+) | Edit, Delete per item |
+
+3. **i18n Updates** (en-US.json):
+   - Added `profile.overview.addSection`: "Add new {section}"
+   - Added `profile.overview.editItem`: "Edit"
+   - Added `profile.overview.deleteItem`: "Delete"
+
+4. **New Imports**:
+   - `Divider` from @react-spectrum/s2
+   - `Add` icon from @react-spectrum/s2/icons
+   - `Delete` icon from @react-spectrum/s2/icons
+
+5. **S2 Style Macro Note**: 
+   - ✅ Use `justifyContent: 'end'` (not `'flex-end'`)
+
+#### Shared API Client Module (Mar 3, 2026 - Earlier)
 1. **apiClient.js** (`frontend/src/services/apiClient.js`) - NEW
    - `createApiClient({ getToken, onUnauthorized })` - Creates axios instance with:
      - Request interceptor: Injects Bearer token via `getToken()`

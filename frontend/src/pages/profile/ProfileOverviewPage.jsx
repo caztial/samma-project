@@ -11,10 +11,12 @@ import {
   ProgressCircle,
   IllustratedMessage,
   Badge,
-  Text
+  Divider
 } from '@react-spectrum/s2';
 import { style } from '@react-spectrum/s2/style' with { type: 'macro' };
 import Edit from '@react-spectrum/s2/icons/Edit';
+import Add from '@react-spectrum/s2/icons/Add';
+import Delete from '@react-spectrum/s2/icons/Delete';
 import { useTranslation } from '../../i18n/useTranslation';
 import { useAuth } from '../../contexts/AuthContext';
 import { createProfileService } from '../../services/profileService';
@@ -41,15 +43,10 @@ const fieldGridStyle = style({
   display: 'grid',
   gap: 20,
   gridTemplateColumns: {
-    default: 'repeat(2, minmax(0, 1fr))',
-    sm: 'repeat(2, minmax(0, 1fr))'
+    sm: 'repeat(1, minmax(0, 1fr))',
+    md: 'repeat(2, minmax(0, 1fr))',
+    lg: 'repeat(2, minmax(0, 1fr))',
   },
-});
-
-const fieldGroupStyle = style({
-  display: 'flex',
-  flexDirection: 'column',
-  gap: 4,
 });
 
 const inlineFieldGroupStyle = style({
@@ -70,11 +67,13 @@ const valueStyle = style({
 
 const listItemStyle = style({
   padding: 12,
-  borderBottom: '1px solid',
-  borderColor: 'gray-200',
-  ':last-child': {
-    borderBottom: 'none',
-  },
+});
+
+const listItemActionsStyle = style({
+  display: 'flex',
+  justifyContent: 'end',
+  gap: 8,
+  marginTop: 8,
 });
 
 const emptyMessageStyle = style({
@@ -126,9 +125,21 @@ export default function ProfileOverviewPage() {
   }, [profileService, token]);
 
   // Handle edit button click (placeholder for future implementation)
-  const handleEditClick = useCallback((section) => {
-    console.log(`Edit clicked for section: ${section}`);
+  const handleEditClick = useCallback((section, itemId) => {
+    console.log(`Edit clicked for section: ${section}, item: ${itemId}`);
     // TODO: Implement edit functionality
+  }, []);
+
+  // Handle delete button click (placeholder for future implementation)
+  const handleDeleteClick = useCallback((section, itemId) => {
+    console.log(`Delete clicked for section: ${section}, item: ${itemId}`);
+    // TODO: Implement delete functionality
+  }, []);
+
+  // Handle add button click (placeholder for future implementation)
+  const handleAddClick = useCallback((section) => {
+    console.log(`Add clicked for section: ${section}`);
+    // TODO: Implement add functionality
   }, []);
 
   // Format date for display
@@ -188,7 +199,7 @@ export default function ProfileOverviewPage() {
         <Heading level={2}>{t('profile.overview.title')}</Heading>
 
         <Accordion allowsMultipleExpanded>
-          {/* Personal Information Section */}
+          {/* Personal Information Section - Single Item */}
           <AccordionItem id="personal">
             <AccordionItemHeader>
               <AccordionItemTitle>{t('profile.overview.sections.personal')}</AccordionItemTitle>
@@ -221,7 +232,7 @@ export default function ProfileOverviewPage() {
             </AccordionItemPanel>
           </AccordionItem>
 
-          {/* Contact Information Section */}
+          {/* Contact Information Section - Single Item */}
           <AccordionItem id="contact">
             <AccordionItemHeader>
               <AccordionItemTitle>{t('profile.overview.sections.contact')}</AccordionItemTitle>
@@ -234,11 +245,11 @@ export default function ProfileOverviewPage() {
             </AccordionItemHeader>
             <AccordionItemPanel>
               <div className={fieldGridStyle}>
-                <div className={fieldGroupStyle}>
+                <div className={inlineFieldGroupStyle}>
                   <span className={labelStyle}>{t('profile.overview.fields.email')}</span>
                   <span className={valueStyle}>{profile.contact?.email || '-'}</span>
                 </div>
-                <div className={fieldGroupStyle}>
+                <div className={inlineFieldGroupStyle}>
                   <span className={labelStyle}>{t('profile.overview.fields.phone')}</span>
                   <span className={valueStyle}>{profile.contact?.contactNumber || '-'}</span>
                 </div>
@@ -246,7 +257,7 @@ export default function ProfileOverviewPage() {
             </AccordionItemPanel>
           </AccordionItem>
 
-          {/* Addresses Section */}
+          {/* Addresses Section - Multi Item */}
           <AccordionItem id="addresses">
             <AccordionItemHeader>
               <AccordionItemTitle>
@@ -256,46 +267,63 @@ export default function ProfileOverviewPage() {
                 )}
               </AccordionItemTitle>
               <ActionButton
-                onPress={() => handleEditClick('addresses')}
-                aria-label={t('profile.overview.editSection', { section: t('profile.overview.sections.addresses') })}
+                onPress={() => handleAddClick('addresses')}
+                aria-label={t('profile.overview.addSection', { section: t('profile.overview.sections.addresses') })}
               >
-                <Edit />
+                <Add />
               </ActionButton>
             </AccordionItemHeader>
             <AccordionItemPanel>
               {profile.addresses?.length > 0 ? (
                 profile.addresses.map((address, index) => (
-                  <div key={address.id || index} className={listItemStyle}>
-                    <div className={fieldGridStyle}>
-                      <div className={fieldGroupStyle}>
-                        <span className={labelStyle}>{t('profile.overview.fields.addressType')}</span>
-                        <span className={valueStyle}>{address.type || '-'}</span>
-                      </div>
-                      <div className={fieldGroupStyle}>
-                        <span className={labelStyle}>{t('profile.overview.fields.addressLine1')}</span>
-                        <span className={valueStyle}>{address.line1 || '-'}</span>
-                      </div>
-                      {address.line2 && (
-                        <div className={fieldGroupStyle}>
-                          <span className={labelStyle}>{t('profile.overview.fields.addressLine2')}</span>
-                          <span className={valueStyle}>{address.line2}</span>
+                  <div key={address.id || index}>
+                    {index > 0 && <Divider />}
+                    <div className={listItemStyle}>
+                      <div className={fieldGridStyle}>
+                        <div className={inlineFieldGroupStyle}>
+                          <span className={labelStyle}>{t('profile.overview.fields.addressType')}</span>
+                          <span className={valueStyle}>{address.type || '-'}</span>
                         </div>
-                      )}
-                      <div className={fieldGroupStyle}>
-                        <span className={labelStyle}>{t('profile.overview.fields.suburb')}</span>
-                        <span className={valueStyle}>{address.suburb || '-'}</span>
+                        <div className={inlineFieldGroupStyle}>
+                          <span className={labelStyle}>{t('profile.overview.fields.addressLine1')}</span>
+                          <span className={valueStyle}>{address.line1 || '-'}</span>
+                        </div>
+                        {address.line2 && (
+                          <div className={inlineFieldGroupStyle}>
+                            <span className={labelStyle}>{t('profile.overview.fields.addressLine2')}</span>
+                            <span className={valueStyle}>{address.line2}</span>
+                          </div>
+                        )}
+                        <div className={inlineFieldGroupStyle}>
+                          <span className={labelStyle}>{t('profile.overview.fields.suburb')}</span>
+                          <span className={valueStyle}>{address.suburb || '-'}</span>
+                        </div>
+                        <div className={inlineFieldGroupStyle}>
+                          <span className={labelStyle}>{t('profile.overview.fields.stateProvince')}</span>
+                          <span className={valueStyle}>{address.stateProvince || '-'}</span>
+                        </div>
+                        <div className={inlineFieldGroupStyle}>
+                          <span className={labelStyle}>{t('profile.overview.fields.country')}</span>
+                          <span className={valueStyle}>{address.country || '-'}</span>
+                        </div>
+                        <div className={inlineFieldGroupStyle}>
+                          <span className={labelStyle}>{t('profile.overview.fields.postcode')}</span>
+                          <span className={valueStyle}>{address.postcode || '-'}</span>
+                        </div>
                       </div>
-                      <div className={fieldGroupStyle}>
-                        <span className={labelStyle}>{t('profile.overview.fields.stateProvince')}</span>
-                        <span className={valueStyle}>{address.stateProvince || '-'}</span>
-                      </div>
-                      <div className={fieldGroupStyle}>
-                        <span className={labelStyle}>{t('profile.overview.fields.country')}</span>
-                        <span className={valueStyle}>{address.country || '-'}</span>
-                      </div>
-                      <div className={fieldGroupStyle}>
-                        <span className={labelStyle}>{t('profile.overview.fields.postcode')}</span>
-                        <span className={valueStyle}>{address.postcode || '-'}</span>
+                      <div className={listItemActionsStyle}>
+                        <ActionButton
+                          onPress={() => handleEditClick('addresses', address.id || index)}
+                          aria-label={t('profile.overview.editItem')}
+                        >
+                          <Edit />
+                        </ActionButton>
+                        <ActionButton
+                          onPress={() => handleDeleteClick('addresses', address.id || index)}
+                          aria-label={t('profile.overview.deleteItem')}
+                        >
+                          <Delete />
+                        </ActionButton>
                       </div>
                     </div>
                   </div>
@@ -306,7 +334,7 @@ export default function ProfileOverviewPage() {
             </AccordionItemPanel>
           </AccordionItem>
 
-          {/* Emergency Contacts Section */}
+          {/* Emergency Contacts Section - Multi Item */}
           <AccordionItem id="emergencyContacts">
             <AccordionItemHeader>
               <AccordionItemTitle>
@@ -316,32 +344,49 @@ export default function ProfileOverviewPage() {
                 )}
               </AccordionItemTitle>
               <ActionButton
-                onPress={() => handleEditClick('emergencyContacts')}
-                aria-label={t('profile.overview.editSection', { section: t('profile.overview.sections.emergencyContacts') })}
+                onPress={() => handleAddClick('emergencyContacts')}
+                aria-label={t('profile.overview.addSection', { section: t('profile.overview.sections.emergencyContacts') })}
               >
-                <Edit />
+                <Add />
               </ActionButton>
             </AccordionItemHeader>
             <AccordionItemPanel>
               {profile.emergencyContacts?.length > 0 ? (
                 profile.emergencyContacts.map((contact, index) => (
-                  <div key={contact.id || index} className={listItemStyle}>
-                    <div className={fieldGridStyle}>
-                      <div className={fieldGroupStyle}>
-                        <span className={labelStyle}>{t('profile.overview.fields.contactName')}</span>
-                        <span className={valueStyle}>{contact.name || '-'}</span>
+                  <div key={contact.id || index}>
+                    {index > 0 && <Divider />}
+                    <div className={listItemStyle}>
+                      <div className={fieldGridStyle}>
+                        <div className={inlineFieldGroupStyle}>
+                          <span className={labelStyle}>{t('profile.overview.fields.contactName')}</span>
+                          <span className={valueStyle}>{contact.name || '-'}</span>
+                        </div>
+                        <div className={inlineFieldGroupStyle}>
+                          <span className={labelStyle}>{t('profile.overview.fields.relationship')}</span>
+                          <span className={valueStyle}>{contact.relationship || '-'}</span>
+                        </div>
+                        <div className={inlineFieldGroupStyle}>
+                          <span className={labelStyle}>{t('profile.overview.fields.phone')}</span>
+                          <span className={valueStyle}>{contact.contactNumber || '-'}</span>
+                        </div>
+                        <div className={inlineFieldGroupStyle}>
+                          <span className={labelStyle}>{t('profile.overview.fields.email')}</span>
+                          <span className={valueStyle}>{contact.email || '-'}</span>
+                        </div>
                       </div>
-                      <div className={fieldGroupStyle}>
-                        <span className={labelStyle}>{t('profile.overview.fields.relationship')}</span>
-                        <span className={valueStyle}>{contact.relationship || '-'}</span>
-                      </div>
-                      <div className={fieldGroupStyle}>
-                        <span className={labelStyle}>{t('profile.overview.fields.phone')}</span>
-                        <span className={valueStyle}>{contact.contactNumber || '-'}</span>
-                      </div>
-                      <div className={fieldGroupStyle}>
-                        <span className={labelStyle}>{t('profile.overview.fields.email')}</span>
-                        <span className={valueStyle}>{contact.email || '-'}</span>
+                      <div className={listItemActionsStyle}>
+                        <ActionButton
+                          onPress={() => handleEditClick('emergencyContacts', contact.id || index)}
+                          aria-label={t('profile.overview.editItem')}
+                        >
+                          <Edit />
+                        </ActionButton>
+                        <ActionButton
+                          onPress={() => handleDeleteClick('emergencyContacts', contact.id || index)}
+                          aria-label={t('profile.overview.deleteItem')}
+                        >
+                          <Delete />
+                        </ActionButton>
                       </div>
                     </div>
                   </div>
@@ -352,7 +397,7 @@ export default function ProfileOverviewPage() {
             </AccordionItemPanel>
           </AccordionItem>
 
-          {/* Education Section */}
+          {/* Education Section - Multi Item */}
           <AccordionItem id="education">
             <AccordionItemHeader>
               <AccordionItemTitle>
@@ -362,46 +407,63 @@ export default function ProfileOverviewPage() {
                 )}
               </AccordionItemTitle>
               <ActionButton
-                onPress={() => handleEditClick('education')}
-                aria-label={t('profile.overview.editSection', { section: t('profile.overview.sections.education') })}
+                onPress={() => handleAddClick('education')}
+                aria-label={t('profile.overview.addSection', { section: t('profile.overview.sections.education') })}
               >
-                <Edit />
+                <Add />
               </ActionButton>
             </AccordionItemHeader>
             <AccordionItemPanel>
               {profile.educations?.length > 0 ? (
                 profile.educations.map((edu, index) => (
-                  <div key={edu.id || index} className={listItemStyle}>
-                    <div className={fieldGridStyle}>
-                      <div className={fieldGroupStyle}>
-                        <span className={labelStyle}>{t('profile.overview.fields.institution')}</span>
-                        <span className={valueStyle}>{edu.institution || '-'}</span>
-                      </div>
-                      <div className={fieldGroupStyle}>
-                        <span className={labelStyle}>{t('profile.overview.fields.degree')}</span>
-                        <span className={valueStyle}>{edu.degree || '-'}</span>
-                      </div>
-                      <div className={fieldGroupStyle}>
-                        <span className={labelStyle}>{t('profile.overview.fields.fieldOfStudy')}</span>
-                        <span className={valueStyle}>{edu.fieldOfStudy || '-'}</span>
-                      </div>
-                      <div className={fieldGroupStyle}>
-                        <span className={labelStyle}>{t('profile.overview.fields.startDate')}</span>
-                        <span className={valueStyle}>{formatDate(edu.startDate)}</span>
-                      </div>
-                      <div className={fieldGroupStyle}>
-                        <span className={labelStyle}>{t('profile.overview.fields.endDate')}</span>
-                        <span className={valueStyle}>{formatDate(edu.endDate)}</span>
-                      </div>
-                      <div className={fieldGroupStyle}>
-                        <span className={labelStyle}>{t('profile.overview.fields.grade')}</span>
-                        <span className={valueStyle}>{edu.grade || '-'}</span>
-                      </div>
-                      {edu.isVerified && (
-                        <div className={fieldGroupStyle}>
-                          <Badge variant="positive">{t('profile.overview.fields.verified')}</Badge>
+                  <div key={edu.id || index}>
+                    {index > 0 && <Divider />}
+                    <div className={listItemStyle}>
+                      <div className={fieldGridStyle}>
+                        <div className={inlineFieldGroupStyle}>
+                          <span className={labelStyle}>{t('profile.overview.fields.institution')}</span>
+                          <span className={valueStyle}>{edu.institution || '-'}</span>
                         </div>
-                      )}
+                        <div className={inlineFieldGroupStyle}>
+                          <span className={labelStyle}>{t('profile.overview.fields.degree')}</span>
+                          <span className={valueStyle}>{edu.degree || '-'}</span>
+                        </div>
+                        <div className={inlineFieldGroupStyle}>
+                          <span className={labelStyle}>{t('profile.overview.fields.fieldOfStudy')}</span>
+                          <span className={valueStyle}>{edu.fieldOfStudy || '-'}</span>
+                        </div>
+                        <div className={inlineFieldGroupStyle}>
+                          <span className={labelStyle}>{t('profile.overview.fields.startDate')}</span>
+                          <span className={valueStyle}>{formatDate(edu.startDate)}</span>
+                        </div>
+                        <div className={inlineFieldGroupStyle}>
+                          <span className={labelStyle}>{t('profile.overview.fields.endDate')}</span>
+                          <span className={valueStyle}>{formatDate(edu.endDate)}</span>
+                        </div>
+                        <div className={inlineFieldGroupStyle}>
+                          <span className={labelStyle}>{t('profile.overview.fields.grade')}</span>
+                          <span className={valueStyle}>{edu.grade || '-'}</span>
+                        </div>
+                        {edu.isVerified && (
+                          <div className={inlineFieldGroupStyle}>
+                            <Badge variant="positive">{t('profile.overview.fields.verified')}</Badge>
+                          </div>
+                        )}
+                      </div>
+                      <div className={listItemActionsStyle}>
+                        <ActionButton
+                          onPress={() => handleEditClick('education', edu.id || index)}
+                          aria-label={t('profile.overview.editItem')}
+                        >
+                          <Edit />
+                        </ActionButton>
+                        <ActionButton
+                          onPress={() => handleDeleteClick('education', edu.id || index)}
+                          aria-label={t('profile.overview.deleteItem')}
+                        >
+                          <Delete />
+                        </ActionButton>
+                      </div>
                     </div>
                   </div>
                 ))
@@ -411,7 +473,7 @@ export default function ProfileOverviewPage() {
             </AccordionItemPanel>
           </AccordionItem>
 
-          {/* Bank Accounts Section */}
+          {/* Bank Accounts Section - Multi Item */}
           <AccordionItem id="bankAccounts">
             <AccordionItemHeader>
               <AccordionItemTitle>
@@ -421,44 +483,61 @@ export default function ProfileOverviewPage() {
                 )}
               </AccordionItemTitle>
               <ActionButton
-                onPress={() => handleEditClick('bankAccounts')}
-                aria-label={t('profile.overview.editSection', { section: t('profile.overview.sections.bankAccounts') })}
+                onPress={() => handleAddClick('bankAccounts')}
+                aria-label={t('profile.overview.addSection', { section: t('profile.overview.sections.bankAccounts') })}
               >
-                <Edit />
+                <Add />
               </ActionButton>
             </AccordionItemHeader>
             <AccordionItemPanel>
               {profile.bankAccounts?.length > 0 ? (
                 profile.bankAccounts.map((account, index) => (
-                  <div key={account.id || index} className={listItemStyle}>
-                    <div className={fieldGridStyle}>
-                      <div className={fieldGroupStyle}>
-                        <span className={labelStyle}>{t('profile.overview.fields.bankName')}</span>
-                        <span className={valueStyle}>{account.bankName || '-'}</span>
-                      </div>
-                      <div className={fieldGroupStyle}>
-                        <span className={labelStyle}>{t('profile.overview.fields.accountType')}</span>
-                        <span className={valueStyle}>{account.accountType || '-'}</span>
-                      </div>
-                      <div className={fieldGroupStyle}>
-                        <span className={labelStyle}>{t('profile.overview.fields.accountHolderName')}</span>
-                        <span className={valueStyle}>{account.accountHolderName || '-'}</span>
-                      </div>
-                      <div className={fieldGroupStyle}>
-                        <span className={labelStyle}>{t('profile.overview.fields.accountNumber')}</span>
-                        <span className={valueStyle}>{account.accountNumber || '-'}</span>
-                      </div>
-                      {account.branchCode && (
-                        <div className={fieldGroupStyle}>
-                          <span className={labelStyle}>{t('profile.overview.fields.branchCode')}</span>
-                          <span className={valueStyle}>{account.branchCode}</span>
+                  <div key={account.id || index}>
+                    {index > 0 && <Divider />}
+                    <div className={listItemStyle}>
+                      <div className={fieldGridStyle}>
+                        <div className={inlineFieldGroupStyle}>
+                          <span className={labelStyle}>{t('profile.overview.fields.bankName')}</span>
+                          <span className={valueStyle}>{account.bankName || '-'}</span>
                         </div>
-                      )}
-                      {account.isVerified && (
-                        <div className={fieldGroupStyle}>
-                          <Badge variant="positive">{t('profile.overview.fields.verified')}</Badge>
+                        <div className={inlineFieldGroupStyle}>
+                          <span className={labelStyle}>{t('profile.overview.fields.accountType')}</span>
+                          <span className={valueStyle}>{account.accountType || '-'}</span>
                         </div>
-                      )}
+                        <div className={inlineFieldGroupStyle}>
+                          <span className={labelStyle}>{t('profile.overview.fields.accountHolderName')}</span>
+                          <span className={valueStyle}>{account.accountHolderName || '-'}</span>
+                        </div>
+                        <div className={inlineFieldGroupStyle}>
+                          <span className={labelStyle}>{t('profile.overview.fields.accountNumber')}</span>
+                          <span className={valueStyle}>{account.accountNumber || '-'}</span>
+                        </div>
+                        {account.branchCode && (
+                          <div className={inlineFieldGroupStyle}>
+                            <span className={labelStyle}>{t('profile.overview.fields.branchCode')}</span>
+                            <span className={valueStyle}>{account.branchCode}</span>
+                          </div>
+                        )}
+                        {account.isVerified && (
+                          <div className={inlineFieldGroupStyle}>
+                            <Badge variant="positive">{t('profile.overview.fields.verified')}</Badge>
+                          </div>
+                        )}
+                      </div>
+                      <div className={listItemActionsStyle}>
+                        <ActionButton
+                          onPress={() => handleEditClick('bankAccounts', account.id || index)}
+                          aria-label={t('profile.overview.editItem')}
+                        >
+                          <Edit />
+                        </ActionButton>
+                        <ActionButton
+                          onPress={() => handleDeleteClick('bankAccounts', account.id || index)}
+                          aria-label={t('profile.overview.deleteItem')}
+                        >
+                          <Delete />
+                        </ActionButton>
+                      </div>
                     </div>
                   </div>
                 ))
@@ -468,7 +547,7 @@ export default function ProfileOverviewPage() {
             </AccordionItemPanel>
           </AccordionItem>
 
-          {/* Identifications Section */}
+          {/* Identifications Section - Multi Item */}
           <AccordionItem id="identifications">
             <AccordionItemHeader>
               <AccordionItemTitle>
@@ -478,24 +557,41 @@ export default function ProfileOverviewPage() {
                 )}
               </AccordionItemTitle>
               <ActionButton
-                onPress={() => handleEditClick('identifications')}
-                aria-label={t('profile.overview.editSection', { section: t('profile.overview.sections.identifications') })}
+                onPress={() => handleAddClick('identifications')}
+                aria-label={t('profile.overview.addSection', { section: t('profile.overview.sections.identifications') })}
               >
-                <Edit />
+                <Add />
               </ActionButton>
             </AccordionItemHeader>
             <AccordionItemPanel>
               {profile.identifications?.length > 0 ? (
                 profile.identifications.map((id, index) => (
-                  <div key={id.id || index} className={listItemStyle}>
-                    <div className={fieldGridStyle}>
-                      <div className={fieldGroupStyle}>
-                        <span className={labelStyle}>{t('profile.overview.fields.idType')}</span>
-                        <span className={valueStyle}>{id.type || '-'}</span>
+                  <div key={id.id || index}>
+                    {index > 0 && <Divider />}
+                    <div className={listItemStyle}>
+                      <div className={fieldGridStyle}>
+                        <div className={inlineFieldGroupStyle}>
+                          <span className={labelStyle}>{t('profile.overview.fields.idType')}</span>
+                          <span className={valueStyle}>{id.type || '-'}</span>
+                        </div>
+                        <div className={inlineFieldGroupStyle}>
+                          <span className={labelStyle}>{t('profile.overview.fields.idNumber')}</span>
+                          <span className={valueStyle}>{id.value || '-'}</span>
+                        </div>
                       </div>
-                      <div className={fieldGroupStyle}>
-                        <span className={labelStyle}>{t('profile.overview.fields.idNumber')}</span>
-                        <span className={valueStyle}>{id.value || '-'}</span>
+                      <div className={listItemActionsStyle}>
+                        <ActionButton
+                          onPress={() => handleEditClick('identifications', id.id || index)}
+                          aria-label={t('profile.overview.editItem')}
+                        >
+                          <Edit />
+                        </ActionButton>
+                        <ActionButton
+                          onPress={() => handleDeleteClick('identifications', id.id || index)}
+                          aria-label={t('profile.overview.deleteItem')}
+                        >
+                          <Delete />
+                        </ActionButton>
                       </div>
                     </div>
                   </div>
@@ -506,7 +602,7 @@ export default function ProfileOverviewPage() {
             </AccordionItemPanel>
           </AccordionItem>
 
-          {/* Consents Section */}
+          {/* Consents Section - Multi Item */}
           <AccordionItem id="consents">
             <AccordionItemHeader>
               <AccordionItemTitle>
@@ -516,28 +612,45 @@ export default function ProfileOverviewPage() {
                 )}
               </AccordionItemTitle>
               <ActionButton
-                onPress={() => handleEditClick('consents')}
-                aria-label={t('profile.overview.editSection', { section: t('profile.overview.sections.consents') })}
+                onPress={() => handleAddClick('consents')}
+                aria-label={t('profile.overview.addSection', { section: t('profile.overview.sections.consents') })}
               >
-                <Edit />
+                <Add />
               </ActionButton>
             </AccordionItemHeader>
             <AccordionItemPanel>
               {profile.consents?.length > 0 ? (
                 profile.consents.map((consent, index) => (
-                  <div key={consent.id || index} className={listItemStyle}>
-                    <div className={fieldGridStyle}>
-                      <div className={fieldGroupStyle}>
-                        <span className={labelStyle}>{t('profile.overview.fields.termsVersion')}</span>
-                        <span className={valueStyle}>{consent.termsVersion || '-'}</span>
+                  <div key={consent.id || index}>
+                    {index > 0 && <Divider />}
+                    <div className={listItemStyle}>
+                      <div className={fieldGridStyle}>
+                        <div className={inlineFieldGroupStyle}>
+                          <span className={labelStyle}>{t('profile.overview.fields.termsVersion')}</span>
+                          <span className={valueStyle}>{consent.termsVersion || '-'}</span>
+                        </div>
+                        <div className={inlineFieldGroupStyle}>
+                          <span className={labelStyle}>{t('profile.overview.fields.acceptedAt')}</span>
+                          <span className={valueStyle}>{formatDate(consent.acceptedAt)}</span>
+                        </div>
+                        <div className={inlineFieldGroupStyle}>
+                          <span className={labelStyle}>{t('profile.overview.fields.ipAddress')}</span>
+                          <span className={valueStyle}>{consent.ipAddress || '-'}</span>
+                        </div>
                       </div>
-                      <div className={fieldGroupStyle}>
-                        <span className={labelStyle}>{t('profile.overview.fields.acceptedAt')}</span>
-                        <span className={valueStyle}>{formatDate(consent.acceptedAt)}</span>
-                      </div>
-                      <div className={fieldGroupStyle}>
-                        <span className={labelStyle}>{t('profile.overview.fields.ipAddress')}</span>
-                        <span className={valueStyle}>{consent.ipAddress || '-'}</span>
+                      <div className={listItemActionsStyle}>
+                        <ActionButton
+                          onPress={() => handleEditClick('consents', consent.id || index)}
+                          aria-label={t('profile.overview.editItem')}
+                        >
+                          <Edit />
+                        </ActionButton>
+                        <ActionButton
+                          onPress={() => handleDeleteClick('consents', consent.id || index)}
+                          aria-label={t('profile.overview.deleteItem')}
+                        >
+                          <Delete />
+                        </ActionButton>
                       </div>
                     </div>
                   </div>
