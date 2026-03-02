@@ -1,16 +1,17 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   Accordion,
-  Disclosure,
-  DisclosureTitle,
-  DisclosurePanel,
-  DisclosureHeader,
+  AccordionItem,
+  AccordionItemTitle,
+  AccordionItemPanel,
+  AccordionItemHeader,
   ActionButton,
   Content,
   Heading,
   ProgressCircle,
   IllustratedMessage,
   Badge,
+  Text
 } from '@react-spectrum/s2';
 import { style } from '@react-spectrum/s2/style' with { type: 'macro' };
 import Edit from '@react-spectrum/s2/icons/Edit';
@@ -26,6 +27,7 @@ const containerStyle = style({
   gap: 16,
   width: '100%',
   maxWidth: 800,
+  marginX: 'auto',
 });
 
 const loadingContainerStyle = style({
@@ -47,6 +49,13 @@ const fieldGroupStyle = style({
   display: 'flex',
   flexDirection: 'column',
   gap: 4,
+});
+
+const inlineFieldGroupStyle = style({
+  display: 'flex',
+  flexDirection: 'row',
+  gap: 16,
+  alignItems: 'baseline',
 });
 
 const labelStyle = style({
@@ -179,50 +188,50 @@ export default function ProfileOverviewPage() {
 
         <Accordion allowsMultipleExpanded>
           {/* Personal Information Section */}
-          <Disclosure id="personal">
-            <DisclosureHeader>
-              <DisclosureTitle>{t('profile.overview.sections.personal')}</DisclosureTitle>
+          <AccordionItem id="personal">
+            <AccordionItemHeader>
+              <AccordionItemTitle>{t('profile.overview.sections.personal')}</AccordionItemTitle>
               <ActionButton
                 onPress={() => handleEditClick('personal')}
                 aria-label={t('profile.overview.editSection', { section: t('profile.overview.sections.personal') })}
               >
                 <Edit />
               </ActionButton>
-            </DisclosureHeader>
-            <DisclosurePanel>
+            </AccordionItemHeader>
+            <AccordionItemPanel>
               <div className={fieldGridStyle}>
-                <div className={fieldGroupStyle}>
+                <div className={inlineFieldGroupStyle}>
                   <span className={labelStyle}>{t('profile.overview.fields.firstName')}</span>
                   <span className={valueStyle}>{profile.firstName || '-'}</span>
                 </div>
-                <div className={fieldGroupStyle}>
+                <div className={inlineFieldGroupStyle}>
                   <span className={labelStyle}>{t('profile.overview.fields.lastName')}</span>
                   <span className={valueStyle}>{profile.lastName || '-'}</span>
                 </div>
-                <div className={fieldGroupStyle}>
+                <div className={inlineFieldGroupStyle}>
                   <span className={labelStyle}>{t('profile.overview.fields.gender')}</span>
                   <span className={valueStyle}>{profile.gender || '-'}</span>
                 </div>
-                <div className={fieldGroupStyle}>
+                <div className={inlineFieldGroupStyle}>
                   <span className={labelStyle}>{t('profile.overview.fields.dateOfBirth')}</span>
                   <span className={valueStyle}>{formatDate(profile.dateOfBirth)}</span>
                 </div>
               </div>
-            </DisclosurePanel>
-          </Disclosure>
+            </AccordionItemPanel>
+          </AccordionItem>
 
           {/* Contact Information Section */}
-          <Disclosure id="contact">
-            <DisclosureHeader>
-              <DisclosureTitle>{t('profile.overview.sections.contact')}</DisclosureTitle>
+          <AccordionItem id="contact">
+            <AccordionItemHeader>
+              <AccordionItemTitle>{t('profile.overview.sections.contact')}</AccordionItemTitle>
               <ActionButton
                 onPress={() => handleEditClick('contact')}
                 aria-label={t('profile.overview.editSection', { section: t('profile.overview.sections.contact') })}
               >
                 <Edit />
               </ActionButton>
-            </DisclosureHeader>
-            <DisclosurePanel>
+            </AccordionItemHeader>
+            <AccordionItemPanel>
               <div className={fieldGridStyle}>
                 <div className={fieldGroupStyle}>
                   <span className={labelStyle}>{t('profile.overview.fields.email')}</span>
@@ -233,26 +242,26 @@ export default function ProfileOverviewPage() {
                   <span className={valueStyle}>{profile.contact?.contactNumber || '-'}</span>
                 </div>
               </div>
-            </DisclosurePanel>
-          </Disclosure>
+            </AccordionItemPanel>
+          </AccordionItem>
 
           {/* Addresses Section */}
-          <Disclosure id="addresses">
-            <DisclosureHeader>
-              <DisclosureTitle>
+          <AccordionItem id="addresses">
+            <AccordionItemHeader>
+              <AccordionItemTitle>
                 {t('profile.overview.sections.addresses')}
                 {profile.addresses?.length > 0 && (
                   <Badge variant="informative">{profile.addresses.length}</Badge>
                 )}
-              </DisclosureTitle>
+              </AccordionItemTitle>
               <ActionButton
                 onPress={() => handleEditClick('addresses')}
                 aria-label={t('profile.overview.editSection', { section: t('profile.overview.sections.addresses') })}
               >
                 <Edit />
               </ActionButton>
-            </DisclosureHeader>
-            <DisclosurePanel>
+            </AccordionItemHeader>
+            <AccordionItemPanel>
               {profile.addresses?.length > 0 ? (
                 profile.addresses.map((address, index) => (
                   <div key={address.id || index} className={listItemStyle}>
@@ -293,26 +302,26 @@ export default function ProfileOverviewPage() {
               ) : (
                 <div className={emptyMessageStyle}>{t('profile.overview.noAddresses')}</div>
               )}
-            </DisclosurePanel>
-          </Disclosure>
+            </AccordionItemPanel>
+          </AccordionItem>
 
           {/* Emergency Contacts Section */}
-          <Disclosure id="emergencyContacts">
-            <DisclosureHeader>
-              <DisclosureTitle>
+          <AccordionItem id="emergencyContacts">
+            <AccordionItemHeader>
+              <AccordionItemTitle>
                 {t('profile.overview.sections.emergencyContacts')}
                 {profile.emergencyContacts?.length > 0 && (
                   <Badge variant="informative">{profile.emergencyContacts.length}</Badge>
                 )}
-              </DisclosureTitle>
+              </AccordionItemTitle>
               <ActionButton
                 onPress={() => handleEditClick('emergencyContacts')}
                 aria-label={t('profile.overview.editSection', { section: t('profile.overview.sections.emergencyContacts') })}
               >
                 <Edit />
               </ActionButton>
-            </DisclosureHeader>
-            <DisclosurePanel>
+            </AccordionItemHeader>
+            <AccordionItemPanel>
               {profile.emergencyContacts?.length > 0 ? (
                 profile.emergencyContacts.map((contact, index) => (
                   <div key={contact.id || index} className={listItemStyle}>
@@ -339,26 +348,26 @@ export default function ProfileOverviewPage() {
               ) : (
                 <div className={emptyMessageStyle}>{t('profile.overview.noEmergencyContacts')}</div>
               )}
-            </DisclosurePanel>
-          </Disclosure>
+            </AccordionItemPanel>
+          </AccordionItem>
 
           {/* Education Section */}
-          <Disclosure id="education">
-            <DisclosureHeader>
-              <DisclosureTitle>
+          <AccordionItem id="education">
+            <AccordionItemHeader>
+              <AccordionItemTitle>
                 {t('profile.overview.sections.education')}
                 {profile.educations?.length > 0 && (
                   <Badge variant="informative">{profile.educations.length}</Badge>
                 )}
-              </DisclosureTitle>
+              </AccordionItemTitle>
               <ActionButton
                 onPress={() => handleEditClick('education')}
                 aria-label={t('profile.overview.editSection', { section: t('profile.overview.sections.education') })}
               >
                 <Edit />
               </ActionButton>
-            </DisclosureHeader>
-            <DisclosurePanel>
+            </AccordionItemHeader>
+            <AccordionItemPanel>
               {profile.educations?.length > 0 ? (
                 profile.educations.map((edu, index) => (
                   <div key={edu.id || index} className={listItemStyle}>
@@ -398,26 +407,26 @@ export default function ProfileOverviewPage() {
               ) : (
                 <div className={emptyMessageStyle}>{t('profile.overview.noEducation')}</div>
               )}
-            </DisclosurePanel>
-          </Disclosure>
+            </AccordionItemPanel>
+          </AccordionItem>
 
           {/* Bank Accounts Section */}
-          <Disclosure id="bankAccounts">
-            <DisclosureHeader>
-              <DisclosureTitle>
+          <AccordionItem id="bankAccounts">
+            <AccordionItemHeader>
+              <AccordionItemTitle>
                 {t('profile.overview.sections.bankAccounts')}
                 {profile.bankAccounts?.length > 0 && (
                   <Badge variant="informative">{profile.bankAccounts.length}</Badge>
                 )}
-              </DisclosureTitle>
+              </AccordionItemTitle>
               <ActionButton
                 onPress={() => handleEditClick('bankAccounts')}
                 aria-label={t('profile.overview.editSection', { section: t('profile.overview.sections.bankAccounts') })}
               >
                 <Edit />
               </ActionButton>
-            </DisclosureHeader>
-            <DisclosurePanel>
+            </AccordionItemHeader>
+            <AccordionItemPanel>
               {profile.bankAccounts?.length > 0 ? (
                 profile.bankAccounts.map((account, index) => (
                   <div key={account.id || index} className={listItemStyle}>
@@ -455,26 +464,26 @@ export default function ProfileOverviewPage() {
               ) : (
                 <div className={emptyMessageStyle}>{t('profile.overview.noBankAccounts')}</div>
               )}
-            </DisclosurePanel>
-          </Disclosure>
+            </AccordionItemPanel>
+          </AccordionItem>
 
           {/* Identifications Section */}
-          <Disclosure id="identifications">
-            <DisclosureHeader>
-              <DisclosureTitle>
+          <AccordionItem id="identifications">
+            <AccordionItemHeader>
+              <AccordionItemTitle>
                 {t('profile.overview.sections.identifications')}
                 {profile.identifications?.length > 0 && (
                   <Badge variant="informative">{profile.identifications.length}</Badge>
                 )}
-              </DisclosureTitle>
+              </AccordionItemTitle>
               <ActionButton
                 onPress={() => handleEditClick('identifications')}
                 aria-label={t('profile.overview.editSection', { section: t('profile.overview.sections.identifications') })}
               >
                 <Edit />
               </ActionButton>
-            </DisclosureHeader>
-            <DisclosurePanel>
+            </AccordionItemHeader>
+            <AccordionItemPanel>
               {profile.identifications?.length > 0 ? (
                 profile.identifications.map((id, index) => (
                   <div key={id.id || index} className={listItemStyle}>
@@ -493,26 +502,26 @@ export default function ProfileOverviewPage() {
               ) : (
                 <div className={emptyMessageStyle}>{t('profile.overview.noIdentifications')}</div>
               )}
-            </DisclosurePanel>
-          </Disclosure>
+            </AccordionItemPanel>
+          </AccordionItem>
 
           {/* Consents Section */}
-          <Disclosure id="consents">
-            <DisclosureHeader>
-              <DisclosureTitle>
+          <AccordionItem id="consents">
+            <AccordionItemHeader>
+              <AccordionItemTitle>
                 {t('profile.overview.sections.consents')}
                 {profile.consents?.length > 0 && (
                   <Badge variant="informative">{profile.consents.length}</Badge>
                 )}
-              </DisclosureTitle>
+              </AccordionItemTitle>
               <ActionButton
                 onPress={() => handleEditClick('consents')}
                 aria-label={t('profile.overview.editSection', { section: t('profile.overview.sections.consents') })}
               >
                 <Edit />
               </ActionButton>
-            </DisclosureHeader>
-            <DisclosurePanel>
+            </AccordionItemHeader>
+            <AccordionItemPanel>
               {profile.consents?.length > 0 ? (
                 profile.consents.map((consent, index) => (
                   <div key={consent.id || index} className={listItemStyle}>
@@ -535,8 +544,8 @@ export default function ProfileOverviewPage() {
               ) : (
                 <div className={emptyMessageStyle}>{t('profile.overview.noConsents')}</div>
               )}
-            </DisclosurePanel>
-          </Disclosure>
+            </AccordionItemPanel>
+          </AccordionItem>
         </Accordion>
       </div>
     </ProfileLayout>
