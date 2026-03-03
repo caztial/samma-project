@@ -153,6 +153,44 @@ export default function ProfileOverviewPage() {
   const [emergencyContactDialogMode, setEmergencyContactDialogMode] = useState('add'); // 'add' or 'edit'
   const [isSavingEmergencyContact, setIsSavingEmergencyContact] = useState(false);
 
+  // Education dialog state
+  const [educationDialogOpen, setEducationDialogOpen] = useState(false);
+  const [educationData, setEducationData] = useState({
+    id: null,
+    institution: '',
+    degree: '',
+    fieldOfStudy: '',
+    startDate: null,
+    endDate: null,
+    grade: '',
+    certificateNumber: ''
+  });
+  const [educationDialogMode, setEducationDialogMode] = useState('add'); // 'add' or 'edit'
+  const [isSavingEducation, setIsSavingEducation] = useState(false);
+
+  // Bank account dialog state
+  const [bankAccountDialogOpen, setBankAccountDialogOpen] = useState(false);
+  const [bankAccountData, setBankAccountData] = useState({
+    id: null,
+    bankName: '',
+    accountType: '',
+    accountHolderName: '',
+    accountNumber: '',
+    branchCode: ''
+  });
+  const [bankAccountDialogMode, setBankAccountDialogMode] = useState('add'); // 'add' or 'edit'
+  const [isSavingBankAccount, setIsSavingBankAccount] = useState(false);
+
+  // Identification dialog state
+  const [identificationDialogOpen, setIdentificationDialogOpen] = useState(false);
+  const [identificationData, setIdentificationData] = useState({
+    id: null,
+    type: '',
+    value: ''
+  });
+  const [identificationDialogMode, setIdentificationDialogMode] = useState('add'); // 'add' or 'edit'
+  const [isSavingIdentification, setIsSavingIdentification] = useState(false);
+
   // Gender options matching backend enum (Gender.cs) - use string keys that backend expects
   const genderOptions = useMemo(() => [
     { id: 'Male', name: t('profile.overview.genderOptions.male') },
@@ -248,6 +286,69 @@ export default function ProfileOverviewPage() {
         });
         setEmergencyContactDialogMode('edit');
         setEmergencyContactDialogOpen(true);
+      }
+    } else if (section === 'education' && profile) {
+      // Find the education to edit
+      const edu = profile.educations?.find(e => e.id === itemId);
+      if (edu) {
+        // Parse dates for DatePicker
+        let startDate = null;
+        let endDate = null;
+        if (edu.startDate) {
+          try {
+            const dateStr = edu.startDate.split('T')[0];
+            startDate = parseDate(dateStr);
+          } catch (e) {
+            console.error('Failed to parse start date:', e);
+          }
+        }
+        if (edu.endDate) {
+          try {
+            const dateStr = edu.endDate.split('T')[0];
+            endDate = parseDate(dateStr);
+          } catch (e) {
+            console.error('Failed to parse end date:', e);
+          }
+        }
+        setEducationData({
+          id: edu.id,
+          institution: edu.institution || '',
+          degree: edu.degree || '',
+          fieldOfStudy: edu.fieldOfStudy || '',
+          startDate: startDate,
+          endDate: endDate,
+          grade: edu.grade || '',
+          certificateNumber: edu.certificateNumber || ''
+        });
+        setEducationDialogMode('edit');
+        setEducationDialogOpen(true);
+      }
+    } else if (section === 'bankAccounts' && profile) {
+      // Find the bank account to edit
+      const account = profile.bankAccounts?.find(b => b.id === itemId);
+      if (account) {
+        setBankAccountData({
+          id: account.id,
+          bankName: account.bankName || '',
+          accountType: account.accountType || '',
+          accountHolderName: account.accountHolderName || '',
+          accountNumber: account.accountNumber || '',
+          branchCode: account.branchCode || ''
+        });
+        setBankAccountDialogMode('edit');
+        setBankAccountDialogOpen(true);
+      }
+    } else if (section === 'identifications' && profile) {
+      // Find the identification to edit
+      const identification = profile.identifications?.find(i => i.id === itemId);
+      if (identification) {
+        setIdentificationData({
+          id: identification.id,
+          type: identification.type || '',
+          value: identification.value || ''
+        });
+        setIdentificationDialogMode('edit');
+        setIdentificationDialogOpen(true);
       }
     } else {
       console.log(`Edit clicked for section: ${section}, item: ${itemId}`);
@@ -408,6 +509,41 @@ export default function ProfileOverviewPage() {
       });
       setEmergencyContactDialogMode('add');
       setEmergencyContactDialogOpen(true);
+    } else if (section === 'education') {
+      // Reset form data for new education
+      setEducationData({
+        id: null,
+        institution: '',
+        degree: '',
+        fieldOfStudy: '',
+        startDate: null,
+        endDate: null,
+        grade: '',
+        certificateNumber: ''
+      });
+      setEducationDialogMode('add');
+      setEducationDialogOpen(true);
+    } else if (section === 'bankAccounts') {
+      // Reset form data for new bank account
+      setBankAccountData({
+        id: null,
+        bankName: '',
+        accountType: '',
+        accountHolderName: '',
+        accountNumber: '',
+        branchCode: ''
+      });
+      setBankAccountDialogMode('add');
+      setBankAccountDialogOpen(true);
+    } else if (section === 'identifications') {
+      // Reset form data for new identification
+      setIdentificationData({
+        id: null,
+        type: '',
+        value: ''
+      });
+      setIdentificationDialogMode('add');
+      setIdentificationDialogOpen(true);
     } else {
       console.log(`Add clicked for section: ${section}`);
       // TODO: Implement add functionality for other sections
@@ -443,6 +579,41 @@ export default function ProfileOverviewPage() {
     
     return hasErrors;
   }, [emergencyContactData, emailRegex]);
+
+  // Handle education field changes
+  const handleEducationFieldChange = useCallback((field, value) => {
+    setEducationData(prev => ({ ...prev, [field]: value }));
+  }, []);
+
+  // Check if education form has validation errors (required fields: institution, degree)
+  const hasEducationValidationErrors = useMemo(() => {
+    return !educationData.institution?.trim() || 
+           !educationData.degree?.trim();
+  }, [educationData]);
+
+  // Handle bank account field changes
+  const handleBankAccountFieldChange = useCallback((field, value) => {
+    setBankAccountData(prev => ({ ...prev, [field]: value }));
+  }, []);
+
+  // Check if bank account form has validation errors (required fields: bankName, accountType, accountHolderName, accountNumber)
+  const hasBankAccountValidationErrors = useMemo(() => {
+    return !bankAccountData.bankName?.trim() || 
+           !bankAccountData.accountType?.trim() ||
+           !bankAccountData.accountHolderName?.trim() ||
+           !bankAccountData.accountNumber?.trim();
+  }, [bankAccountData]);
+
+  // Handle identification field changes
+  const handleIdentificationFieldChange = useCallback((field, value) => {
+    setIdentificationData(prev => ({ ...prev, [field]: value }));
+  }, []);
+
+  // Check if identification form has validation errors (required fields: type, value)
+  const hasIdentificationValidationErrors = useMemo(() => {
+    return !identificationData.type?.trim() || 
+           !identificationData.value?.trim();
+  }, [identificationData]);
 
   // Handle save address (add or update)
   const handleSaveAddress = useCallback(async () => {
@@ -550,6 +721,168 @@ export default function ProfileOverviewPage() {
       setIsSavingEmergencyContact(false);
     }
   }, [emergencyContactData, emergencyContactDialogMode, profile, profileService, hasEmergencyContactValidationErrors, t]);
+
+  // Handle save education (add or update)
+  const handleSaveEducation = useCallback(async () => {
+    if (hasEducationValidationErrors || !profile) return;
+
+    try {
+      setIsSavingEducation(true);
+
+      // Format dates as ISO strings for backend
+      const startDateString = educationData.startDate
+        ? educationData.startDate.toString()
+        : null;
+      const endDateString = educationData.endDate
+        ? educationData.endDate.toString()
+        : null;
+
+      // Backend expects: { education: { institution, degree, fieldOfStudy, startDate, endDate, grade, certificateNumber } }
+      const educationPayload = {
+        education: {
+          institution: educationData.institution.trim(),
+          degree: educationData.degree.trim(),
+          fieldOfStudy: educationData.fieldOfStudy?.trim() || null,
+          startDate: startDateString,
+          endDate: endDateString,
+          grade: educationData.grade?.trim() || null,
+          certificateNumber: educationData.certificateNumber?.trim() || null
+        }
+      };
+
+      if (educationDialogMode === 'add') {
+        const response = await profileService.addEducation(profile.id, educationPayload);
+        setProfile(prev => ({
+          ...prev,
+          educations: [...(prev.educations || []), response.data]
+        }));
+        ToastQueue.positive(t('profile.overview.educationDialog.addSuccess'), { timeout: 3000 });
+      } else {
+        await profileService.updateEducation(profile.id, educationData.id, educationPayload);
+        setProfile(prev => ({
+          ...prev,
+          educations: prev.educations.map(e => 
+            e.id === educationData.id ? { 
+              ...e, 
+              institution: educationPayload.education.institution,
+              degree: educationPayload.education.degree,
+              fieldOfStudy: educationPayload.education.fieldOfStudy,
+              startDate: educationPayload.education.startDate,
+              endDate: educationPayload.education.endDate,
+              grade: educationPayload.education.grade,
+              certificateNumber: educationPayload.education.certificateNumber
+            } : e
+          )
+        }));
+        ToastQueue.positive(t('profile.overview.educationDialog.updateSuccess'), { timeout: 3000 });
+      }
+      
+      setEducationDialogOpen(false);
+    } catch (err) {
+      console.error('Failed to save education:', err);
+      ToastQueue.negative(t('profile.overview.educationDialog.error'), { timeout: 3000 });
+    } finally {
+      setIsSavingEducation(false);
+    }
+  }, [educationData, educationDialogMode, profile, profileService, hasEducationValidationErrors, t]);
+
+  // Handle save bank account (add or update)
+  const handleSaveBankAccount = useCallback(async () => {
+    if (hasBankAccountValidationErrors || !profile) return;
+
+    try {
+      setIsSavingBankAccount(true);
+
+      // Backend expects: { bankAccount: { bankName, accountType, accountHolderName, accountNumber, branchCode } }
+      const bankAccountPayload = {
+        bankAccount: {
+          bankName: bankAccountData.bankName.trim(),
+          accountType: bankAccountData.accountType.trim(),
+          accountHolderName: bankAccountData.accountHolderName.trim(),
+          accountNumber: bankAccountData.accountNumber.trim(),
+          branchCode: bankAccountData.branchCode?.trim() || null
+        }
+      };
+
+      if (bankAccountDialogMode === 'add') {
+        const response = await profileService.addBankAccount(profile.id, bankAccountPayload);
+        setProfile(prev => ({
+          ...prev,
+          bankAccounts: [...(prev.bankAccounts || []), response.data]
+        }));
+        ToastQueue.positive(t('profile.overview.bankAccountDialog.addSuccess'), { timeout: 3000 });
+      } else {
+        await profileService.updateBankAccount(profile.id, bankAccountData.id, bankAccountPayload);
+        setProfile(prev => ({
+          ...prev,
+          bankAccounts: prev.bankAccounts.map(b => 
+            b.id === bankAccountData.id ? { 
+              ...b, 
+              bankName: bankAccountPayload.bankAccount.bankName,
+              accountType: bankAccountPayload.bankAccount.accountType,
+              accountHolderName: bankAccountPayload.bankAccount.accountHolderName,
+              accountNumber: bankAccountPayload.bankAccount.accountNumber,
+              branchCode: bankAccountPayload.bankAccount.branchCode
+            } : b
+          )
+        }));
+        ToastQueue.positive(t('profile.overview.bankAccountDialog.updateSuccess'), { timeout: 3000 });
+      }
+      
+      setBankAccountDialogOpen(false);
+    } catch (err) {
+      console.error('Failed to save bank account:', err);
+      ToastQueue.negative(t('profile.overview.bankAccountDialog.error'), { timeout: 3000 });
+    } finally {
+      setIsSavingBankAccount(false);
+    }
+  }, [bankAccountData, bankAccountDialogMode, profile, profileService, hasBankAccountValidationErrors, t]);
+
+  // Handle save identification (add or update)
+  const handleSaveIdentification = useCallback(async () => {
+    if (hasIdentificationValidationErrors || !profile) return;
+
+    try {
+      setIsSavingIdentification(true);
+
+      // Backend expects: { identification: { type, value } }
+      const identificationPayload = {
+        identification: {
+          type: identificationData.type.trim(),
+          value: identificationData.value.trim()
+        }
+      };
+
+      if (identificationDialogMode === 'add') {
+        const response = await profileService.addIdentification(profile.id, identificationPayload);
+        setProfile(prev => ({
+          ...prev,
+          identifications: [...(prev.identifications || []), response.data]
+        }));
+        ToastQueue.positive(t('profile.overview.identificationDialog.addSuccess'), { timeout: 3000 });
+      } else {
+        await profileService.updateIdentification(profile.id, identificationData.id, identificationPayload);
+        setProfile(prev => ({
+          ...prev,
+          identifications: prev.identifications.map(i => 
+            i.id === identificationData.id ? { 
+              ...i, 
+              type: identificationPayload.identification.type,
+              value: identificationPayload.identification.value
+            } : i
+          )
+        }));
+        ToastQueue.positive(t('profile.overview.identificationDialog.updateSuccess'), { timeout: 3000 });
+      }
+      
+      setIdentificationDialogOpen(false);
+    } catch (err) {
+      console.error('Failed to save identification:', err);
+      ToastQueue.negative(t('profile.overview.identificationDialog.error'), { timeout: 3000 });
+    } finally {
+      setIsSavingIdentification(false);
+    }
+  }, [identificationData, identificationDialogMode, profile, profileService, hasIdentificationValidationErrors, t]);
 
   // Confirm and execute delete
   const confirmDelete = useCallback(async () => {
@@ -1329,6 +1662,200 @@ export default function ProfileOverviewPage() {
                   {emergencyContactDialogMode === 'add' 
                     ? t('profile.overview.emergencyContactDialog.add') 
                     : t('profile.overview.emergencyContactDialog.update')}
+                </Button>
+              </ButtonGroup>
+            </Dialog>
+          )}
+        </DialogContainer>
+
+        {/* Education Dialog (Add/Edit) */}
+        <DialogContainer onDismiss={() => setEducationDialogOpen(false)}>
+          {educationDialogOpen && (
+            <Dialog>
+              <Heading slot="title">
+                {educationDialogMode === 'add' 
+                  ? t('profile.overview.educationDialog.addTitle') 
+                  : t('profile.overview.educationDialog.editTitle')}
+              </Heading>
+              <Content>
+                <Form>
+                  <TextField
+                    label={t('profile.overview.fields.institution')}
+                    isRequired
+                    necessityIndicator="icon"
+                    value={educationData.institution}
+                    onChange={(value) => handleEducationFieldChange('institution', value)}
+                    placeholder={t('profile.overview.educationDialog.institutionPlaceholder')}
+                  />
+                  <TextField
+                    label={t('profile.overview.fields.degree')}
+                    isRequired
+                    necessityIndicator="icon"
+                    value={educationData.degree}
+                    onChange={(value) => handleEducationFieldChange('degree', value)}
+                    placeholder={t('profile.overview.educationDialog.degreePlaceholder')}
+                  />
+                  <TextField
+                    label={t('profile.overview.fields.fieldOfStudy')}
+                    value={educationData.fieldOfStudy || ''}
+                    onChange={(value) => handleEducationFieldChange('fieldOfStudy', value)}
+                    placeholder={t('profile.overview.educationDialog.fieldOfStudyPlaceholder')}
+                  />
+                  <DatePicker
+                    label={t('profile.overview.fields.startDate')}
+                    value={educationData.startDate}
+                    onChange={(value) => handleEducationFieldChange('startDate', value)}
+                  />
+                  <DatePicker
+                    label={t('profile.overview.fields.endDate')}
+                    value={educationData.endDate}
+                    onChange={(value) => handleEducationFieldChange('endDate', value)}
+                  />
+                  <TextField
+                    label={t('profile.overview.fields.grade')}
+                    value={educationData.grade || ''}
+                    onChange={(value) => handleEducationFieldChange('grade', value)}
+                    placeholder={t('profile.overview.educationDialog.gradePlaceholder')}
+                  />
+                  <TextField
+                    label={t('profile.overview.fields.certificateNumber')}
+                    value={educationData.certificateNumber || ''}
+                    onChange={(value) => handleEducationFieldChange('certificateNumber', value)}
+                    placeholder={t('profile.overview.educationDialog.certificateNumberPlaceholder')}
+                  />
+                </Form>
+              </Content>
+              <ButtonGroup>
+                <Button variant="secondary" onPress={() => setEducationDialogOpen(false)}>
+                  {t('profile.overview.educationDialog.cancel')}
+                </Button>
+                <Button
+                  variant="accent"
+                  onPress={handleSaveEducation}
+                  isPending={isSavingEducation}
+                  isDisabled={hasEducationValidationErrors}
+                >
+                  {educationDialogMode === 'add' 
+                    ? t('profile.overview.educationDialog.add') 
+                    : t('profile.overview.educationDialog.update')}
+                </Button>
+              </ButtonGroup>
+            </Dialog>
+          )}
+        </DialogContainer>
+
+        {/* Bank Account Dialog (Add/Edit) */}
+        <DialogContainer onDismiss={() => setBankAccountDialogOpen(false)}>
+          {bankAccountDialogOpen && (
+            <Dialog>
+              <Heading slot="title">
+                {bankAccountDialogMode === 'add' 
+                  ? t('profile.overview.bankAccountDialog.addTitle') 
+                  : t('profile.overview.bankAccountDialog.editTitle')}
+              </Heading>
+              <Content>
+                <Form>
+                  <TextField
+                    label={t('profile.overview.fields.bankName')}
+                    isRequired
+                    necessityIndicator="icon"
+                    value={bankAccountData.bankName}
+                    onChange={(value) => handleBankAccountFieldChange('bankName', value)}
+                    placeholder={t('profile.overview.bankAccountDialog.bankNamePlaceholder')}
+                  />
+                  <TextField
+                    label={t('profile.overview.fields.accountType')}
+                    isRequired
+                    necessityIndicator="icon"
+                    value={bankAccountData.accountType}
+                    onChange={(value) => handleBankAccountFieldChange('accountType', value)}
+                    placeholder={t('profile.overview.bankAccountDialog.accountTypePlaceholder')}
+                  />
+                  <TextField
+                    label={t('profile.overview.fields.accountHolderName')}
+                    isRequired
+                    necessityIndicator="icon"
+                    value={bankAccountData.accountHolderName}
+                    onChange={(value) => handleBankAccountFieldChange('accountHolderName', value)}
+                    placeholder={t('profile.overview.bankAccountDialog.accountHolderNamePlaceholder')}
+                  />
+                  <TextField
+                    label={t('profile.overview.fields.accountNumber')}
+                    isRequired
+                    necessityIndicator="icon"
+                    value={bankAccountData.accountNumber}
+                    onChange={(value) => handleBankAccountFieldChange('accountNumber', value)}
+                    placeholder={t('profile.overview.bankAccountDialog.accountNumberPlaceholder')}
+                  />
+                  <TextField
+                    label={t('profile.overview.fields.branchCode')}
+                    value={bankAccountData.branchCode || ''}
+                    onChange={(value) => handleBankAccountFieldChange('branchCode', value)}
+                    placeholder={t('profile.overview.bankAccountDialog.branchCodePlaceholder')}
+                  />
+                </Form>
+              </Content>
+              <ButtonGroup>
+                <Button variant="secondary" onPress={() => setBankAccountDialogOpen(false)}>
+                  {t('profile.overview.bankAccountDialog.cancel')}
+                </Button>
+                <Button
+                  variant="accent"
+                  onPress={handleSaveBankAccount}
+                  isPending={isSavingBankAccount}
+                  isDisabled={hasBankAccountValidationErrors}
+                >
+                  {bankAccountDialogMode === 'add' 
+                    ? t('profile.overview.bankAccountDialog.add') 
+                    : t('profile.overview.bankAccountDialog.update')}
+                </Button>
+              </ButtonGroup>
+            </Dialog>
+          )}
+        </DialogContainer>
+
+        {/* Identification Dialog (Add/Edit) */}
+        <DialogContainer onDismiss={() => setIdentificationDialogOpen(false)}>
+          {identificationDialogOpen && (
+            <Dialog>
+              <Heading slot="title">
+                {identificationDialogMode === 'add' 
+                  ? t('profile.overview.identificationDialog.addTitle') 
+                  : t('profile.overview.identificationDialog.editTitle')}
+              </Heading>
+              <Content>
+                <Form>
+                  <TextField
+                    label={t('profile.overview.fields.idType')}
+                    isRequired
+                    necessityIndicator="icon"
+                    value={identificationData.type}
+                    onChange={(value) => handleIdentificationFieldChange('type', value)}
+                    placeholder={t('profile.overview.identificationDialog.typePlaceholder')}
+                  />
+                  <TextField
+                    label={t('profile.overview.fields.idNumber')}
+                    isRequired
+                    necessityIndicator="icon"
+                    value={identificationData.value}
+                    onChange={(value) => handleIdentificationFieldChange('value', value)}
+                    placeholder={t('profile.overview.identificationDialog.valuePlaceholder')}
+                  />
+                </Form>
+              </Content>
+              <ButtonGroup>
+                <Button variant="secondary" onPress={() => setIdentificationDialogOpen(false)}>
+                  {t('profile.overview.identificationDialog.cancel')}
+                </Button>
+                <Button
+                  variant="accent"
+                  onPress={handleSaveIdentification}
+                  isPending={isSavingIdentification}
+                  isDisabled={hasIdentificationValidationErrors}
+                >
+                  {identificationDialogMode === 'add' 
+                    ? t('profile.overview.identificationDialog.add') 
+                    : t('profile.overview.identificationDialog.update')}
                 </Button>
               </ButtonGroup>
             </Dialog>
