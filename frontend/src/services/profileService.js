@@ -29,10 +29,11 @@ export function createProfileService({ getToken, onUnauthorized }) {
 
     /**
      * Update the current user's profile.
+     * @param {string} profileId - The profile ID
      * @param {object} profileData - The profile data to update
      * @returns {Promise<import('axios').AxiosResponse>}
      */
-    updateProfile: (profileData) => api.put('/profile', profileData),
+    updateProfile: (profileId, profileData) => api.put(`/profile/${profileId}`, profileData),
 
     // Addresses
     getAddresses: (profileId) => api.get(`/profile/${profileId}/addresses`),

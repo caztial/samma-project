@@ -93,6 +93,33 @@
       "noBankAccounts": "බැංකු ගිණුම් එකතු කර නැත.",
       "noIdentifications": "හඳුනාදීමේ ලේඛන එකතු කර නැත.",
       "noConsents": "කැමැත්ත වාර්තා හමු නොවීය.",
+      "editPersonalDialog": {
+        "title": "පුද්ගලික තොරතුරු සංස්කරණය කරන්න",
+        "firstName": "මුල් නම",
+        "lastName": "අගනම",
+        "gender": "ස්ත්‍රී පුරුෂ භාවය",
+        "dateOfBirth": "උපන් දිනය",
+        "selectGender": "ස්ත්‍රී පුරුෂ භාවය තෝරන්න",
+        "dobFormat": "ආකෘතිය: YYYY-MM-DD",
+        "cancel": "අවලංගු කරන්න",
+        "save": "සුරකින්න",
+        "update": "යාවත්කාලීන කරන්න",
+        "updating": "යාවත්කාලීන කරමින්...",
+        "success": "පුද්ගලික තොරතුරු සාර්ථකව යාවත්කාලීන කරන ලදී.",
+        "error": "පුද්ගලික තොරතුරු යාවත්කාලීන කිරීමට අසාර්ථක විය.",
+        "validation": {
+          "firstNameRequired": "මුල් නම අවශ්‍යයි",
+          "firstNameMin": "මුල් නම අවම වශයෙන් අකුරු 3ක් වත් විය යුතුය",
+          "genderRequired": "ස්ත්‍රී පුරුෂ භාවය අවශ්‍යයි",
+          "dobRequired": "උපන් දිනය අවශ්‍යයි"
+        }
+      },
+      "genderOptions": {
+        "male": "පිරිමි",
+        "female": "ගැහැණු",
+        "other": "වෙනත්",
+        "preferNotToSay": "පැවසීමට කැමති නැත"
+      },
       "deleteConfirm": {
         "title": "මකාදැමීම තහවුරු කරන්න",
         "message": "ඔබට මෙම {section} මකාදැමීමට අවශ්‍යද? මෙම ක්‍රියාව අවලංගු කළ නොහැක.",
@@ -103,6 +130,7 @@
       },
       "sections": {
         "personal": "පුද්ගලික තොරතුරු",
+        "personalAndContact": "පුද්ගලික සහ සම්බන්ධතා තොරතුරු",
         "contact": "සම්බන්ධතා තොරතුරු",
         "addresses": "ලිපිනයන්",
         "emergencyContacts": "හදිසි සම්බන්ධතා",

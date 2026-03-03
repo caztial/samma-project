@@ -93,6 +93,34 @@
       "noBankAccounts": "No bank accounts added yet.",
       "noIdentifications": "No identification documents added yet.",
       "noConsents": "No consent records found.",
+      "editPersonalDialog": {
+        "title": "Edit Personal Information",
+        "firstName": "First Name",
+        "lastName": "Last Name",
+        "gender": "Gender",
+        "dateOfBirth": "Date of Birth",
+        "selectGender": "Select gender",
+        "dobFormat": "Format: YYYY-MM-DD",
+        "cancel": "Cancel",
+        "save": "Save",
+        "update": "Update",
+        "updating": "Updating...",
+        "success": "Personal information updated successfully.",
+        "error": "Failed to update personal information.",
+        "validation": {
+          "firstNameRequired": "First name is required",
+          "firstNameMin": "First name must be at least 3 characters",
+          "genderRequired": "Gender is required",
+          "dobRequired": "Date of birth is required",
+          "emailInvalid": "Please enter a valid email address"
+        }
+      },
+      "genderOptions": {
+        "male": "Male",
+        "female": "Female",
+        "other": "Other",
+        "preferNotToSay": "Prefer not to say"
+      },
       "deleteConfirm": {
         "title": "Confirm Deletion",
         "message": "Are you sure you want to delete this {section}? This action cannot be undone.",
@@ -103,6 +131,7 @@
       },
       "sections": {
         "personal": "Personal Information",
+        "personalAndContact": "Personal & Contact Information",
         "contact": "Contact Information",
         "addresses": "Addresses",
         "emergencyContacts": "Emergency Contacts",

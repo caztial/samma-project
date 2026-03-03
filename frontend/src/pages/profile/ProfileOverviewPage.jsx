@@ -14,8 +14,17 @@ import {
   Divider,
   AlertDialog,
   DialogContainer,
+  Dialog,
+  ButtonGroup,
+  Button,
+  Form,
+  TextField,
+  Picker,
+  PickerItem,
+  DatePicker,
   ToastQueue
 } from '@react-spectrum/s2';
+import { parseDate, CalendarDate } from '@internationalized/date';
 import { style } from '@react-spectrum/s2/style' with { type: 'macro' };
 import Edit from '@react-spectrum/s2/icons/Edit';
 import Add from '@react-spectrum/s2/icons/Add';
@@ -104,6 +113,27 @@ export default function ProfileOverviewPage() {
   const [pendingDelete, setPendingDelete] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
+  // Personal & Contact Information edit dialog state
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [editData, setEditData] = useState({
+    firstName: '',
+    lastName: '',
+    gender: null,
+    dateOfBirth: null,
+    email: '',
+    contactNumber: ''
+  });
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [validationErrors, setValidationErrors] = useState({});
+
+  // Gender options matching backend enum (Gender.cs) - use string keys that backend expects
+  const genderOptions = useMemo(() => [
+    { id: 'Male', name: t('profile.overview.genderOptions.male') },
+    { id: 'Female', name: t('profile.overview.genderOptions.female') },
+    { id: 'Other', name: t('profile.overview.genderOptions.other') },
+    { id: 'PreferNotToSay', name: t('profile.overview.genderOptions.preferNotToSay') }
+  ], [t]);
+
   // Fetch profile data on mount
   useEffect(() => {
     const fetchProfile = async () => {
@@ -129,11 +159,157 @@ export default function ProfileOverviewPage() {
     fetchProfile();
   }, [profileService, token]);
 
-  // Handle edit button click (placeholder for future implementation)
+  // Handle edit button click for personal & contact information
   const handleEditClick = useCallback((section, itemId) => {
-    console.log(`Edit clicked for section: ${section}, item: ${itemId}`);
-    // TODO: Implement edit functionality
-  }, []);
+    if (section === 'personal' && profile) {
+      // Parse date from ISO string to CalendarDate for DatePicker
+      let dob = null;
+      if (profile.dateOfBirth) {
+        try {
+          // Backend sends date as ISO string, we need YYYY-MM-DD format for parseDate
+          const dateStr = profile.dateOfBirth.split('T')[0];
+          dob = parseDate(dateStr);
+        } catch (e) {
+          console.error('Failed to parse date:', e);
+        }
+      }
+
+      setEditData({
+        firstName: profile.firstName || '',
+        lastName: profile.lastName || '',
+        gender: profile.gender || null,  // Backend returns gender as string enum
+        dateOfBirth: dob,
+        email: profile.contact?.email || '',
+        contactNumber: profile.contact?.contactNumber || ''
+      });
+      setValidationErrors({});
+      setEditDialogOpen(true);
+    } else {
+      console.log(`Edit clicked for section: ${section}, item: ${itemId}`);
+      // TODO: Implement edit functionality for other sections
+    }
+  }, [profile]);
+
+  // Handle field changes in edit dialog
+  const handleFieldChange = useCallback((field, value) => {
+    setEditData(prev => ({ ...prev, [field]: value }));
+    // Clear validation error for this field when user makes changes
+    if (validationErrors[field]) {
+      setValidationErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[field];
+        return newErrors;
+      });
+    }
+  }, [validationErrors]);
+
+  // Email validation regex
+  const emailRegex = useMemo(() => /^[^\s@]+@[^\s@]+\.[^\s@]+$/, []);
+
+  // Validate edit form
+  const validateForm = useCallback(() => {
+    const errors = {};
+
+    if (!editData.firstName || editData.firstName.trim() === '') {
+      errors.firstName = t('profile.overview.editPersonalDialog.validation.firstNameRequired');
+    } else if (editData.firstName.trim().length < 3) {
+      errors.firstName = t('profile.overview.editPersonalDialog.validation.firstNameMin');
+    }
+
+    if (!editData.gender) {
+      errors.gender = t('profile.overview.editPersonalDialog.validation.genderRequired');
+    }
+
+    if (!editData.dateOfBirth) {
+      errors.dob = t('profile.overview.editPersonalDialog.validation.dobRequired');
+    }
+
+    // Email validation - only validate if email is provided
+    if (editData.email && editData.email.trim() !== '') {
+      if (!emailRegex.test(editData.email.trim())) {
+        errors.email = t('profile.overview.editPersonalDialog.validation.emailInvalid');
+      }
+    }
+
+    setValidationErrors(errors);
+    return Object.keys(errors).length === 0;
+  }, [editData, t, emailRegex]);
+
+  // Check if form has any errors for disabling submit button
+  const hasValidationErrors = useMemo(() => {
+    const errors = {};
+
+    if (!editData.firstName || editData.firstName.trim() === '') {
+      errors.firstName = true;
+    } else if (editData.firstName.trim().length < 3) {
+      errors.firstName = true;
+    }
+
+    if (!editData.gender) {
+      errors.gender = true;
+    }
+
+    if (!editData.dateOfBirth) {
+      errors.dob = true;
+    }
+
+    // Email validation - only validate if email is provided
+    if (editData.email && editData.email.trim() !== '') {
+      if (!emailRegex.test(editData.email.trim())) {
+        errors.email = true;
+      }
+    }
+
+    return Object.keys(errors).length > 0;
+  }, [editData, emailRegex]);
+
+  // Handle update submission
+  const handleUpdatePersonalInfo = useCallback(async () => {
+    if (!validateForm() || !profile) return;
+
+    try {
+      setIsUpdating(true);
+
+      // Format date as ISO string for backend
+      const dobString = editData.dateOfBirth
+        ? editData.dateOfBirth.toString() // CalendarDate.toString() returns YYYY-MM-DD
+        : null;
+
+      const updateData = {
+        firstName: editData.firstName.trim(),
+        lastName: editData.lastName?.trim() || null,
+        gender: editData.gender,  // Send string enum value (e.g., "Male", "Female")
+        dateOfBirth: dobString,
+        email: editData.email?.trim() || null,
+        contactNumber: editData.contactNumber?.trim() || null
+      };
+
+      // Pass profileId to update the user's profile
+      await profileService.updateProfile(profile.id, updateData);
+
+      // Update local state
+      setProfile(prev => ({
+        ...prev,
+        firstName: editData.firstName.trim(),
+        lastName: editData.lastName?.trim() || null,
+        gender: editData.gender,
+        dateOfBirth: dobString,
+        contact: {
+          ...prev.contact,
+          email: editData.email?.trim() || null,
+          contactNumber: editData.contactNumber?.trim() || null
+        }
+      }));
+
+      ToastQueue.positive(t('profile.overview.editPersonalDialog.success'), { timeout: 3000 });
+      setEditDialogOpen(false);
+    } catch (err) {
+      console.error('Failed to update profile:', err);
+      ToastQueue.negative(t('profile.overview.editPersonalDialog.error'), { timeout: 3000 });
+    } finally {
+      setIsUpdating(false);
+    }
+  }, [editData, profile, profileService, validateForm, t]);
 
   // Handle delete button click - shows confirmation dialog
   const handleDeleteClick = useCallback((section, itemId) => {
@@ -262,13 +438,13 @@ export default function ProfileOverviewPage() {
         <Heading level={2}>{t('profile.overview.title')}</Heading>
 
         <Accordion allowsMultipleExpanded>
-          {/* Personal Information Section - Single Item */}
+          {/* Personal & Contact Information Section - Single Item */}
           <AccordionItem id="personal">
             <AccordionItemHeader>
-              <AccordionItemTitle>{t('profile.overview.sections.personal')}</AccordionItemTitle>
+              <AccordionItemTitle>{t('profile.overview.sections.personalAndContact')}</AccordionItemTitle>
               <ActionButton
                 onPress={() => handleEditClick('personal')}
-                aria-label={t('profile.overview.editSection', { section: t('profile.overview.sections.personal') })}
+                aria-label={t('profile.overview.editSection', { section: t('profile.overview.sections.personalAndContact') })}
               >
                 <Edit />
               </ActionButton>
@@ -291,23 +467,6 @@ export default function ProfileOverviewPage() {
                   <span className={labelStyle}>{t('profile.overview.fields.dateOfBirth')}</span>
                   <span className={valueStyle}>{formatDate(profile.dateOfBirth)}</span>
                 </div>
-              </div>
-            </AccordionItemPanel>
-          </AccordionItem>
-
-          {/* Contact Information Section - Single Item */}
-          <AccordionItem id="contact">
-            <AccordionItemHeader>
-              <AccordionItemTitle>{t('profile.overview.sections.contact')}</AccordionItemTitle>
-              <ActionButton
-                onPress={() => handleEditClick('contact')}
-                aria-label={t('profile.overview.editSection', { section: t('profile.overview.sections.contact') })}
-              >
-                <Edit />
-              </ActionButton>
-            </AccordionItemHeader>
-            <AccordionItemPanel>
-              <div className={fieldGridStyle}>
                 <div className={inlineFieldGroupStyle}>
                   <span className={labelStyle}>{t('profile.overview.fields.email')}</span>
                   <span className={valueStyle}>{profile.contact?.email || '-'}</span>
@@ -719,6 +878,86 @@ export default function ProfileOverviewPage() {
             >
               {t('profile.overview.deleteConfirm.message', { section: t(`profile.overview.sections.${pendingDelete.section}`) })}
             </AlertDialog>
+          )}
+        </DialogContainer>
+
+        {/* Edit Personal Information Dialog */}
+        <DialogContainer onDismiss={() => setEditDialogOpen(false)}>
+          {editDialogOpen && (
+            <Dialog>
+              <Heading slot="title">{t('profile.overview.editPersonalDialog.title')}</Heading>
+              <Content>
+                <Form>
+                  <TextField
+                    label={t('profile.overview.fields.firstName')}
+                    isRequired
+                    necessityIndicator="icon"
+                    value={editData.firstName}
+                    onChange={(value) => handleFieldChange('firstName', value)}
+                    errorMessage={validationErrors.firstName}
+                    validationState={validationErrors.firstName ? 'invalid' : 'valid'}
+                  />
+                  <TextField
+                    label={t('profile.overview.fields.lastName')}
+                    value={editData.lastName || ''}
+                    onChange={(value) => handleFieldChange('lastName', value)}
+                  />
+                  <Picker
+                    label={t('profile.overview.fields.gender')}
+                    isRequired
+                    necessityIndicator="icon"
+                    selectedKey={editData.gender}
+                    onSelectionChange={(key) => handleFieldChange('gender', key)}
+                    errorMessage={validationErrors.gender}
+                    validationState={validationErrors.gender ? 'invalid' : 'valid'}
+                    placeholder={t('profile.overview.editPersonalDialog.selectGender')}
+                  >
+                    {genderOptions.map((option) => (
+                      <PickerItem key={option.id} id={option.id}>
+                        {option.name}
+                      </PickerItem>
+                    ))}
+                  </Picker>
+                  <DatePicker
+                    label={t('profile.overview.fields.dateOfBirth')}
+                    isRequired
+                    necessityIndicator="icon"
+                    value={editData.dateOfBirth}
+                    onChange={(value) => handleFieldChange('dateOfBirth', value)}
+                    errorMessage={validationErrors.dob}
+                    validationState={validationErrors.dob ? 'invalid' : 'valid'}
+                    description={t('profile.overview.editPersonalDialog.dobFormat')}
+                  />
+                  <TextField
+                    label={t('profile.overview.fields.email')}
+                    type="email"
+                    value={editData.email || ''}
+                    onChange={(value) => handleFieldChange('email', value)}
+                    errorMessage={validationErrors.email}
+                    validationState={validationErrors.email ? 'invalid' : 'valid'}
+                  />
+                  <TextField
+                    label={t('profile.overview.fields.phone')}
+                    type="tel"
+                    value={editData.contactNumber || ''}
+                    onChange={(value) => handleFieldChange('contactNumber', value)}
+                  />
+                </Form>
+              </Content>
+              <ButtonGroup>
+                <Button variant="secondary" onPress={() => setEditDialogOpen(false)}>
+                  {t('profile.overview.editPersonalDialog.cancel')}
+                </Button>
+                <Button
+                  variant="accent"
+                  onPress={handleUpdatePersonalInfo}
+                  isPending={isUpdating}
+                  isDisabled={hasValidationErrors}
+                >
+                  {t('profile.overview.editPersonalDialog.save')}
+                </Button>
+              </ButtonGroup>
+            </Dialog>
           )}
         </DialogContainer>
       </div>
