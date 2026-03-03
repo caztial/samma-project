@@ -307,6 +307,19 @@
 - ✅ i18n keys: `addSection`, `editItem`, `deleteItem`
 - ✅ New imports: `Divider`, `Add`, `Delete` icons
 
+### Address Dialog Implementation (Mar 3, 2026 - Late Evening)
+- ✅ Add/Edit Address dialog with Form, Picker, TextField components
+- ✅ Address type options: Home, Work, Other
+- ✅ Validation for required fields (Type, Line 1, Country)
+- ✅ API integration with correct payload structure:
+  - `type`: string (Home/Work/Other)
+  - `address`: nested object with line1, line2, suburb, stateProvince, country, postcode
+- ✅ Empty strings sent for optional blank fields (not null)
+- ✅ Dialog state management: `addressDialogOpen`, `addressData`, `addressDialogMode`, `isSavingAddress`
+- ✅ Optimistic local state update after successful API call
+- ✅ Toast notifications for success/error feedback
+- ✅ i18n keys for dialog: `addTitle`, `editTitle`, `selectType`, `typeOptions.*`, placeholders, buttons, success messages
+
 ### Key Decisions
 - React Context for state management (not Zustand)
 - JSX (not TypeScript)
@@ -321,7 +334,8 @@
 - ✅ Frontend: Protected route wrapper (redirect to /login if not authenticated) - Done Feb 28, 2026
 - ✅ Frontend: MyProfile/AdminPortal placeholder pages - Done Feb 28, 2026
 - ✅ Frontend: Profile Overview page with API integration - Done Mar 2, 2026
-- ❌ Frontend: Profile edit functionality
+- ✅ Frontend: Profile Address Add/Edit functionality - Done Mar 3, 2026
+- ❌ Frontend: Profile edit functionality (Personal Info, Contact Info, other sections)
 - ❌ Frontend: Education page with add/edit/delete
 - ❌ Frontend: Bank Accounts page with add/edit/delete
 - ❌ Frontend: Build out admin portal page with admin features

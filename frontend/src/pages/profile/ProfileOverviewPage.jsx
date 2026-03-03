@@ -126,12 +126,34 @@ export default function ProfileOverviewPage() {
   const [isUpdating, setIsUpdating] = useState(false);
   const [validationErrors, setValidationErrors] = useState({});
 
+  // Address dialog state
+  const [addressDialogOpen, setAddressDialogOpen] = useState(false);
+  const [addressData, setAddressData] = useState({
+    id: null,
+    type: null,
+    line1: '',
+    line2: '',
+    suburb: '',
+    stateProvince: '',
+    country: '',
+    postcode: ''
+  });
+  const [addressDialogMode, setAddressDialogMode] = useState('add'); // 'add' or 'edit'
+  const [isSavingAddress, setIsSavingAddress] = useState(false);
+
   // Gender options matching backend enum (Gender.cs) - use string keys that backend expects
   const genderOptions = useMemo(() => [
     { id: 'Male', name: t('profile.overview.genderOptions.male') },
     { id: 'Female', name: t('profile.overview.genderOptions.female') },
     { id: 'Other', name: t('profile.overview.genderOptions.other') },
     { id: 'PreferNotToSay', name: t('profile.overview.genderOptions.preferNotToSay') }
+  ], [t]);
+
+  // Address type options
+  const addressTypeOptions = useMemo(() => [
+    { id: 'Home', name: t('profile.overview.addressDialog.typeOptions.home') },
+    { id: 'Work', name: t('profile.overview.addressDialog.typeOptions.work') },
+    { id: 'Other', name: t('profile.overview.addressDialog.typeOptions.other') }
   ], [t]);
 
   // Fetch profile data on mount
@@ -184,6 +206,23 @@ export default function ProfileOverviewPage() {
       });
       setValidationErrors({});
       setEditDialogOpen(true);
+    } else if (section === 'addresses' && profile) {
+      // Find the address to edit
+      const address = profile.addresses?.find(a => a.id === itemId);
+      if (address) {
+        setAddressData({
+          id: address.id,
+          type: address.type || null,
+          line1: address.line1 || '',
+          line2: address.line2 || '',
+          suburb: address.suburb || '',
+          stateProvince: address.stateProvince || '',
+          country: address.country || '',
+          postcode: address.postcode || ''
+        });
+        setAddressDialogMode('edit');
+        setAddressDialogOpen(true);
+      }
     } else {
       console.log(`Edit clicked for section: ${section}, item: ${itemId}`);
       // TODO: Implement edit functionality for other sections
@@ -316,11 +355,96 @@ export default function ProfileOverviewPage() {
     setPendingDelete({ section, itemId });
   }, []);
 
-  // Handle add button click (placeholder for future implementation)
+  // Handle add button click
   const handleAddClick = useCallback((section) => {
-    console.log(`Add clicked for section: ${section}`);
-    // TODO: Implement add functionality
+    if (section === 'addresses') {
+      // Reset form data for new address
+      setAddressData({
+        id: null,
+        type: null,
+        line1: '',
+        line2: '',
+        suburb: '',
+        stateProvince: '',
+        country: '',
+        postcode: ''
+      });
+      setAddressDialogMode('add');
+      setAddressDialogOpen(true);
+    } else {
+      console.log(`Add clicked for section: ${section}`);
+      // TODO: Implement add functionality for other sections
+    }
   }, []);
+
+  // Handle address field changes
+  const handleAddressFieldChange = useCallback((field, value) => {
+    setAddressData(prev => ({ ...prev, [field]: value }));
+  }, []);
+
+  // Check if address form has validation errors (required fields: type, line1, country)
+  const hasAddressValidationErrors = useMemo(() => {
+    return !addressData.type || 
+           !addressData.line1?.trim() || 
+           !addressData.country?.trim();
+  }, [addressData]);
+
+  // Handle save address (add or update)
+  const handleSaveAddress = useCallback(async () => {
+    if (hasAddressValidationErrors || !profile) return;
+
+    try {
+      setIsSavingAddress(true);
+
+      // Backend expects: { type: string, address: { line1, line2, suburb, stateProvince, country, postcode } }
+      const addressPayload = {
+        type: addressData.type,
+        address: {
+          line1: addressData.line1.trim(),
+          line2: addressData.line2?.trim() || '',
+          suburb: addressData.suburb?.trim() || '',
+          stateProvince: addressData.stateProvince?.trim() || '',
+          country: addressData.country.trim(),
+          postcode: addressData.postcode?.trim() || ''
+        }
+      };
+
+      if (addressDialogMode === 'add') {
+        const response = await profileService.addAddress(profile.id, addressPayload);
+        setProfile(prev => ({
+          ...prev,
+          addresses: [...(prev.addresses || []), response.data]
+        }));
+        ToastQueue.positive(t('profile.overview.addressDialog.addSuccess'), { timeout: 3000 });
+      } else {
+        await profileService.updateAddress(profile.id, addressData.id, addressPayload);
+        // Update local state - flatten the address object for display
+        setProfile(prev => ({
+          ...prev,
+          addresses: prev.addresses.map(a => 
+            a.id === addressData.id ? { 
+              ...a, 
+              type: addressPayload.type,
+              line1: addressPayload.address.line1,
+              line2: addressPayload.address.line2,
+              suburb: addressPayload.address.suburb,
+              stateProvince: addressPayload.address.stateProvince,
+              country: addressPayload.address.country,
+              postcode: addressPayload.address.postcode
+            } : a
+          )
+        }));
+        ToastQueue.positive(t('profile.overview.addressDialog.updateSuccess'), { timeout: 3000 });
+      }
+      
+      setAddressDialogOpen(false);
+    } catch (err) {
+      console.error('Failed to save address:', err);
+      ToastQueue.negative(t('profile.overview.addressDialog.error'), { timeout: 3000 });
+    } finally {
+      setIsSavingAddress(false);
+    }
+  }, [addressData, addressDialogMode, profile, profileService, hasAddressValidationErrors, t]);
 
   // Confirm and execute delete
   const confirmDelete = useCallback(async () => {
@@ -955,6 +1079,89 @@ export default function ProfileOverviewPage() {
                   isDisabled={hasValidationErrors}
                 >
                   {t('profile.overview.editPersonalDialog.save')}
+                </Button>
+              </ButtonGroup>
+            </Dialog>
+          )}
+        </DialogContainer>
+
+        {/* Address Dialog (Add/Edit) */}
+        <DialogContainer onDismiss={() => setAddressDialogOpen(false)}>
+          {addressDialogOpen && (
+            <Dialog>
+              <Heading slot="title">
+                {addressDialogMode === 'add' 
+                  ? t('profile.overview.addressDialog.addTitle') 
+                  : t('profile.overview.addressDialog.editTitle')}
+              </Heading>
+              <Content>
+                <Form>
+                  <Picker
+                    label={t('profile.overview.fields.addressType')}
+                    isRequired
+                    necessityIndicator="icon"
+                    selectedKey={addressData.type}
+                    onSelectionChange={(key) => handleAddressFieldChange('type', key)}
+                    placeholder={t('profile.overview.addressDialog.selectType')}
+                  >
+                    {addressTypeOptions.map((option) => (
+                      <PickerItem key={option.id} id={option.id}>
+                        {option.name}
+                      </PickerItem>
+                    ))}
+                  </Picker>
+                  <TextField
+                    label={t('profile.overview.fields.addressLine1')}
+                    isRequired
+                    necessityIndicator="icon"
+                    value={addressData.line1}
+                    onChange={(value) => handleAddressFieldChange('line1', value)}
+                    placeholder={t('profile.overview.addressDialog.line1Placeholder')}
+                  />
+                  <TextField
+                    label={t('profile.overview.fields.addressLine2')}
+                    value={addressData.line2 || ''}
+                    onChange={(value) => handleAddressFieldChange('line2', value)}
+                    placeholder={t('profile.overview.addressDialog.line2Placeholder')}
+                  />
+                  <TextField
+                    label={t('profile.overview.fields.suburb')}
+                    value={addressData.suburb || ''}
+                    onChange={(value) => handleAddressFieldChange('suburb', value)}
+                  />
+                  <TextField
+                    label={t('profile.overview.fields.stateProvince')}
+                    value={addressData.stateProvince || ''}
+                    onChange={(value) => handleAddressFieldChange('stateProvince', value)}
+                  />
+                  <TextField
+                    label={t('profile.overview.fields.country')}
+                    isRequired
+                    necessityIndicator="icon"
+                    value={addressData.country}
+                    onChange={(value) => handleAddressFieldChange('country', value)}
+                    placeholder={t('profile.overview.addressDialog.countryPlaceholder')}
+                  />
+                  <TextField
+                    label={t('profile.overview.fields.postcode')}
+                    value={addressData.postcode || ''}
+                    onChange={(value) => handleAddressFieldChange('postcode', value)}
+                  />
+                </Form>
+              </Content>
+              <ButtonGroup>
+                <Button variant="secondary" onPress={() => setAddressDialogOpen(false)}>
+                  {t('profile.overview.addressDialog.cancel')}
+                </Button>
+                <Button
+                  variant="accent"
+                  onPress={handleSaveAddress}
+                  isPending={isSavingAddress}
+                  isDisabled={hasAddressValidationErrors}
+                >
+                  {addressDialogMode === 'add' 
+                    ? t('profile.overview.addressDialog.add') 
+                    : t('profile.overview.addressDialog.update')}
                 </Button>
               </ButtonGroup>
             </Dialog>

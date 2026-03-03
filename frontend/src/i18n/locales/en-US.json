@@ -121,6 +121,25 @@
         "other": "Other",
         "preferNotToSay": "Prefer not to say"
       },
+      "addressDialog": {
+        "addTitle": "Add Address",
+        "editTitle": "Edit Address",
+        "selectType": "Select address type",
+        "line1Placeholder": "Street address",
+        "line2Placeholder": "Apartment, suite, unit, etc. (optional)",
+        "countryPlaceholder": "Country name",
+        "typeOptions": {
+          "home": "Home",
+          "work": "Work",
+          "other": "Other"
+        },
+        "add": "Add",
+        "update": "Update",
+        "cancel": "Cancel",
+        "addSuccess": "Address added successfully.",
+        "updateSuccess": "Address updated successfully.",
+        "error": "Failed to save address. Please try again."
+      },
       "deleteConfirm": {
         "title": "Confirm Deletion",
         "message": "Are you sure you want to delete this {section}? This action cannot be undone.",

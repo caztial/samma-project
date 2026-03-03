@@ -2,10 +2,49 @@
 
 ## Current Phase: Frontend Profile UI Enhancements
 
-### Recent Work (Mar 3, 2026 - Evening)
-Enhanced ProfileOverviewPage with multi-item section actions and improved layout.
+### Recent Work (Mar 3, 2026 - Late Evening)
+Implemented Add/Edit Address dialog with form validation and API integration.
 
 ### What Was Done Today
+
+#### Address Dialog Implementation (Mar 3, 2026 - Late Evening)
+1. **ProfileOverviewPage.jsx** - Add/Edit Address functionality
+   - Added address dialog state: `addressDialogOpen`, `addressData`, `addressDialogMode`, `isSavingAddress`
+   - Created `addressTypeOptions` for Picker (Home, Work, Other)
+   - Implemented validation for required fields (Type, Line 1, Country)
+   - `handleAddClick('addresses')` - Opens dialog in 'add' mode
+   - `handleEditClick('addresses', id)` - Opens dialog in 'edit' mode with pre-populated data
+   - `handleSaveAddress()` - Submits to API with correct payload structure
+
+2. **API Payload Structure**:
+   ```javascript
+   {
+     type: "Home" | "Work" | "Other",
+     address: {
+       line1: "string (required)",
+       line2: "string (empty if blank)",
+       suburb: "string (empty if blank)",
+       stateProvince: "string (empty if blank)",
+       country: "string (required)",
+       postcode: "string (empty if blank)"
+     }
+   }
+   ```
+
+3. **i18n Updates** (en-US.json):
+   - `profile.overview.addressDialog.addTitle` / `editTitle`
+   - `profile.overview.addressDialog.selectType`
+   - `profile.overview.addressDialog.typeOptions.home` / `work` / `other`
+   - `profile.overview.addressDialog.line1Placeholder` / `line2Placeholder` / `countryPlaceholder`
+   - `profile.overview.addressDialog.add` / `update` / `cancel`
+   - `profile.overview.addressDialog.addSuccess` / `updateSuccess` / `error`
+
+4. **Key Implementation Details**:
+   - Empty strings (`""`) sent instead of `null` for optional blank fields
+   - Dialog uses S2 Form, Picker, TextField components
+   - Cancel and Add/Update buttons with proper disabled state during validation errors
+   - Toast notifications for success/error feedback
+   - Local state updated optimistically after successful API call
 
 #### Profile Overview UI Enhancement (Mar 3, 2026 - Evening)
 1. **ProfileOverviewPage.jsx** - UI improvements for multi-item sections
