@@ -41,34 +41,34 @@ export function createProfileService({ getToken, onUnauthorized }) {
     removeAddress: (profileId, addressId) => api.delete(`/profile/${profileId}/addresses/${addressId}`),
 
     // Education
-    getEducations: () => api.get('/profile/educations'),
-    addEducation: (educationData) => api.post('/profile/educations', educationData),
-    updateEducation: (educationId, educationData) => api.put(`/profile/educations/${educationId}`, educationData),
-    removeEducation: (educationId) => api.delete(`/profile/educations/${educationId}`),
+    getEducations: (profileId) => api.get(`/profile/${profileId}/educations`),
+    addEducation: (profileId, educationData) => api.post(`/profile/${profileId}/educations`, educationData),
+    updateEducation: (profileId, educationId, educationData) => api.put(`/profile/${profileId}/educations/${educationId}`, educationData),
+    removeEducation: (profileId, educationId) => api.delete(`/profile/${profileId}/educations/${educationId}`),
 
     // Bank Accounts
-    getBankAccounts: () => api.get('/profile/bank-accounts'),
-    addBankAccount: (bankAccountData) => api.post('/profile/bank-accounts', bankAccountData),
-    updateBankAccount: (bankAccountId, bankAccountData) => api.put(`/profile/bank-accounts/${bankAccountId}`, bankAccountData),
-    removeBankAccount: (bankAccountId) => api.delete(`/profile/bank-accounts/${bankAccountId}`),
+    getBankAccounts: (profileId) => api.get(`/profile/${profileId}/bank-accounts`),
+    addBankAccount: (profileId, bankAccountData) => api.post(`/profile/${profileId}/bank-accounts`, bankAccountData),
+    updateBankAccount: (profileId, bankAccountId, bankAccountData) => api.put(`/profile/${profileId}/bank-accounts/${bankAccountId}`, bankAccountData),
+    removeBankAccount: (profileId, bankAccountId) => api.delete(`/profile/${profileId}/bank-accounts/${bankAccountId}`),
 
     // Emergency Contacts
-    getEmergencyContacts: () => api.get('/profile/emergency-contacts'),
-    addEmergencyContact: (contactData) => api.post('/profile/emergency-contacts', contactData),
-    updateEmergencyContact: (contactId, contactData) => api.put(`/profile/emergency-contacts/${contactId}`, contactData),
-    removeEmergencyContact: (contactId) => api.delete(`/profile/emergency-contacts/${contactId}`),
+    getEmergencyContacts: (profileId) => api.get(`/profile/${profileId}/emergency-contacts`),
+    addEmergencyContact: (profileId, contactData) => api.post(`/profile/${profileId}/emergency-contacts`, contactData),
+    updateEmergencyContact: (profileId, contactId, contactData) => api.put(`/profile/${profileId}/emergency-contacts/${contactId}`, contactData),
+    removeEmergencyContact: (profileId, contactId) => api.delete(`/profile/${profileId}/emergency-contacts/${contactId}`),
 
     // Identifications
-    getIdentifications: () => api.get('/profile/identifications'),
-    addIdentification: (identificationData) => api.post('/profile/identifications', identificationData),
-    updateIdentification: (identificationId, identificationData) => api.put(`/profile/identifications/${identificationId}`, identificationData),
-    removeIdentification: (identificationId) => api.delete(`/profile/identifications/${identificationId}`),
+    getIdentifications: (profileId) => api.get(`/profile/${profileId}/identifications`),
+    addIdentification: (profileId, identificationData) => api.post(`/profile/${profileId}/identifications`, identificationData),
+    updateIdentification: (profileId, identificationId, identificationData) => api.put(`/profile/${profileId}/identifications/${identificationId}`, identificationData),
+    removeIdentification: (profileId, identificationId) => api.delete(`/profile/${profileId}/identifications/${identificationId}`),
 
     // Consents
-    getConsents: () => api.get('/profile/consents'),
-    addConsent: (consentData) => api.post('/profile/consents', consentData),
-    updateConsent: (consentId, consentData) => api.put(`/profile/consents/${consentId}`, consentData),
-    removeConsent: (consentId) => api.delete(`/profile/consents/${consentId}`),
+    getConsents: (profileId) => api.get(`/profile/${profileId}/consents`),
+    addConsent: (profileId, consentData) => api.post(`/profile/${profileId}/consents`, consentData),
+    updateConsent: (profileId, consentId, consentData) => api.put(`/profile/${profileId}/consents/${consentId}`, consentData),
+    removeConsent: (profileId, consentId) => api.delete(`/profile/${profileId}/consents/${consentId}`),
 
     // Biometrics
     getBiometrics: () => api.get('/profile/biometrics'),

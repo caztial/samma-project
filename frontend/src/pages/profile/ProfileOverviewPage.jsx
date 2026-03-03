@@ -161,12 +161,39 @@ export default function ProfileOverviewPage() {
           ...prev,
           addresses: prev.addresses.filter(a => a.id !== itemId)
         }));
-        ToastQueue.positive(t('profile.overview.deleteConfirm.success', { section: t('profile.overview.sections.addresses') }));
+        ToastQueue.positive(t('profile.overview.deleteConfirm.success', { section: t('profile.overview.sections.addresses') }), { timeout: 3000 });
+      } else if (section === 'emergencyContacts') {
+        await profileService.removeEmergencyContact(profile.id, itemId);
+        setProfile(prev => ({
+          ...prev,
+          emergencyContacts: prev.emergencyContacts.filter(c => c.id !== itemId)
+        }));
+        ToastQueue.positive(t('profile.overview.deleteConfirm.success', { section: t('profile.overview.sections.emergencyContacts') }), { timeout: 3000 });
+      } else if (section === 'education') {
+        await profileService.removeEducation(profile.id, itemId);
+        setProfile(prev => ({
+          ...prev,
+          educations: prev.educations.filter(e => e.id !== itemId)
+        }));
+        ToastQueue.positive(t('profile.overview.deleteConfirm.success', { section: t('profile.overview.sections.education') }), { timeout: 3000 });
+      } else if (section === 'bankAccounts') {
+        await profileService.removeBankAccount(profile.id, itemId);
+        setProfile(prev => ({
+          ...prev,
+          bankAccounts: prev.bankAccounts.filter(b => b.id !== itemId)
+        }));
+        ToastQueue.positive(t('profile.overview.deleteConfirm.success', { section: t('profile.overview.sections.bankAccounts') }), { timeout: 3000 });
+      } else if (section === 'identifications') {
+        await profileService.removeIdentification(profile.id, itemId);
+        setProfile(prev => ({
+          ...prev,
+          identifications: prev.identifications.filter(i => i.id !== itemId)
+        }));
+        ToastQueue.positive(t('profile.overview.deleteConfirm.success', { section: t('profile.overview.sections.identifications') }), { timeout: 3000 });
       }
-      // Other sections can be added here as needed
     } catch (err) {
       console.error('Failed to delete:', err);
-      ToastQueue.negative(t('profile.overview.deleteConfirm.error', { section: t(`profile.overview.sections.${pendingDelete.section}`) }));
+      ToastQueue.negative(t('profile.overview.deleteConfirm.error', { section: t(`profile.overview.sections.${pendingDelete.section}`) }), { timeout: 3000 });
     } finally {
       setIsDeleting(false);
       setPendingDelete(null);
@@ -638,7 +665,7 @@ export default function ProfileOverviewPage() {
             </AccordionItemPanel>
           </AccordionItem>
 
-          {/* Consents Section - Multi Item */}
+          {/* Consents Section - Multi Item (Read-only) */}
           <AccordionItem id="consents">
             <AccordionItemHeader>
               <AccordionItemTitle>
@@ -647,12 +674,6 @@ export default function ProfileOverviewPage() {
                   <Badge variant="informative">{profile.consents.length}</Badge>
                 )}
               </AccordionItemTitle>
-              <ActionButton
-                onPress={() => handleAddClick('consents')}
-                aria-label={t('profile.overview.addSection', { section: t('profile.overview.sections.consents') })}
-              >
-                <Add />
-              </ActionButton>
             </AccordionItemHeader>
             <AccordionItemPanel>
               {profile.consents?.length > 0 ? (
@@ -673,20 +694,6 @@ export default function ProfileOverviewPage() {
                           <span className={labelStyle}>{t('profile.overview.fields.ipAddress')}</span>
                           <span className={valueStyle}>{consent.ipAddress || '-'}</span>
                         </div>
-                      </div>
-                      <div className={listItemActionsStyle}>
-                        <ActionButton
-                          onPress={() => handleEditClick('consents', consent.id || index)}
-                          aria-label={t('profile.overview.editItem')}
-                        >
-                          <Edit />
-                        </ActionButton>
-                        <ActionButton
-                          onPress={() => handleDeleteClick('consents', consent.id || index)}
-                          aria-label={t('profile.overview.deleteItem')}
-                        >
-                          <Delete />
-                        </ActionButton>
                       </div>
                     </div>
                   </div>
