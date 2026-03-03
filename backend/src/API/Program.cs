@@ -84,6 +84,9 @@ builder.Services.AddFastEndpoints();
 // Register the AdminOwnerAuthorizationHandler
 builder.Services.AddScoped<IAuthorizationHandler, AdminOwnerAuthorizationHandler>();
 
+// Register the AdminModeratorAuthorizationHandler
+builder.Services.AddScoped<IAuthorizationHandler, AdminModeratorAuthorizationHandler>();
+
 // Register resource owner authorization implementations as keyed services
 // Key = AggregatedRootName (e.g., "UserProfile")
 builder.Services.AddKeyedScoped<IResourceOwnerAuthorization, ProfileResourceOwnerAuthorization>(

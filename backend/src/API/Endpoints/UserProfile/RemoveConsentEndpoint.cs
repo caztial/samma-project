@@ -1,7 +1,4 @@
-using API.DTOs.UserProfile;
 using Core.Authorization;
-using Core.Entities.UserProfiles;
-using Core.Enums;
 using Core.Services;
 using FastEndpoints;
 
@@ -9,6 +6,7 @@ namespace API.Endpoints.UserProfile;
 
 /// <summary>
 /// Endpoint to remove a consent from a profile.
+/// Only Admin and Moderator can remove consents.
 /// </summary>
 public class RemoveConsentEndpoint : EndpointWithoutRequest
 {
@@ -24,19 +22,12 @@ public class RemoveConsentEndpoint : EndpointWithoutRequest
         Delete("/profile/{id}/consents/{consentId}");
         Policy(policy =>
         {
-            policy.AddRequirements(
-                new AdminOwnerRequirement(
-                    aggregatedRootName: nameof(UserProfile),
-                    resourceIdParameterName: "id",
-                    valueFetchFrom: ValueFetchFrom.Route
-                )
-            );
+            policy.AddRequirements(new AdminModeratorRequirement());
         });
         Summary(s =>
         {
             s.Summary = "Remove consent";
-            s.Description =
-                "Removes a consent from a profile. Owner, Admin, or Moderator can remove.";
+            s.Description = "Removes a consent from a profile. Only Admin or Moderator can remove.";
         });
     }
 

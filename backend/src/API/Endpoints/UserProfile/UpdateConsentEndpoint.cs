@@ -2,7 +2,6 @@ using API.DTOs.UserProfile;
 using Core.Authorization;
 using Core.Entities.UserProfiles;
 using Core.Entities.ValueObjects;
-using Core.Enums;
 using Core.Services;
 using FastEndpoints;
 
@@ -10,6 +9,7 @@ namespace API.Endpoints.UserProfile;
 
 /// <summary>
 /// Endpoint to update a consent in a profile.
+/// Only Admin and Moderator can update consents.
 /// </summary>
 public class UpdateConsentEndpoint : Endpoint<UpdateConsentRequest, ConsentResponse>
 {
@@ -25,19 +25,12 @@ public class UpdateConsentEndpoint : Endpoint<UpdateConsentRequest, ConsentRespo
         Put("/profile/{id}/consents/{consentId}");
         Policy(policy =>
         {
-            policy.AddRequirements(
-                new AdminOwnerRequirement(
-                    aggregatedRootName: nameof(UserProfile),
-                    resourceIdParameterName: "id",
-                    valueFetchFrom: ValueFetchFrom.Route
-                )
-            );
+            policy.AddRequirements(new AdminModeratorRequirement());
         });
         Summary(s =>
         {
             s.Summary = "Update consent";
-            s.Description =
-                "Updates a consent in a profile. Owner, Admin, or Moderator can update.";
+            s.Description = "Updates a consent in a profile. Only Admin or Moderator can update.";
         });
     }
 

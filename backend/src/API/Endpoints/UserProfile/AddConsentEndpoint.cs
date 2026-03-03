@@ -2,7 +2,6 @@ using API.DTOs.UserProfile;
 using Core.Authorization;
 using Core.Entities.UserProfiles;
 using Core.Entities.ValueObjects;
-using Core.Enums;
 using Core.Services;
 using FastEndpoints;
 
@@ -10,6 +9,7 @@ namespace API.Endpoints.UserProfile;
 
 /// <summary>
 /// Endpoint to add a consent to a profile.
+/// Only Admin and Moderator can add consents.
 /// </summary>
 public class AddConsentEndpoint : Endpoint<AddConsentRequest, ConsentResponse>
 {
@@ -25,18 +25,12 @@ public class AddConsentEndpoint : Endpoint<AddConsentRequest, ConsentResponse>
         Post("/profile/{id}/consents");
         Policy(policy =>
         {
-            policy.AddRequirements(
-                new AdminOwnerRequirement(
-                    aggregatedRootName: nameof(UserProfile),
-                    resourceIdParameterName: "id",
-                    valueFetchFrom: ValueFetchFrom.Route
-                )
-            );
+            policy.AddRequirements(new AdminModeratorRequirement());
         });
         Summary(s =>
         {
             s.Summary = "Add consent";
-            s.Description = "Adds a consent to a profile. Owner, Admin, or Moderator can add.";
+            s.Description = "Adds a consent to a profile. Only Admin or Moderator can add.";
         });
     }
 
