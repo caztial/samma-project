@@ -3,6 +3,7 @@
 ## Technology Stack
 
 ### Backend
+
 | Component | Technology | Version |
 |-----------|-----------|---------|
 | Framework | .NET | 10.0 |
@@ -20,6 +21,7 @@
 | Messaging | MassTransit | 9.0.1 |
 
 ### Frontend
+
 | Component | Technology | Version |
 |-----------|-----------|---------|
 | Framework | React | 18 |
@@ -33,40 +35,42 @@
 | Locale Optimization | @react-aria/optimize-locales-plugin | - |
 
 ### Supported Languages
+
 - English (en-US)
 - Sinhala (si-LK)
 
 ## Frontend Development Rules
 
 ### Development Workflow
+
 - **Do NOT run `npm run dev`** - Ask the user to start the dev server instead
 - Verify builds using `npm run build` with full logs to catch and fix errors
 
-### Styling Approach
-- **Always use inline styles via the S2 `style` macro** (not CSS files)
-- All style values must be **static** - no dynamic values allowed in style macro
-- Define styles at module level as `const` for S2 style macro compatibility
+### Skill Usage for Frontend Development
 
-### S2 Style Macro Quirks
-- Use `'end'` not `'flex-end'` for `justifyContent`
-- Use `paddingLeft`/`paddingRight` not `paddingStart`/`paddingEnd`
-- Responsive breakpoints: `sm: { display: 'flex' }` for screens ≥640px
-- All style values must be **static** - no dynamic values or function calls
+**Before using the MCP server**, always activate relevant skills first:
 
-### Component Development
-- **Always check component options and props using the React Spectrum S2 MCP server** before implementing
-- Use semantic color tokens (e.g., `backgroundColor: 'base'`) for automatic light/dark mode support
+| Skill | Purpose |
+|-------|---------|
+| `frontend-design` | High-quality UI design patterns, production-grade interfaces |
+| `react-dev` | React patterns, TypeScript, hooks, event handling |
+| `react-spectrum-s2` | S2 component documentation, props, accessibility |
+
+**Workflow:** Load skills → Use MCP for specific lookups
 
 ### Mobile-First Approach
+
 - Design for mobile screens first, then adapt for desktop
 - Use S2 responsive breakpoints (`sm:`) for larger screens
 
 ### Design System Documentation
+
 - **React Spectrum S2 MCP Server** - Available for looking up component documentation
-- **Server**: `React Spectrum (S2)` 
+- **Server**: `React Spectrum (S2)`
 - **Guide**: See `memory-bank/react-spectrum-s2-mcp.md`
 
 ### Infrastructure
+
 | Component | Technology |
 |-----------|-----------|
 | Container | Docker |
@@ -77,6 +81,7 @@
 ## Architecture Patterns
 
 ### Backend Architecture: Clean Architecture (3 layers)
+
 ```
 ├── API Layer (FastEndpoints, SignalR Hubs, DTOs, OpenAPI)
 ├── Core Layer (Domain + Application: Entities, Services interfaces, Repository interfaces)
@@ -84,6 +89,7 @@
 ```
 
 ### Key Patterns
+
 - **CQRS**: Separate read/write operations
 - **Repository Pattern**: Data access abstraction
 - **Service Pattern**: IAuthService interface in Core, implementation in Infrastructure
@@ -93,6 +99,7 @@
 - **Central Package Management**: Single location for package versions
 
 ### Frontend Architecture
+
 ```
 ├── apps/
 │   ├── participant/     # Mobile-optimized
@@ -106,6 +113,7 @@
 ```
 
 ### Frontend Service Layer (API Client Pattern)
+
 ```
 frontend/src/services/
 ├── apiClient.js        # Shared axios instance factory
@@ -116,12 +124,14 @@ frontend/src/services/
 ```
 
 **Key Features:**
+
 - **Request Interceptor**: Auto-injects Bearer token via `getToken()`
 - **Response Interceptor**: Handles 401 globally via `onUnauthorized()`
 - **Single source of truth** for API base URL and headers
 - **Easy to extend** for future services
 
 **Usage Pattern:**
+
 ```javascript
 // In components with AuthContext
 const { getToken, onUnauthorized } = useAuth();
@@ -134,12 +144,14 @@ const profileService = useMemo(() =>
 ## Development Environment
 
 ### Prerequisites
+
 - .NET 10 SDK
 - Node.js 20+
 - Docker & Docker Compose
 - PostgreSQL (for local development)
 
 ### Local Development
+
 ```bash
 # Backend (Docker)
 docker-compose up --build
@@ -150,6 +162,7 @@ dotnet run
 ```
 
 ### Docker Deployment
+
 ```bash
 docker-compose up --build
 ```
@@ -157,6 +170,7 @@ docker-compose up --build
 ## Environment Variables
 
 ### Backend (.env)
+
 ```
 ASPNETCORE_ENVIRONMENT=Development
 ConnectionStrings__DefaultConnection=Host=postgres;Database=dhamma_db;Username=dhamma_user;Password=dhamma_pass
@@ -164,6 +178,7 @@ Jwt__Secret=your-secret-key
 ```
 
 ### Frontend (.env)
+
 ```
 VITE_API_URL=http://localhost:5001
 VITE_SIGNALR_URL=http://localhost:5001/hub
@@ -172,7 +187,9 @@ VITE_SIGNALR_URL=http://localhost:5001/hub
 ## Package Management
 
 ### Central Package Management
+
 Using `Directory.Packages.props` in backend root:
+
 ```xml
 <Project>
   <PropertyGroup>
@@ -189,7 +206,9 @@ Using `Directory.Packages.props` in backend root:
 ```
 
 ### Infrastructure Project Dependencies
+
 The Infrastructure project requires `FastEndpoints.Security` for JWT token generation:
+
 ```xml
 <PackageReference Include="FastEndpoints.Security" />
 ```
@@ -197,6 +216,7 @@ The Infrastructure project requires `FastEndpoints.Security` for JWT token gener
 ## OpenAPI/Scalar Configuration
 
 ### Server Configuration
+
 ```csharp
 builder.Services.AddOpenApi(options =>
 {
@@ -212,6 +232,7 @@ builder.Services.AddOpenApi(options =>
 ```
 
 ### Scalar UI Configuration
+
 ```csharp
 app.MapScalarApiReference(options =>
 {
@@ -224,6 +245,7 @@ app.MapScalarApiReference(options =>
 ```
 
 ## Security Considerations
+
 - JWT tokens for authentication via FastEndpoints.Security
 - Role-based authorization
 - Input validation
@@ -232,6 +254,7 @@ app.MapScalarApiReference(options =>
 - CORS configured for SignalR WebSocket connections
 
 ## Performance Considerations
+
 - SignalR in-memory (single instance for LAN)
 - No Redis backplane needed
 - Direct database access (no caching layer for MVP)

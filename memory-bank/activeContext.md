@@ -186,6 +186,17 @@ A React Spectrum S2 MCP server is available for looking up component documentati
 
 **Server Name**: `React Spectrum (S2)`
 
+### Skill Usage for Frontend Development
+**Before using the MCP server**, always activate relevant skills first:
+
+| Skill | Purpose |
+|-------|---------|
+| `frontend-design` | High-quality UI design patterns, production-grade interfaces |
+| `react-dev` | React patterns, TypeScript, hooks, event handling |
+| `react-spectrum-s2` | S2 component documentation, props, accessibility |
+
+**Workflow:** Load skills → Use MCP for specific lookups
+
 ### Available Tools
 | Tool | Purpose |
 |------|---------|
