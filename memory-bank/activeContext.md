@@ -3,11 +3,47 @@
 ## Current Phase: Frontend Profile UI Enhancements
 
 ### Recent Work (Mar 3, 2026 - Late Evening)
-Implemented Add/Edit Address dialog with form validation and API integration.
+Implemented Add/Edit Emergency Contact dialog with form validation and API integration. Fixed API payload format to match backend expectations.
 
 ### What Was Done Today
 
-#### Address Dialog Implementation (Mar 3, 2026 - Late Evening)
+#### Emergency Contact Dialog Implementation (Mar 3, 2026 - Late Evening)
+1. **ProfileOverviewPage.jsx** - Add/Edit Emergency Contact functionality
+   - Added emergency contact dialog state: `emergencyContactDialogOpen`, `emergencyContactData`, `emergencyContactDialogMode`, `isSavingEmergencyContact`
+   - Implemented validation for required fields (Name, Contact Number)
+   - Email validation using regex if provided
+   - `handleAddClick('emergencyContacts')` - Opens dialog in 'add' mode
+   - `handleEditClick('emergencyContacts', id)` - Opens dialog in 'edit' mode with pre-populated data
+   - `handleSaveEmergencyContact()` - Submits to API with correct payload structure
+
+2. **API Payload Structure** (FIXED - was causing 400 Bad Request):
+   ```javascript
+   // Correct payload structure - wraps contact data in 'emergencyContact' object
+   {
+     emergencyContact: {
+       name: "string (required)",
+       relationship: "string | null",
+       contactNumber: "string (required)",
+       email: "string | null"
+     }
+   }
+   ```
+
+3. **i18n Updates** (en-US.json):
+   - `profile.overview.emergencyContactDialog.addTitle` / `editTitle`
+   - `profile.overview.emergencyContactDialog.namePlaceholder` / `relationshipPlaceholder` / `phonePlaceholder` / `emailPlaceholder`
+   - `profile.overview.emergencyContactDialog.add` / `update` / `cancel`
+   - `profile.overview.emergencyContactDialog.addSuccess` / `updateSuccess` / `error`
+
+4. **Key Implementation Details**:
+   - Payload wraps contact data in `emergencyContact` object (same pattern as addresses)
+   - `null` sent for optional blank fields (not empty strings)
+   - Dialog uses S2 Form, TextField components
+   - Cancel and Add/Update buttons with proper disabled state during validation errors
+   - Toast notifications for success/error feedback
+   - Local state updated optimistically after successful API call
+
+#### Address Dialog Implementation (Mar 3, 2026 - Earlier)
 1. **ProfileOverviewPage.jsx** - Add/Edit Address functionality
    - Added address dialog state: `addressDialogOpen`, `addressData`, `addressDialogMode`, `isSavingAddress`
    - Created `addressTypeOptions` for Picker (Home, Work, Other)

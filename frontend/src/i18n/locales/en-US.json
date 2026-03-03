@@ -140,6 +140,20 @@
         "updateSuccess": "Address updated successfully.",
         "error": "Failed to save address. Please try again."
       },
+      "emergencyContactDialog": {
+        "addTitle": "Add Emergency Contact",
+        "editTitle": "Edit Emergency Contact",
+        "namePlaceholder": "Contact name",
+        "relationshipPlaceholder": "e.g., Parent, Spouse, Sibling",
+        "phonePlaceholder": "Phone number",
+        "emailPlaceholder": "Email address (optional)",
+        "add": "Add",
+        "update": "Update",
+        "cancel": "Cancel",
+        "addSuccess": "Emergency contact added successfully.",
+        "updateSuccess": "Emergency contact updated successfully.",
+        "error": "Failed to save emergency contact. Please try again."
+      },
       "deleteConfirm": {
         "title": "Confirm Deletion",
         "message": "Are you sure you want to delete this {section}? This action cannot be undone.",

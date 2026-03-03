@@ -141,6 +141,18 @@ export default function ProfileOverviewPage() {
   const [addressDialogMode, setAddressDialogMode] = useState('add'); // 'add' or 'edit'
   const [isSavingAddress, setIsSavingAddress] = useState(false);
 
+  // Emergency contact dialog state
+  const [emergencyContactDialogOpen, setEmergencyContactDialogOpen] = useState(false);
+  const [emergencyContactData, setEmergencyContactData] = useState({
+    id: null,
+    name: '',
+    relationship: '',
+    contactNumber: '',
+    email: ''
+  });
+  const [emergencyContactDialogMode, setEmergencyContactDialogMode] = useState('add'); // 'add' or 'edit'
+  const [isSavingEmergencyContact, setIsSavingEmergencyContact] = useState(false);
+
   // Gender options matching backend enum (Gender.cs) - use string keys that backend expects
   const genderOptions = useMemo(() => [
     { id: 'Male', name: t('profile.overview.genderOptions.male') },
@@ -222,6 +234,20 @@ export default function ProfileOverviewPage() {
         });
         setAddressDialogMode('edit');
         setAddressDialogOpen(true);
+      }
+    } else if (section === 'emergencyContacts' && profile) {
+      // Find the emergency contact to edit
+      const contact = profile.emergencyContacts?.find(c => c.id === itemId);
+      if (contact) {
+        setEmergencyContactData({
+          id: contact.id,
+          name: contact.name || '',
+          relationship: contact.relationship || '',
+          contactNumber: contact.contactNumber || '',
+          email: contact.email || ''
+        });
+        setEmergencyContactDialogMode('edit');
+        setEmergencyContactDialogOpen(true);
       }
     } else {
       console.log(`Edit clicked for section: ${section}, item: ${itemId}`);
@@ -371,6 +397,17 @@ export default function ProfileOverviewPage() {
       });
       setAddressDialogMode('add');
       setAddressDialogOpen(true);
+    } else if (section === 'emergencyContacts') {
+      // Reset form data for new emergency contact
+      setEmergencyContactData({
+        id: null,
+        name: '',
+        relationship: '',
+        contactNumber: '',
+        email: ''
+      });
+      setEmergencyContactDialogMode('add');
+      setEmergencyContactDialogOpen(true);
     } else {
       console.log(`Add clicked for section: ${section}`);
       // TODO: Implement add functionality for other sections
@@ -388,6 +425,24 @@ export default function ProfileOverviewPage() {
            !addressData.line1?.trim() || 
            !addressData.country?.trim();
   }, [addressData]);
+
+  // Handle emergency contact field changes
+  const handleEmergencyContactFieldChange = useCallback((field, value) => {
+    setEmergencyContactData(prev => ({ ...prev, [field]: value }));
+  }, []);
+
+  // Check if emergency contact form has validation errors (required fields: name, contactNumber)
+  const hasEmergencyContactValidationErrors = useMemo(() => {
+    const hasErrors = !emergencyContactData.name?.trim() || 
+                      !emergencyContactData.contactNumber?.trim();
+    
+    // Additional email validation if provided
+    if (emergencyContactData.email?.trim() && !emailRegex.test(emergencyContactData.email.trim())) {
+      return true;
+    }
+    
+    return hasErrors;
+  }, [emergencyContactData, emailRegex]);
 
   // Handle save address (add or update)
   const handleSaveAddress = useCallback(async () => {
@@ -445,6 +500,56 @@ export default function ProfileOverviewPage() {
       setIsSavingAddress(false);
     }
   }, [addressData, addressDialogMode, profile, profileService, hasAddressValidationErrors, t]);
+
+  // Handle save emergency contact (add or update)
+  const handleSaveEmergencyContact = useCallback(async () => {
+    if (hasEmergencyContactValidationErrors || !profile) return;
+
+    try {
+      setIsSavingEmergencyContact(true);
+
+      // Backend expects: { emergencyContact: { name, relationship, contactNumber, email } }
+      const contactPayload = {
+        emergencyContact: {
+          name: emergencyContactData.name.trim(),
+          relationship: emergencyContactData.relationship?.trim() || null,
+          contactNumber: emergencyContactData.contactNumber.trim(),
+          email: emergencyContactData.email?.trim() || null
+        }
+      };
+
+      if (emergencyContactDialogMode === 'add') {
+        const response = await profileService.addEmergencyContact(profile.id, contactPayload);
+        setProfile(prev => ({
+          ...prev,
+          emergencyContacts: [...(prev.emergencyContacts || []), response.data]
+        }));
+        ToastQueue.positive(t('profile.overview.emergencyContactDialog.addSuccess'), { timeout: 3000 });
+      } else {
+        await profileService.updateEmergencyContact(profile.id, emergencyContactData.id, contactPayload);
+        setProfile(prev => ({
+          ...prev,
+          emergencyContacts: prev.emergencyContacts.map(c => 
+            c.id === emergencyContactData.id ? { 
+              ...c, 
+              name: contactPayload.emergencyContact.name,
+              relationship: contactPayload.emergencyContact.relationship,
+              contactNumber: contactPayload.emergencyContact.contactNumber,
+              email: contactPayload.emergencyContact.email
+            } : c
+          )
+        }));
+        ToastQueue.positive(t('profile.overview.emergencyContactDialog.updateSuccess'), { timeout: 3000 });
+      }
+      
+      setEmergencyContactDialogOpen(false);
+    } catch (err) {
+      console.error('Failed to save emergency contact:', err);
+      ToastQueue.negative(t('profile.overview.emergencyContactDialog.error'), { timeout: 3000 });
+    } finally {
+      setIsSavingEmergencyContact(false);
+    }
+  }, [emergencyContactData, emergencyContactDialogMode, profile, profileService, hasEmergencyContactValidationErrors, t]);
 
   // Confirm and execute delete
   const confirmDelete = useCallback(async () => {
@@ -1162,6 +1267,68 @@ export default function ProfileOverviewPage() {
                   {addressDialogMode === 'add' 
                     ? t('profile.overview.addressDialog.add') 
                     : t('profile.overview.addressDialog.update')}
+                </Button>
+              </ButtonGroup>
+            </Dialog>
+          )}
+        </DialogContainer>
+
+        {/* Emergency Contact Dialog (Add/Edit) */}
+        <DialogContainer onDismiss={() => setEmergencyContactDialogOpen(false)}>
+          {emergencyContactDialogOpen && (
+            <Dialog>
+              <Heading slot="title">
+                {emergencyContactDialogMode === 'add' 
+                  ? t('profile.overview.emergencyContactDialog.addTitle') 
+                  : t('profile.overview.emergencyContactDialog.editTitle')}
+              </Heading>
+              <Content>
+                <Form>
+                  <TextField
+                    label={t('profile.overview.fields.contactName')}
+                    isRequired
+                    necessityIndicator="icon"
+                    value={emergencyContactData.name}
+                    onChange={(value) => handleEmergencyContactFieldChange('name', value)}
+                    placeholder={t('profile.overview.emergencyContactDialog.namePlaceholder')}
+                  />
+                  <TextField
+                    label={t('profile.overview.fields.relationship')}
+                    value={emergencyContactData.relationship || ''}
+                    onChange={(value) => handleEmergencyContactFieldChange('relationship', value)}
+                    placeholder={t('profile.overview.emergencyContactDialog.relationshipPlaceholder')}
+                  />
+                  <TextField
+                    label={t('profile.overview.fields.phone')}
+                    isRequired
+                    necessityIndicator="icon"
+                    type="tel"
+                    value={emergencyContactData.contactNumber}
+                    onChange={(value) => handleEmergencyContactFieldChange('contactNumber', value)}
+                    placeholder={t('profile.overview.emergencyContactDialog.phonePlaceholder')}
+                  />
+                  <TextField
+                    label={t('profile.overview.fields.email')}
+                    type="email"
+                    value={emergencyContactData.email || ''}
+                    onChange={(value) => handleEmergencyContactFieldChange('email', value)}
+                    placeholder={t('profile.overview.emergencyContactDialog.emailPlaceholder')}
+                  />
+                </Form>
+              </Content>
+              <ButtonGroup>
+                <Button variant="secondary" onPress={() => setEmergencyContactDialogOpen(false)}>
+                  {t('profile.overview.emergencyContactDialog.cancel')}
+                </Button>
+                <Button
+                  variant="accent"
+                  onPress={handleSaveEmergencyContact}
+                  isPending={isSavingEmergencyContact}
+                  isDisabled={hasEmergencyContactValidationErrors}
+                >
+                  {emergencyContactDialogMode === 'add' 
+                    ? t('profile.overview.emergencyContactDialog.add') 
+                    : t('profile.overview.emergencyContactDialog.update')}
                 </Button>
               </ButtonGroup>
             </Dialog>

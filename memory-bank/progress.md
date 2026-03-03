@@ -307,7 +307,7 @@
 - ✅ i18n keys: `addSection`, `editItem`, `deleteItem`
 - ✅ New imports: `Divider`, `Add`, `Delete` icons
 
-### Address Dialog Implementation (Mar 3, 2026 - Late Evening)
+### Address Dialog Implementation (Mar 3, 2026 - Earlier)
 - ✅ Add/Edit Address dialog with Form, Picker, TextField components
 - ✅ Address type options: Home, Work, Other
 - ✅ Validation for required fields (Type, Line 1, Country)
@@ -319,6 +319,19 @@
 - ✅ Optimistic local state update after successful API call
 - ✅ Toast notifications for success/error feedback
 - ✅ i18n keys for dialog: `addTitle`, `editTitle`, `selectType`, `typeOptions.*`, placeholders, buttons, success messages
+
+### Emergency Contact Dialog Implementation (Mar 3, 2026 - Late Evening)
+- ✅ Add/Edit Emergency Contact dialog with Form, TextField components
+- ✅ Validation for required fields (Name, Contact Number)
+- ✅ Email validation using regex if provided
+- ✅ API integration with correct payload structure:
+  - `emergencyContact`: nested object with name, relationship, contactNumber, email
+- ✅ `null` sent for optional blank fields (not empty strings)
+- ✅ Dialog state management: `emergencyContactDialogOpen`, `emergencyContactData`, `emergencyContactDialogMode`, `isSavingEmergencyContact`
+- ✅ Optimistic local state update after successful API call
+- ✅ Toast notifications for success/error feedback
+- ✅ i18n keys for dialog: `addTitle`, `editTitle`, placeholders, buttons, success messages
+- ✅ Fixed 400 Bad Request error by wrapping payload in `emergencyContact` object
 
 ### Key Decisions
 - React Context for state management (not Zustand)
