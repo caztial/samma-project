@@ -11,7 +11,10 @@ import {
   ProgressCircle,
   IllustratedMessage,
   Badge,
-  Divider
+  Divider,
+  AlertDialog,
+  DialogContainer,
+  ToastQueue
 } from '@react-spectrum/s2';
 import { style } from '@react-spectrum/s2/style' with { type: 'macro' };
 import Edit from '@react-spectrum/s2/icons/Edit';
@@ -98,6 +101,8 @@ export default function ProfileOverviewPage() {
   const [profile, setProfile] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [pendingDelete, setPendingDelete] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Fetch profile data on mount
   useEffect(() => {
@@ -130,16 +135,47 @@ export default function ProfileOverviewPage() {
     // TODO: Implement edit functionality
   }, []);
 
-  // Handle delete button click (placeholder for future implementation)
+  // Handle delete button click - shows confirmation dialog
   const handleDeleteClick = useCallback((section, itemId) => {
-    console.log(`Delete clicked for section: ${section}, item: ${itemId}`);
-    // TODO: Implement delete functionality
+    setPendingDelete({ section, itemId });
   }, []);
 
   // Handle add button click (placeholder for future implementation)
   const handleAddClick = useCallback((section) => {
     console.log(`Add clicked for section: ${section}`);
     // TODO: Implement add functionality
+  }, []);
+
+  // Confirm and execute delete
+  const confirmDelete = useCallback(async () => {
+    if (!pendingDelete || !profile) return;
+
+    const { section, itemId } = pendingDelete;
+
+    try {
+      setIsDeleting(true);
+
+      if (section === 'addresses') {
+        await profileService.removeAddress(profile.id, itemId);
+        setProfile(prev => ({
+          ...prev,
+          addresses: prev.addresses.filter(a => a.id !== itemId)
+        }));
+        ToastQueue.positive(t('profile.overview.deleteConfirm.success', { section: t('profile.overview.sections.addresses') }));
+      }
+      // Other sections can be added here as needed
+    } catch (err) {
+      console.error('Failed to delete:', err);
+      ToastQueue.negative(t('profile.overview.deleteConfirm.error', { section: t(`profile.overview.sections.${pendingDelete.section}`) }));
+    } finally {
+      setIsDeleting(false);
+      setPendingDelete(null);
+    }
+  }, [pendingDelete, profile, profileService, t]);
+
+  // Cancel delete
+  const cancelDelete = useCallback(() => {
+    setPendingDelete(null);
   }, []);
 
   // Format date for display
@@ -661,6 +697,23 @@ export default function ProfileOverviewPage() {
             </AccordionItemPanel>
           </AccordionItem>
         </Accordion>
+
+        {/* Delete Confirmation Dialog */}
+        <DialogContainer onDismiss={cancelDelete}>
+          {pendingDelete && (
+            <AlertDialog
+              title={t('profile.overview.deleteConfirm.title')}
+              variant="destructive"
+              primaryActionLabel={t('profile.overview.deleteConfirm.delete')}
+              secondaryActionLabel={t('profile.overview.deleteConfirm.cancel')}
+              onPrimaryAction={confirmDelete}
+              onSecondaryAction={cancelDelete}
+              isPending={isDeleting}
+            >
+              {t('profile.overview.deleteConfirm.message', { section: t(`profile.overview.sections.${pendingDelete.section}`) })}
+            </AlertDialog>
+          )}
+        </DialogContainer>
       </div>
     </ProfileLayout>
   );

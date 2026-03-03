@@ -1,5 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
-import { Provider } from '@react-spectrum/s2';
+import { Provider, ToastContainer } from '@react-spectrum/s2';
 import { LocaleProvider, useLocale } from './i18n/LocaleContext';
 import { ThemeProvider, useTheme } from './contexts/ThemeContext';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
@@ -26,6 +26,7 @@ function AppRoutes() {
 
   return (
     <Provider locale={locale} colorScheme={colorScheme} router={{ navigate }}>
+      <ToastContainer />
       <Routes>
         {/* Public routes */}
         <Route path="/login" element={<LoginPage />} />

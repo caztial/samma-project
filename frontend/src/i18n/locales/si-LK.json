@@ -84,12 +84,23 @@
       "title": "පැතිකඩ දළ විශ්ලේෂණය",
       "noProfile": "පැතිකඩ දත්ත නොමැත.",
       "editSection": "{section} සංස්කරණය කරන්න",
+      "addSection": "නව {section} එකතු කරන්න",
+      "editItem": "සංස්කරණය කරන්න",
+      "deleteItem": "මකන්න",
       "noAddresses": "ලිපිනයන් එකතු කර නැත.",
       "noEmergencyContacts": "හදිසි සම්බන්ධතා එකතු කර නැත.",
       "noEducation": "අධ්‍යාපන වාර්තා එකතු කර නැත.",
       "noBankAccounts": "බැංකු ගිණුම් එකතු කර නැත.",
       "noIdentifications": "හඳුනාදීමේ ලේඛන එකතු කර නැත.",
       "noConsents": "කැමැත්ත වාර්තා හමු නොවීය.",
+      "deleteConfirm": {
+        "title": "මකාදැමීම තහවුරු කරන්න",
+        "message": "ඔබට මෙම {section} මකාදැමීමට අවශ්‍යද? මෙම ක්‍රියාව අවලංගු කළ නොහැක.",
+        "delete": "මකන්න",
+        "cancel": "අවලංගු කරන්න",
+        "success": "{section} සාර්ථකව මකාදමන ලදී.",
+        "error": "{section} මකාදැමීමට අසාර්ථක විය. නැවත උත්සාහ කරන්න."
+      },
       "sections": {
         "personal": "පුද්ගලික තොරතුරු",
         "contact": "සම්බන්ධතා තොරතුරු",

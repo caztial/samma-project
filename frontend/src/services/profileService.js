@@ -35,10 +35,10 @@ export function createProfileService({ getToken, onUnauthorized }) {
     updateProfile: (profileData) => api.put('/profile', profileData),
 
     // Addresses
-    getAddresses: () => api.get('/profile/addresses'),
-    addAddress: (addressData) => api.post('/profile/addresses', addressData),
-    updateAddress: (addressId, addressData) => api.put(`/profile/addresses/${addressId}`, addressData),
-    removeAddress: (addressId) => api.delete(`/profile/addresses/${addressId}`),
+    getAddresses: (profileId) => api.get(`/profile/${profileId}/addresses`),
+    addAddress: (profileId, addressData) => api.post(`/profile/${profileId}/addresses`, addressData),
+    updateAddress: (profileId, addressId, addressData) => api.put(`/profile/${profileId}/addresses/${addressId}`, addressData),
+    removeAddress: (profileId, addressId) => api.delete(`/profile/${profileId}/addresses/${addressId}`),
 
     // Education
     getEducations: () => api.get('/profile/educations'),

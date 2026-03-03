@@ -93,6 +93,14 @@
       "noBankAccounts": "No bank accounts added yet.",
       "noIdentifications": "No identification documents added yet.",
       "noConsents": "No consent records found.",
+      "deleteConfirm": {
+        "title": "Confirm Deletion",
+        "message": "Are you sure you want to delete this {section}? This action cannot be undone.",
+        "delete": "Delete",
+        "cancel": "Cancel",
+        "success": "{section} deleted successfully.",
+        "error": "Failed to delete {section}. Please try again."
+      },
       "sections": {
         "personal": "Personal Information",
         "contact": "Contact Information",
