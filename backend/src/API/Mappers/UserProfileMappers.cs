@@ -52,7 +52,7 @@ public class ProfileMapper : Mapper<UpdateProfileRequest, ProfileResponse, UserP
             FirstName = e.FirstName,
             LastName = e.LastName,
             ProfileImageUrl = e.ProfileImageUrl,
-            Gender = e.Gender,
+            Gender = e.Gender.ToString(),
             DateOfBirth = e.DateOfBirth,
             Contact = new ContactDto
             {

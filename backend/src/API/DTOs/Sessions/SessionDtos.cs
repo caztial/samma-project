@@ -102,7 +102,8 @@ public record SubmitAnswerAcceptedResponse
     /// <summary>
     /// Human-readable message.
     /// </summary>
-    public string Message { get; set; } = "Answer submission is being processed. You will be notified via SignalR.";
+    public string Message { get; set; } =
+        "Answer submission is being processed. You will be notified via SignalR.";
 
     /// <summary>
     /// The session ID.
@@ -141,6 +142,7 @@ public record SessionResponse
 public record SessionParticipantResponse
 {
     public Guid Id { get; set; }
+    public Guid SessionId { get; set; }
     public string UserId { get; set; } = string.Empty;
     public string UserName { get; set; } = string.Empty;
     public DateTime JoinedAt { get; set; }

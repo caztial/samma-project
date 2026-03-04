@@ -37,6 +37,7 @@ public class SessionParticipantMapper
         return new SessionParticipantResponse
         {
             Id = participant.Id,
+            SessionId = participant.SessionId,
             UserId = participant.UserId,
             UserName =
                 participant.User != null

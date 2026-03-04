@@ -12,7 +12,7 @@ public class ProfileResponse
     public string FirstName { get; set; } = string.Empty;
     public string LastName { get; set; } = string.Empty;
     public string? ProfileImageUrl { get; set; }
-    public Gender? Gender { get; set; }
+    public string? Gender { get; set; }
     public DateOnly? DateOfBirth { get; set; }
 
     // Primary contact
