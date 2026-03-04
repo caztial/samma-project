@@ -32,7 +32,7 @@ function AppRoutes() {
         {/* Public routes */}
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignupPage />} />
-        
+
         {/* Protected routes - all authenticated users */}
         <Route
           path="/profile"
@@ -82,7 +82,6 @@ function AppRoutes() {
             </ProtectedRoute>
           }
         />
-        
         {/* Protected routes - Admin/Moderator only */}
         <Route
           path="/admin"
@@ -92,7 +91,7 @@ function AppRoutes() {
             </ProtectedRoute>
           }
         />
-        
+
         {/* Root redirect based on auth status and role */}
         <Route
           path="/"
@@ -108,7 +107,7 @@ function AppRoutes() {
             )
           }
         />
-        
+
         {/* Catch-all redirect */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

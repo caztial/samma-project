@@ -283,6 +283,20 @@
       "sessions": {
         "title": "Sessions",
         "description": "View your session history and track your learning progress.",
+        "joinSession": "Join Session",
+        "currentSession": "Current Session",
+        "sessionHistory": "Session History",
+        "historyDescription": "Your session history will appear here. Track your progress and review past sessions.",
+        "noHistory": "No session history available yet.",
+        "code": "Code",
+        "joined": "Joined",
+        "viewSession": "View Session",
+        "leaveSession": "Leave Session",
+        "status": {
+          "active": "Active",
+          "ended": "Ended",
+          "draft": "Draft"
+        },
         "join": {
           "title": "Join a Session",
           "subtitle": "Enter the session code provided",
@@ -291,7 +305,36 @@
           "joining": "Joining...",
           "scanQR": "Scan QR Code",
           "invalidCode": "Invalid session code. Please try again.",
-          "success": "Successfully joined session!"
+          "success": "Successfully joined \"{sessionName}\"",
+          "viewSession": "View Session",
+          "rejoinSession": "Rejoin {sessionName}",
+          "errors": {
+            "notFound": "Session not found. Please check the code and try again.",
+            "alreadyJoined": "You have already joined this session.",
+            "ended": "Session has already ended.",
+            "full": "Session is full. Please try a different session.",
+            "unableToJoin": "Unable to join session. Please try again.",
+            "unauthorized": "You must be logged in to join a session."
+          }
+        },
+        "detail": {
+          "title": "Session Details",
+          "code": "Code",
+          "created": "Created",
+          "joined": "Joined",
+          "backToSessions": "Back to Sessions",
+          "leaveSession": "Leave Session",
+          "sessionEnded": "This session has ended.",
+          "loadError": "Failed to load session details.",
+          "leaveError": "Failed to leave session.",
+          "notFound": "Session not found.",
+          "activeInstructions": "You are currently participating in this active session. You can view session details and leave the session if needed.",
+          "inactiveInstructions": "This session is no longer active. You can view the session details but cannot participate.",
+          "status": {
+            "active": "Active",
+            "ended": "Ended",
+            "draft": "Draft"
+          }
         }
       }
     }

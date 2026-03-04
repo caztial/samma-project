@@ -12,13 +12,32 @@ export function createSessionService({ getToken, onUnauthorized }) {
 
   return {
     /**
-     * Join a session by session ID
+     * Join a session by session code
+     * @param {string} sessionCode - The session code
+     * @returns {Promise<Object>} Session participant data
+     */
+    joinSession: async (sessionCode) => {
+      const response = await apiClient.post('/sessions/join', { Code: sessionCode });
+      return response.data;
+    },
+
+    /**
+     * Get session details by session ID
      * @param {string} sessionId - The session ID
      * @returns {Promise<Object>} Session details
      */
-    joinSession: async (sessionId) => {
-      const response = await apiClient.post(`/sessions/${sessionId}/join`);
+    getSession: async (sessionId) => {
+      const response = await apiClient.get(`/sessions/${sessionId}`);
       return response.data;
+    },
+
+    /**
+     * Leave a session
+     * @param {string} sessionId - The session ID
+     * @returns {Promise<void>}
+     */
+    leaveSession: async (sessionId) => {
+      await apiClient.post(`/sessions/${sessionId}/leave`);
     },
   };
 }
