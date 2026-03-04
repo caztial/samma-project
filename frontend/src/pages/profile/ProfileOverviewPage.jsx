@@ -8,6 +8,7 @@ import {
   ActionButton,
   Content,
   Heading,
+  Text,
   ProgressCircle,
   IllustratedMessage,
   Badge,
@@ -68,13 +69,18 @@ const inlineFieldGroupStyle = style({
   alignItems: 'baseline',
 });
 
+const headingStyle = style({
+  textAlign: 'center',
+  font: 'heading',
+});
+
 const labelStyle = style({
-  fontSize: 'detail-sm',
+  font: 'detail-sm',
   color: 'neutral-subdued',
 });
 
 const valueStyle = style({
-  fontSize: 'body-sm',
+  font: 'body-sm',
 });
 
 const listItemStyle = style({
@@ -89,6 +95,7 @@ const listItemActionsStyle = style({
 });
 
 const emptyMessageStyle = style({
+  display: 'block',
   padding: 16,
   textAlign: 'center',
   color: 'neutral-subdued',
@@ -557,9 +564,9 @@ export default function ProfileOverviewPage() {
 
   // Check if address form has validation errors (required fields: type, line1, country)
   const hasAddressValidationErrors = useMemo(() => {
-    return !addressData.type || 
-           !addressData.line1?.trim() || 
-           !addressData.country?.trim();
+    return !addressData.type ||
+      !addressData.line1?.trim() ||
+      !addressData.country?.trim();
   }, [addressData]);
 
   // Handle emergency contact field changes
@@ -569,14 +576,14 @@ export default function ProfileOverviewPage() {
 
   // Check if emergency contact form has validation errors (required fields: name, contactNumber)
   const hasEmergencyContactValidationErrors = useMemo(() => {
-    const hasErrors = !emergencyContactData.name?.trim() || 
-                      !emergencyContactData.contactNumber?.trim();
-    
+    const hasErrors = !emergencyContactData.name?.trim() ||
+      !emergencyContactData.contactNumber?.trim();
+
     // Additional email validation if provided
     if (emergencyContactData.email?.trim() && !emailRegex.test(emergencyContactData.email.trim())) {
       return true;
     }
-    
+
     return hasErrors;
   }, [emergencyContactData, emailRegex]);
 
@@ -587,8 +594,8 @@ export default function ProfileOverviewPage() {
 
   // Check if education form has validation errors (required fields: institution, degree)
   const hasEducationValidationErrors = useMemo(() => {
-    return !educationData.institution?.trim() || 
-           !educationData.degree?.trim();
+    return !educationData.institution?.trim() ||
+      !educationData.degree?.trim();
   }, [educationData]);
 
   // Handle bank account field changes
@@ -598,10 +605,10 @@ export default function ProfileOverviewPage() {
 
   // Check if bank account form has validation errors (required fields: bankName, accountType, accountHolderName, accountNumber)
   const hasBankAccountValidationErrors = useMemo(() => {
-    return !bankAccountData.bankName?.trim() || 
-           !bankAccountData.accountType?.trim() ||
-           !bankAccountData.accountHolderName?.trim() ||
-           !bankAccountData.accountNumber?.trim();
+    return !bankAccountData.bankName?.trim() ||
+      !bankAccountData.accountType?.trim() ||
+      !bankAccountData.accountHolderName?.trim() ||
+      !bankAccountData.accountNumber?.trim();
   }, [bankAccountData]);
 
   // Handle identification field changes
@@ -611,8 +618,8 @@ export default function ProfileOverviewPage() {
 
   // Check if identification form has validation errors (required fields: type, value)
   const hasIdentificationValidationErrors = useMemo(() => {
-    return !identificationData.type?.trim() || 
-           !identificationData.value?.trim();
+    return !identificationData.type?.trim() ||
+      !identificationData.value?.trim();
   }, [identificationData]);
 
   // Handle save address (add or update)
@@ -647,9 +654,9 @@ export default function ProfileOverviewPage() {
         // Update local state - flatten the address object for display
         setProfile(prev => ({
           ...prev,
-          addresses: prev.addresses.map(a => 
-            a.id === addressData.id ? { 
-              ...a, 
+          addresses: prev.addresses.map(a =>
+            a.id === addressData.id ? {
+              ...a,
               type: addressPayload.type,
               line1: addressPayload.address.line1,
               line2: addressPayload.address.line2,
@@ -662,7 +669,7 @@ export default function ProfileOverviewPage() {
         }));
         ToastQueue.positive(t('profile.overview.addressDialog.updateSuccess'), { timeout: 3000 });
       }
-      
+
       setAddressDialogOpen(false);
     } catch (err) {
       console.error('Failed to save address:', err);
@@ -700,9 +707,9 @@ export default function ProfileOverviewPage() {
         await profileService.updateEmergencyContact(profile.id, emergencyContactData.id, contactPayload);
         setProfile(prev => ({
           ...prev,
-          emergencyContacts: prev.emergencyContacts.map(c => 
-            c.id === emergencyContactData.id ? { 
-              ...c, 
+          emergencyContacts: prev.emergencyContacts.map(c =>
+            c.id === emergencyContactData.id ? {
+              ...c,
               name: contactPayload.emergencyContact.name,
               relationship: contactPayload.emergencyContact.relationship,
               contactNumber: contactPayload.emergencyContact.contactNumber,
@@ -712,7 +719,7 @@ export default function ProfileOverviewPage() {
         }));
         ToastQueue.positive(t('profile.overview.emergencyContactDialog.updateSuccess'), { timeout: 3000 });
       }
-      
+
       setEmergencyContactDialogOpen(false);
     } catch (err) {
       console.error('Failed to save emergency contact:', err);
@@ -761,9 +768,9 @@ export default function ProfileOverviewPage() {
         await profileService.updateEducation(profile.id, educationData.id, educationPayload);
         setProfile(prev => ({
           ...prev,
-          educations: prev.educations.map(e => 
-            e.id === educationData.id ? { 
-              ...e, 
+          educations: prev.educations.map(e =>
+            e.id === educationData.id ? {
+              ...e,
               institution: educationPayload.education.institution,
               degree: educationPayload.education.degree,
               fieldOfStudy: educationPayload.education.fieldOfStudy,
@@ -776,7 +783,7 @@ export default function ProfileOverviewPage() {
         }));
         ToastQueue.positive(t('profile.overview.educationDialog.updateSuccess'), { timeout: 3000 });
       }
-      
+
       setEducationDialogOpen(false);
     } catch (err) {
       console.error('Failed to save education:', err);
@@ -815,9 +822,9 @@ export default function ProfileOverviewPage() {
         await profileService.updateBankAccount(profile.id, bankAccountData.id, bankAccountPayload);
         setProfile(prev => ({
           ...prev,
-          bankAccounts: prev.bankAccounts.map(b => 
-            b.id === bankAccountData.id ? { 
-              ...b, 
+          bankAccounts: prev.bankAccounts.map(b =>
+            b.id === bankAccountData.id ? {
+              ...b,
               bankName: bankAccountPayload.bankAccount.bankName,
               accountType: bankAccountPayload.bankAccount.accountType,
               accountHolderName: bankAccountPayload.bankAccount.accountHolderName,
@@ -828,7 +835,7 @@ export default function ProfileOverviewPage() {
         }));
         ToastQueue.positive(t('profile.overview.bankAccountDialog.updateSuccess'), { timeout: 3000 });
       }
-      
+
       setBankAccountDialogOpen(false);
     } catch (err) {
       console.error('Failed to save bank account:', err);
@@ -864,9 +871,9 @@ export default function ProfileOverviewPage() {
         await profileService.updateIdentification(profile.id, identificationData.id, identificationPayload);
         setProfile(prev => ({
           ...prev,
-          identifications: prev.identifications.map(i => 
-            i.id === identificationData.id ? { 
-              ...i, 
+          identifications: prev.identifications.map(i =>
+            i.id === identificationData.id ? {
+              ...i,
               type: identificationPayload.identification.type,
               value: identificationPayload.identification.value
             } : i
@@ -874,7 +881,7 @@ export default function ProfileOverviewPage() {
         }));
         ToastQueue.positive(t('profile.overview.identificationDialog.updateSuccess'), { timeout: 3000 });
       }
-      
+
       setIdentificationDialogOpen(false);
     } catch (err) {
       console.error('Failed to save identification:', err);
@@ -997,7 +1004,7 @@ export default function ProfileOverviewPage() {
   return (
     <ProfileLayout>
       <div className={containerStyle}>
-        <Heading level={2}>{t('profile.overview.title')}</Heading>
+        <Heading level={2} styles={headingStyle}>{t('profile.overview.title')}</Heading>
 
         <Accordion allowsMultipleExpanded>
           {/* Personal & Contact Information Section - Single Item */}
@@ -1113,7 +1120,7 @@ export default function ProfileOverviewPage() {
                   </div>
                 ))
               ) : (
-                <div className={emptyMessageStyle}>{t('profile.overview.noAddresses')}</div>
+                <Text styles={emptyMessageStyle}>{t('profile.overview.noAddresses')}</Text>
               )}
             </AccordionItemPanel>
           </AccordionItem>
@@ -1176,7 +1183,7 @@ export default function ProfileOverviewPage() {
                   </div>
                 ))
               ) : (
-                <div className={emptyMessageStyle}>{t('profile.overview.noEmergencyContacts')}</div>
+                <Text styles={emptyMessageStyle}>{t('profile.overview.noEmergencyContacts')}</Text>
               )}
             </AccordionItemPanel>
           </AccordionItem>
@@ -1252,7 +1259,7 @@ export default function ProfileOverviewPage() {
                   </div>
                 ))
               ) : (
-                <div className={emptyMessageStyle}>{t('profile.overview.noEducation')}</div>
+                <Text styles={emptyMessageStyle}>{t('profile.overview.noEducation')}</Text>
               )}
             </AccordionItemPanel>
           </AccordionItem>
@@ -1326,7 +1333,7 @@ export default function ProfileOverviewPage() {
                   </div>
                 ))
               ) : (
-                <div className={emptyMessageStyle}>{t('profile.overview.noBankAccounts')}</div>
+                <Text styles={emptyMessageStyle}>{t('profile.overview.noBankAccounts')}</Text>
               )}
             </AccordionItemPanel>
           </AccordionItem>
@@ -1381,7 +1388,7 @@ export default function ProfileOverviewPage() {
                   </div>
                 ))
               ) : (
-                <div className={emptyMessageStyle}>{t('profile.overview.noIdentifications')}</div>
+                <Text styles={emptyMessageStyle}>{t('profile.overview.noIdentifications')}</Text>
               )}
             </AccordionItemPanel>
           </AccordionItem>
@@ -1420,7 +1427,7 @@ export default function ProfileOverviewPage() {
                   </div>
                 ))
               ) : (
-                <div className={emptyMessageStyle}>{t('profile.overview.noConsents')}</div>
+                <Text styles={emptyMessageStyle}>{t('profile.overview.noConsents')}</Text>
               )}
             </AccordionItemPanel>
           </AccordionItem>
@@ -1436,7 +1443,7 @@ export default function ProfileOverviewPage() {
               secondaryActionLabel={t('profile.overview.deleteConfirm.cancel')}
               onPrimaryAction={confirmDelete}
               onSecondaryAction={cancelDelete}
-              isPending={isDeleting}
+              isPrimaryActionDisabled={isDeleting}
             >
               {t('profile.overview.deleteConfirm.message', { section: t(`profile.overview.sections.${pendingDelete.section}`) })}
             </AlertDialog>
@@ -1457,7 +1464,7 @@ export default function ProfileOverviewPage() {
                     value={editData.firstName}
                     onChange={(value) => handleFieldChange('firstName', value)}
                     errorMessage={validationErrors.firstName}
-                    validationState={validationErrors.firstName ? 'invalid' : 'valid'}
+                    isInvalid={!!validationErrors.firstName}
                   />
                   <TextField
                     label={t('profile.overview.fields.lastName')}
@@ -1471,7 +1478,7 @@ export default function ProfileOverviewPage() {
                     selectedKey={editData.gender}
                     onSelectionChange={(key) => handleFieldChange('gender', key)}
                     errorMessage={validationErrors.gender}
-                    validationState={validationErrors.gender ? 'invalid' : 'valid'}
+                    isInvalid={!!validationErrors.gender}
                     placeholder={t('profile.overview.editPersonalDialog.selectGender')}
                   >
                     {genderOptions.map((option) => (
@@ -1487,7 +1494,7 @@ export default function ProfileOverviewPage() {
                     value={editData.dateOfBirth}
                     onChange={(value) => handleFieldChange('dateOfBirth', value)}
                     errorMessage={validationErrors.dob}
-                    validationState={validationErrors.dob ? 'invalid' : 'valid'}
+                    isInvalid={!!validationErrors.dob}
                     description={t('profile.overview.editPersonalDialog.dobFormat')}
                   />
                   <TextField
@@ -1496,7 +1503,7 @@ export default function ProfileOverviewPage() {
                     value={editData.email || ''}
                     onChange={(value) => handleFieldChange('email', value)}
                     errorMessage={validationErrors.email}
-                    validationState={validationErrors.email ? 'invalid' : 'valid'}
+                    isInvalid={!!validationErrors.email}
                   />
                   <TextField
                     label={t('profile.overview.fields.phone')}
@@ -1528,8 +1535,8 @@ export default function ProfileOverviewPage() {
           {addressDialogOpen && (
             <Dialog>
               <Heading slot="title">
-                {addressDialogMode === 'add' 
-                  ? t('profile.overview.addressDialog.addTitle') 
+                {addressDialogMode === 'add'
+                  ? t('profile.overview.addressDialog.addTitle')
                   : t('profile.overview.addressDialog.editTitle')}
               </Heading>
               <Content>
@@ -1597,8 +1604,8 @@ export default function ProfileOverviewPage() {
                   isPending={isSavingAddress}
                   isDisabled={hasAddressValidationErrors}
                 >
-                  {addressDialogMode === 'add' 
-                    ? t('profile.overview.addressDialog.add') 
+                  {addressDialogMode === 'add'
+                    ? t('profile.overview.addressDialog.add')
                     : t('profile.overview.addressDialog.update')}
                 </Button>
               </ButtonGroup>
@@ -1611,8 +1618,8 @@ export default function ProfileOverviewPage() {
           {emergencyContactDialogOpen && (
             <Dialog>
               <Heading slot="title">
-                {emergencyContactDialogMode === 'add' 
-                  ? t('profile.overview.emergencyContactDialog.addTitle') 
+                {emergencyContactDialogMode === 'add'
+                  ? t('profile.overview.emergencyContactDialog.addTitle')
                   : t('profile.overview.emergencyContactDialog.editTitle')}
               </Heading>
               <Content>
@@ -1659,8 +1666,8 @@ export default function ProfileOverviewPage() {
                   isPending={isSavingEmergencyContact}
                   isDisabled={hasEmergencyContactValidationErrors}
                 >
-                  {emergencyContactDialogMode === 'add' 
-                    ? t('profile.overview.emergencyContactDialog.add') 
+                  {emergencyContactDialogMode === 'add'
+                    ? t('profile.overview.emergencyContactDialog.add')
                     : t('profile.overview.emergencyContactDialog.update')}
                 </Button>
               </ButtonGroup>
@@ -1673,8 +1680,8 @@ export default function ProfileOverviewPage() {
           {educationDialogOpen && (
             <Dialog>
               <Heading slot="title">
-                {educationDialogMode === 'add' 
-                  ? t('profile.overview.educationDialog.addTitle') 
+                {educationDialogMode === 'add'
+                  ? t('profile.overview.educationDialog.addTitle')
                   : t('profile.overview.educationDialog.editTitle')}
               </Heading>
               <Content>
@@ -1735,8 +1742,8 @@ export default function ProfileOverviewPage() {
                   isPending={isSavingEducation}
                   isDisabled={hasEducationValidationErrors}
                 >
-                  {educationDialogMode === 'add' 
-                    ? t('profile.overview.educationDialog.add') 
+                  {educationDialogMode === 'add'
+                    ? t('profile.overview.educationDialog.add')
                     : t('profile.overview.educationDialog.update')}
                 </Button>
               </ButtonGroup>
@@ -1749,8 +1756,8 @@ export default function ProfileOverviewPage() {
           {bankAccountDialogOpen && (
             <Dialog>
               <Heading slot="title">
-                {bankAccountDialogMode === 'add' 
-                  ? t('profile.overview.bankAccountDialog.addTitle') 
+                {bankAccountDialogMode === 'add'
+                  ? t('profile.overview.bankAccountDialog.addTitle')
                   : t('profile.overview.bankAccountDialog.editTitle')}
               </Heading>
               <Content>
@@ -1805,8 +1812,8 @@ export default function ProfileOverviewPage() {
                   isPending={isSavingBankAccount}
                   isDisabled={hasBankAccountValidationErrors}
                 >
-                  {bankAccountDialogMode === 'add' 
-                    ? t('profile.overview.bankAccountDialog.add') 
+                  {bankAccountDialogMode === 'add'
+                    ? t('profile.overview.bankAccountDialog.add')
                     : t('profile.overview.bankAccountDialog.update')}
                 </Button>
               </ButtonGroup>
@@ -1819,8 +1826,8 @@ export default function ProfileOverviewPage() {
           {identificationDialogOpen && (
             <Dialog>
               <Heading slot="title">
-                {identificationDialogMode === 'add' 
-                  ? t('profile.overview.identificationDialog.addTitle') 
+                {identificationDialogMode === 'add'
+                  ? t('profile.overview.identificationDialog.addTitle')
                   : t('profile.overview.identificationDialog.editTitle')}
               </Heading>
               <Content>
@@ -1853,8 +1860,8 @@ export default function ProfileOverviewPage() {
                   isPending={isSavingIdentification}
                   isDisabled={hasIdentificationValidationErrors}
                 >
-                  {identificationDialogMode === 'add' 
-                    ? t('profile.overview.identificationDialog.add') 
+                  {identificationDialogMode === 'add'
+                    ? t('profile.overview.identificationDialog.add')
                     : t('profile.overview.identificationDialog.update')}
                 </Button>
               </ButtonGroup>
@@ -1862,6 +1869,6 @@ export default function ProfileOverviewPage() {
           )}
         </DialogContainer>
       </div>
-    </ProfileLayout>
+    </ProfileLayout >
   );
 }

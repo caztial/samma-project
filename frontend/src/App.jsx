@@ -10,6 +10,7 @@ import ProfileOverviewPage from './pages/profile/ProfileOverviewPage';
 import EducationPage from './pages/profile/EducationPage';
 import BankAccountsPage from './pages/profile/BankAccountsPage';
 import SessionsPage from './pages/profile/SessionsPage';
+import JoinSessionPage from './pages/profile/JoinSessionPage';
 import AdminPortalPage from './pages/admin/AdminPortalPage';
 import ProtectedRoute from './components/ProtectedRoute';
 
@@ -70,6 +71,14 @@ function AppRoutes() {
           element={
             <ProtectedRoute>
               <SessionsPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/profile/sessions/join"
+          element={
+            <ProtectedRoute>
+              <JoinSessionPage />
             </ProtectedRoute>
           }
         />

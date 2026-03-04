@@ -4,10 +4,9 @@ import { Disclosure, DisclosureTitle, DisclosurePanel, Text } from '@react-spect
 import { style } from '@react-spectrum/s2/style' with { type: 'macro' };
 import { useTranslation } from '../../i18n/useTranslation';
 import User from '@react-spectrum/s2/icons/User';
-import Education from '@react-spectrum/s2/icons/Education';
-import Wallet from '@react-spectrum/s2/icons/Wallet';
 import Calendar from '@react-spectrum/s2/icons/Calendar';
 import ChevronRight from '@react-spectrum/s2/icons/ChevronRight';
+import People from '@react-spectrum/s2/icons/People';
 
 // Static styles for all combinations - must be static for style macro
 const baseNavItemStyle = style({
@@ -85,13 +84,13 @@ export default function ProfileNavigation({ onClose }) {
   const navigate = useNavigate();
   const location = useLocation();
   const [isProfileExpanded, setIsProfileExpanded] = useState(true);
+  const [isSessionsExpanded, setIsSessionsExpanded] = useState(true);
 
   // Determine which item is selected based on current route
   const currentPath = location.pathname;
   const isProfileSelected = currentPath === '/profile' || currentPath === '/profile/overview';
-  const isEducationSelected = currentPath === '/profile/education';
-  const isBankAccountsSelected = currentPath === '/profile/bank-accounts';
-  const isSessionsSelected = currentPath === '/profile/sessions';
+  const isJoinSessionSelected = currentPath === '/profile/sessions/join';
+  const isSessionsSelected = currentPath === '/profile/sessions' || isJoinSessionSelected;
 
   // Navigation handlers
   const handleNavigate = (path) => {
@@ -137,39 +136,41 @@ export default function ProfileNavigation({ onClose }) {
               onPress={() => handleNavigate('/profile/overview')}
               indent
             />
-            {/* Education */}
+          </div>
+        </DisclosurePanel>
+      </Disclosure>
+
+      {/* Sessions Section (expandable) */}
+      <Disclosure
+        isExpanded={isSessionsExpanded}
+        onExpandedChange={setIsSessionsExpanded}
+        isQuiet
+      >
+        <DisclosureTitle>
+          <div
+            className={style({
+              display: 'flex',
+              alignItems: 'center',
+              gap: 12,
+            })}
+          >
+            <Calendar />
+            <Text>{t('profile.nav.sessions')}</Text>
+          </div>
+        </DisclosureTitle>
+        <DisclosurePanel>
+          <div className={style({ display: 'flex', flexDirection: 'column', gap: 2, marginTop: 4 })}>
+            {/* Join Session */}
             <NavItem
-              icon={<Education className={iconStyle} />}
-              label={t('profile.nav.education')}
-              isSelected={isEducationSelected}
-              onPress={() => handleNavigate('/profile/education')}
-              indent
-            />
-            {/* Bank Accounts */}
-            <NavItem
-              icon={<Wallet className={iconStyle} />}
-              label={t('profile.nav.bankAccounts')}
-              isSelected={isBankAccountsSelected}
-              onPress={() => handleNavigate('/profile/bank-accounts')}
+              icon={<People className={iconStyle} />}
+              label={t('profile.nav.joinSession')}
+              isSelected={isJoinSessionSelected}
+              onPress={() => handleNavigate('/profile/sessions/join')}
               indent
             />
           </div>
         </DisclosurePanel>
       </Disclosure>
-
-      {/* Sessions */}
-      <div
-        className={style({
-          padding: 4,
-        })}
-      >
-        <NavItem
-          icon={<Calendar />}
-          label={t('profile.nav.sessions')}
-          isSelected={isSessionsSelected}
-          onPress={() => handleNavigate('/profile/sessions')}
-        />
-      </div>
     </nav>
   );
 }

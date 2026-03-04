@@ -286,31 +286,3 @@ frontend/
 5. Build out SessionsPage with session history
 6. Add SignalR integration for real-time updates
 
-## React Spectrum S2 MCP Server
-
-A React Spectrum S2 MCP server is available for looking up component documentation, props, icons, and style values.
-
-**Server Name**: `React Spectrum (S2)`
-
-### Skill Usage for Frontend Development
-**Before using the MCP server**, always activate relevant skills first:
-
-| Skill | Purpose |
-|-------|---------|
-| `frontend-design` | High-quality UI design patterns, production-grade interfaces |
-| `react-dev` | React patterns, TypeScript, hooks, event handling |
-| `react-spectrum-s2` | S2 component documentation, props, accessibility |
-
-**Workflow:** Load skills → Use MCP for specific lookups
-
-### Available Tools
-| Tool | Purpose |
-|------|---------|
-| `list_s2_pages` | List all documentation pages |
-| `get_s2_page_info` | Get page description and sections |
-| `get_s2_page` | Get full page or section content |
-| `search_s2_icons` | Search workflow icons |
-| `search_s2_illustrations` | Search illustrations |
-| `get_style_macro_property_values` | Get allowed style property values |
-
-> See `memory-bank/react-spectrum-s2-mcp.md` for full usage guide.

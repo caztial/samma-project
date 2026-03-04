@@ -63,12 +63,6 @@
 - Design for mobile screens first, then adapt for desktop
 - Use S2 responsive breakpoints (`sm:`) for larger screens
 
-### Design System Documentation
-
-- **React Spectrum S2 MCP Server** - Available for looking up component documentation
-- **Server**: `React Spectrum (S2)`
-- **Guide**: See `memory-bank/react-spectrum-s2-mcp.md`
-
 ### Infrastructure
 
 | Component | Technology |

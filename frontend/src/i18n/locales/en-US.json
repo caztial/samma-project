@@ -63,7 +63,8 @@
     "save": "Save",
     "submit": "Submit",
     "yes": "Yes",
-    "no": "No"
+    "no": "No",
+    "or": "or"
   },
   "language": {
     "switch": "Switch Language",
@@ -262,7 +263,9 @@
       "profileOverview": "Profile Overview",
       "education": "Education",
       "bankAccounts": "Bank Accounts",
-      "sessions": "Sessions"
+      "sessions": "Sessions",
+      "joinSession": "Join Session",
+      "sessionHistory": "Session History"
     },
     "content": {
       "profile": {
@@ -279,7 +282,17 @@
       },
       "sessions": {
         "title": "Sessions",
-        "description": "View your session history and track your learning progress."
+        "description": "View your session history and track your learning progress.",
+        "join": {
+          "title": "Join a Session",
+          "subtitle": "Enter the session code provided",
+          "codePlaceholder": "Enter session code",
+          "joinButton": "Join",
+          "joining": "Joining...",
+          "scanQR": "Scan QR Code",
+          "invalidCode": "Invalid session code. Please try again.",
+          "success": "Successfully joined session!"
+        }
       }
     }
   },

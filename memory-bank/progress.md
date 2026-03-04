@@ -370,9 +370,6 @@
 - ❌ Session timer/auto-deactivation
 - ❌ Distributed cache for idempotency (currently in-memory)
 
-## Documentation Added
-- ✅ `memory-bank/react-spectrum-s2-mcp.md` - React Spectrum S2 MCP server guide
-
 ## Recent Changes Summary
 | Change | Date | Description |
 |--------|------|-------------|
