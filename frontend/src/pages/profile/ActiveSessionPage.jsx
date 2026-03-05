@@ -1,48 +1,52 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import {
   Heading,
   Text,
-  Badge,
+  StatusLight,
   IllustratedMessage,
   ProgressCircle,
   ToastQueue,
+  Meter,
+  ActionButton,
+  Badge,
+  Button,
+  Divider,
 } from '@react-spectrum/s2';
 import { style } from '@react-spectrum/s2/style' with { type: 'macro' };
 import { useTranslation } from '../../i18n/useTranslation';
 import ProfileLayout from '../../layouts/ProfileLayout';
 import { useAuth } from '../../contexts/AuthContext';
 import { createSessionService } from '../../services/sessionService';
+import { createQuestionService } from '../../services/questionService';
 import { getCurrentSession } from '../../services/sessionStorage';
 import Location from '@react-spectrum/s2/icons/Location';
 import Clock from '@react-spectrum/s2/icons/Clock';
+import ChevronLeft from '@react-spectrum/s2/icons/ChevronLeft';
+import ChevronRight from '@react-spectrum/s2/icons/ChevronRight';
 
-// Static styles at module level for S2 style macro compatibility
+// ─── Static styles (S2 style macro — must be module-level constants) ──────────
+
 const containerStyle = style({
   display: 'flex',
   flexDirection: 'column',
   flexGrow: 1,
   padding: 16,
   minWidth: 0,
+  gap: 16,
 });
 
 const headerRowStyle = style({
   display: 'flex',
   justifyContent: 'space-between',
   alignItems: 'center',
-  marginBottom: 8,
   gap: 12,
-});
-
-const sessionNameStyle = style({
-  // Heading component handles font styling
 });
 
 const infoRowStyle = style({
   display: 'flex',
   flexWrap: 'wrap',
   gap: 16,
-  marginBottom: 24,
   color: 'neutral-subdued',
   font: 'body-sm',
 });
@@ -53,11 +57,135 @@ const infoItemStyle = style({
   gap: 4,
 });
 
-const questionsAreaStyle = style({
+const meterRowStyle = style({
+  width: 'full',
+});
+
+const navRowStyle = style({
   display: 'flex',
-  flexGrow: 1,
-  justifyContent: 'center',
   alignItems: 'center',
+  justifyContent: 'space-between',
+  gap: 8,
+});
+
+const navLabelStyle = style({
+  font: 'body-sm',
+  color: 'neutral-subdued',
+  textAlign: 'center',
+  flexGrow: 1,
+});
+
+// Question card — custom styled container (not S2 Card, which is for navigable objects)
+const questionCardStyle = style({
+  backgroundColor: 'layer-1',
+  borderRadius: 'lg',
+  boxShadow: 'elevated',
+  padding: 20,
+  display: 'flex',
+  flexDirection: 'column',
+  gap: 16,
+});
+
+const cardHeaderRowStyle = style({
+  display: 'flex',
+  justifyContent: 'space-between',
+  alignItems: 'center',
+  gap: 8,
+});
+
+const questionNumberStyle = style({
+  font: 'title-sm',
+  color: 'neutral-subdued',
+  fontWeight: 'bold',
+});
+
+const cardMetaRowStyle = style({
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  gap: 8,
+  flexWrap: 'wrap',
+});
+
+const questionTitleStyle = style({
+  font: 'heading-sm',
+});
+
+const questionDescStyle = style({
+  font: 'body-sm',
+  color: 'neutral-subdued',
+});
+
+const optionsListStyle = style({
+  display: 'flex',
+  flexDirection: 'column',
+  gap: 8,
+});
+
+// Option row — unselected state
+const optionRowStyle = style({
+  display: 'flex',
+  alignItems: 'center',
+  gap: 12,
+  paddingX: 12,
+  paddingY: 12,
+  backgroundColor: 'layer-2',
+  borderRadius: 'default',
+  cursor: 'pointer',
+});
+
+// Option row — selected state
+const optionRowSelectedStyle = style({
+  display: 'flex',
+  alignItems: 'center',
+  gap: 12,
+  paddingX: 12,
+  paddingY: 12,
+  backgroundColor: 'accent-subtle',
+  borderRadius: 'default',
+  cursor: 'pointer',
+});
+
+// Option row — disabled (after submit or timeout)
+const optionRowDisabledStyle = style({
+  display: 'flex',
+  alignItems: 'center',
+  gap: 12,
+  paddingX: 12,
+  paddingY: 12,
+  backgroundColor: 'gray-100',
+  borderRadius: 'default',
+  cursor: 'default',
+});
+
+const optionLetterStyle = style({
+  font: 'body-sm',
+  fontWeight: 'bold',
+  color: 'accent-900',
+  minWidth: 16,
+  textAlign: 'center',
+});
+
+const optionTextStyle = style({
+  font: 'body',
+  flexGrow: 1,
+});
+
+const submitRowStyle = style({
+  paddingTop: 4,
+});
+
+const submitButtonStyle = style({
+  width: 'full',
+});
+
+const waitingContainerStyle = style({
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'center',
+  justifyContent: 'center',
+  flexGrow: 1,
+  gap: 16,
   minHeight: 300,
 });
 
@@ -80,122 +208,398 @@ const errorContainerStyle = style({
   padding: 32,
 });
 
-/**
- * Format a date to a readable time string
- * @param {string} dateString - ISO date string
- * @returns {string} Formatted time string
- */
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
 function formatStartedTime(dateString) {
   if (!dateString) return '';
-
   const date = new Date(dateString);
   const now = new Date();
   const isToday = date.toDateString() === now.toDateString();
-
   if (isToday) {
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   }
-
   return date.toLocaleDateString([], {
     month: 'short',
     day: 'numeric',
     hour: '2-digit',
-    minute: '2-digit'
+    minute: '2-digit',
   });
 }
 
+/** Convert index (0-based) to option letter: 0→A, 1→B, … */
+function indexToLetter(index) {
+  return String.fromCharCode(65 + index);
+}
+
+/** Compute seconds remaining from activatedAt UTC and durationSeconds */
+function computeTimeLeft(activatedAt, durationSeconds) {
+  if (!activatedAt || !durationSeconds) return null;
+  const elapsed = (Date.now() - new Date(activatedAt).getTime()) / 1000;
+  return Math.max(0, Math.floor(durationSeconds - elapsed));
+}
+
+/** Get Badge variant based on seconds left */
+function timerVariant(seconds) {
+  if (seconds <= 10) return 'negative';
+  if (seconds <= 30) return 'notice';
+  return 'informative';
+}
+
+// ─── McqQuestionCard ──────────────────────────────────────────────────────────
+
 /**
- * ActiveSessionPage - Page for active session participation
+ * Renders a single MCQ question card with options, timer, attempt indicator, and submit.
+ */
+function McqQuestionCard({
+  question,
+  selectedOptionId,
+  isSubmitted,
+  isTimedOut,
+  isSubmitting,
+  timeLeft,
+  onSelectOption,
+  onSubmit,
+  t,
+}) {
+  const { activeAttempt, maxAttempts, showTitle, showOptionValues } = question;
+
+  // Sort options by order ascending
+  const sortedOptions = [...question.options].sort((a, b) => a.order - b.order);
+
+  const canInteract = !isSubmitted && !isTimedOut;
+  const canSubmit = canInteract && !!selectedOptionId && !isSubmitting;
+
+  const attemptDisplay =
+    activeAttempt
+      ? t('profile.content.sessions.active.attempt', {
+          current: activeAttempt.attemptNumber,
+          max: maxAttempts,
+        })
+      : null;
+
+  const timerDisplay =
+    timeLeft !== null
+      ? isTimedOut
+        ? t('profile.content.sessions.active.timesUp')
+        : t('profile.content.sessions.active.timeLeft', { seconds: timeLeft })
+      : null;
+
+  return (
+    <div className={questionCardStyle}>
+      {/* Card header: Question Number + Attempt indicator */}
+      <div className={cardHeaderRowStyle}>
+        <Text styles={questionNumberStyle}>{question.questionNumber}</Text>
+        {attemptDisplay && (
+          <Badge variant="informative" size="S">
+            {attemptDisplay}
+          </Badge>
+        )}
+      </div>
+
+      {/* Timer row */}
+      {timerDisplay && (
+        <div className={cardMetaRowStyle}>
+          <Badge variant={isTimedOut ? 'negative' : timerVariant(timeLeft ?? 0)} size="S">
+            <Clock />
+            <Text>{timerDisplay}</Text>
+          </Badge>
+        </div>
+      )}
+
+      {/* Question title + description — only if showTitle */}
+      {showTitle && question.questionText && (
+        <Heading level={4} styles={questionTitleStyle}>
+          {question.questionText}
+        </Heading>
+      )}
+      {showTitle && question.questionDescription && (
+        <Text styles={questionDescStyle}>{question.questionDescription}</Text>
+      )}
+
+      <Divider size="S" />
+
+      {/* MCQ Options */}
+      <div className={optionsListStyle}>
+        {sortedOptions.map((option, idx) => {
+          const isSelected = selectedOptionId === option.optionId;
+          let rowClass = optionRowStyle;
+          if (!canInteract) {
+            rowClass = optionRowDisabledStyle;
+          } else if (isSelected) {
+            rowClass = optionRowSelectedStyle;
+          }
+
+          return (
+            <div
+              key={option.optionId}
+              className={rowClass}
+              role="button"
+              tabIndex={canInteract ? 0 : -1}
+              aria-pressed={isSelected}
+              onClick={() => canInteract && onSelectOption(option.optionId)}
+              onKeyDown={(e) => {
+                if (canInteract && (e.key === 'Enter' || e.key === ' ')) {
+                  e.preventDefault();
+                  onSelectOption(option.optionId);
+                }
+              }}
+            >
+              {showOptionValues && (
+                <Text styles={optionLetterStyle}>{indexToLetter(idx)}</Text>
+              )}
+              <Text styles={optionTextStyle}>{option.optionText}</Text>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Submit button */}
+      <div className={submitRowStyle}>
+        {isSubmitted ? (
+          <Badge variant="positive" size="M">
+            {t('profile.content.sessions.active.submitted')}
+          </Badge>
+        ) : (
+          <Button
+            variant="accent"
+            isPending={isSubmitting}
+            isDisabled={!canSubmit}
+            onPress={onSubmit}
+            styles={submitButtonStyle}
+          >
+            <Text>
+              {isSubmitting
+                ? t('profile.content.sessions.active.submitting')
+                : t('profile.content.sessions.active.submit')}
+            </Text>
+          </Button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ─── ActiveSessionPage ────────────────────────────────────────────────────────
+
+/**
+ * ActiveSessionPage - Page for active session participation.
  *
- * Displays session info, connection status, and active questions.
+ * Features:
+ * - Fetches and displays presented MCQ questions from GET /sessions/{id}/presented
+ * - Meter shows X/Y questions answered
+ * - Multi-question navigation with left/right ActionButton arrows
+ * - Per-question countdown timer using browser UTC vs activatedAt
+ * - MCQ option selection with visual highlight
+ * - Submit via POST /sessions/{sid}/questions/{qid}/attempts/{n}/answers
  */
 export default function ActiveSessionPage() {
   const { sessionId } = useParams();
   const { t } = useTranslation();
   const { getToken, onUnauthorized } = useAuth();
 
-  // Session state
+  // ── Session info ────────────────────────────────────────────────────────────
   const [session, setSession] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [isSessionLoading, setIsSessionLoading] = useState(true);
+  const [sessionError, setSessionError] = useState(null);
 
-  // Connection status (static for now - SignalR integration later)
-  const [connectionStatus] = useState('connected'); // 'connected' | 'disconnected' | 'connecting'
+  // ── Questions ───────────────────────────────────────────────────────────────
+  const [questions, setQuestions] = useState([]);
+  const [isQuestionsLoading, setIsQuestionsLoading] = useState(true);
+  const [currentIndex, setCurrentIndex] = useState(0);
 
-  // Use ref to store session service to avoid re-creation
+  // ── Per-question interaction state ──────────────────────────────────────────
+  // { [questionId]: optionId }
+  const [selectedOptions, setSelectedOptions] = useState({});
+  // Set of questionIds already successfully submitted
+  const [submittedSet, setSubmittedSet] = useState(new Set());
+  // Set of questionIds where timer has expired
+  const [timedOutSet, setTimedOutSet] = useState(new Set());
+  // { [questionId]: seconds }
+  const [timeLeftMap, setTimeLeftMap] = useState({});
+  // Set of questionIds currently being submitted
+  const [submittingSet, setSubmittingSet] = useState(new Set());
+
+  // Local count of answered questions (for Meter)
+  const [attemptedCount, setAttemptedCount] = useState(0);
+
+  // Connection status (static until SignalR integration)
+  const [connectionStatus] = useState('connected');
+
+  // ── Services (created once via refs) ────────────────────────────────────────
   const sessionServiceRef = useRef(null);
+  const questionServiceRef = useRef(null);
 
-  // Initialize session service only once
   if (!sessionServiceRef.current) {
-    sessionServiceRef.current = createSessionService({
-      getToken: () => getToken(),
-      onUnauthorized
-    });
+    sessionServiceRef.current = createSessionService({ getToken: () => getToken(), onUnauthorized });
+  }
+  if (!questionServiceRef.current) {
+    questionServiceRef.current = createQuestionService({ getToken: () => getToken(), onUnauthorized });
   }
 
-  // Fetch session data on mount
+  // ── Fetch session info ───────────────────────────────────────────────────────
   useEffect(() => {
     let isMounted = true;
 
     const fetchSession = async () => {
-      setIsLoading(true);
-      setError(null);
-
+      setIsSessionLoading(true);
+      setSessionError(null);
       try {
-        // First try to get from localStorage (faster)
-        const cachedSession = getCurrentSession();
-
-        if (cachedSession && cachedSession.sessionId === sessionId) {
-          // Use cached data but still fetch fresh data from API
-          if (isMounted) {
-            setSession({
-              id: cachedSession.sessionId,
-              name: cachedSession.sessionName,
-              code: cachedSession.sessionCode,
-              state: cachedSession.sessionState,
-              startedAt: cachedSession.joinedAt,
-            });
-          }
-        }
-
-        // Fetch fresh data from API
-        const response = await sessionServiceRef.current.getSession(sessionId);
-
-        if (isMounted) {
-          setSession(response);
-        }
-      } catch (err) {
-        console.error('Failed to fetch session:', err);
-
-        if (isMounted) {
-          if (err.response?.status === 404) {
-            setError(t('profile.content.sessions.detail.notFound'));
-          } else {
-            setError(t('profile.content.sessions.detail.loadError'));
-          }
-
-          ToastQueue.negative(t('profile.content.sessions.detail.loadError'), {
-            timeout: 5000
+        // Hydrate from cache first for instant display
+        const cached = getCurrentSession();
+        if (cached && cached.sessionId === sessionId && isMounted) {
+          setSession({
+            id: cached.sessionId,
+            name: cached.sessionName,
+            code: cached.sessionCode,
+            state: cached.sessionState,
+            startedAt: cached.joinedAt,
           });
         }
-      } finally {
+        // Then fetch fresh data
+        const fresh = await sessionServiceRef.current.getSession(sessionId);
+        if (isMounted) setSession(fresh);
+      } catch (err) {
         if (isMounted) {
-          setIsLoading(false);
+          setSessionError(
+            err.response?.status === 404
+              ? t('profile.content.sessions.detail.notFound')
+              : t('profile.content.sessions.detail.loadError')
+          );
         }
+      } finally {
+        if (isMounted) setIsSessionLoading(false);
       }
     };
 
-    if (sessionId) {
-      fetchSession();
-    }
-
-    return () => {
-      isMounted = false;
-    };
+    if (sessionId) fetchSession();
+    return () => { isMounted = false; };
   }, [sessionId]);
 
-  // Loading state
-  if (isLoading) {
+  // ── Fetch presented questions ────────────────────────────────────────────────
+  useEffect(() => {
+    let isMounted = true;
+
+    const fetchQuestions = async () => {
+      setIsQuestionsLoading(true);
+      try {
+        const data = await questionServiceRef.current.getPresentedQuestions(sessionId);
+        if (isMounted) {
+          setQuestions(data);
+          setCurrentIndex(0);
+          // Initialise timeLeftMap for all questions that have an active attempt + duration
+          const initialTimeLeft = {};
+          data.forEach((q) => {
+            if (q.activeAttempt?.activatedAt && q.durationSeconds) {
+              initialTimeLeft[q.questionId] = computeTimeLeft(
+                q.activeAttempt.activatedAt,
+                q.durationSeconds
+              );
+            }
+          });
+          setTimeLeftMap(initialTimeLeft);
+        }
+      } catch (err) {
+        // Non-fatal — if questions fail, show waiting state
+        if (isMounted) setQuestions([]);
+      } finally {
+        if (isMounted) setIsQuestionsLoading(false);
+      }
+    };
+
+    if (sessionId) fetchQuestions();
+    return () => { isMounted = false; };
+  }, [sessionId]);
+
+  // ── Countdown ticker ─────────────────────────────────────────────────────────
+  useEffect(() => {
+    if (questions.length === 0) return;
+
+    const interval = setInterval(() => {
+      setTimeLeftMap((prev) => {
+        const next = { ...prev };
+        let changed = false;
+
+        questions.forEach((q) => {
+          if (!q.activeAttempt?.activatedAt || !q.durationSeconds) return;
+          if (submittedSet.has(q.questionId)) return;
+
+          const remaining = computeTimeLeft(q.activeAttempt.activatedAt, q.durationSeconds);
+          if (prev[q.questionId] !== remaining) {
+            next[q.questionId] = remaining;
+            changed = true;
+
+            if (remaining === 0 && !timedOutSet.has(q.questionId)) {
+              setTimedOutSet((ts) => new Set(ts).add(q.questionId));
+            }
+          }
+        });
+
+        return changed ? next : prev;
+      });
+    }, 500);
+
+    return () => clearInterval(interval);
+  }, [questions, submittedSet, timedOutSet]);
+
+  // ── Handlers ─────────────────────────────────────────────────────────────────
+
+  const handleSelectOption = useCallback((questionId, optionId) => {
+    setSelectedOptions((prev) => ({ ...prev, [questionId]: optionId }));
+  }, []);
+
+  const handleSubmit = useCallback(
+    async (question) => {
+      const { questionId, activeAttempt } = question;
+      if (!activeAttempt) return;
+
+      const selectedOptionId = selectedOptions[questionId];
+      if (!selectedOptionId) return;
+
+      // Mark as submitting
+      setSubmittingSet((prev) => new Set(prev).add(questionId));
+
+      try {
+        await questionServiceRef.current.submitAnswer(
+          sessionId,
+          questionId,
+          activeAttempt.attemptNumber,
+          selectedOptionId
+        );
+
+        // Mark as submitted and increment local attempted count
+        setSubmittedSet((prev) => new Set(prev).add(questionId));
+        setAttemptedCount((c) => c + 1);
+
+        ToastQueue.positive(t('profile.content.sessions.active.submitSuccess'), {
+          timeout: 4000,
+        });
+      } catch (err) {
+        const msg =
+          err.response?.data?.error ||
+          t('profile.content.sessions.active.submitError');
+        ToastQueue.negative(msg, { timeout: 5000 });
+      } finally {
+        setSubmittingSet((prev) => {
+          const next = new Set(prev);
+          next.delete(questionId);
+          return next;
+        });
+      }
+    },
+    [selectedOptions, sessionId, t]
+  );
+
+  // ── Status light variant ──────────────────────────────────────────────────────
+  const getStatusVariant = () => {
+    switch (connectionStatus) {
+      case 'connected': return 'positive';
+      case 'connecting': return 'notice';
+      default: return 'negative';
+    }
+  };
+
+  // ── Loading / Error states ────────────────────────────────────────────────────
+  if (isSessionLoading) {
     return (
       <ProfileLayout>
         <div className={loadingContainerStyle}>
@@ -206,71 +610,133 @@ export default function ActiveSessionPage() {
     );
   }
 
-  // Error state
-  if (error || !session) {
+  if (sessionError || !session) {
     return (
       <ProfileLayout>
         <div className={errorContainerStyle}>
           <IllustratedMessage>
-            <Text>{error || t('profile.content.sessions.detail.notFound')}</Text>
+            <Text>{sessionError || t('profile.content.sessions.detail.notFound')}</Text>
           </IllustratedMessage>
         </div>
       </ProfileLayout>
     );
   }
 
-  // Get badge variant based on connection status
-  const getBadgeVariant = () => {
-    switch (connectionStatus) {
-      case 'connected':
-        return 'positive';
-      case 'connecting':
-        return 'informative';
-      case 'disconnected':
-      default:
-        return 'negative';
-    }
-  };
+  // ── Current question ──────────────────────────────────────────────────────────
+  const currentQuestion = questions[currentIndex] ?? null;
 
+  // ── Render ────────────────────────────────────────────────────────────────────
   return (
     <ProfileLayout>
       <div className={containerStyle}>
-        {/* Header Row: Session Name + Connection Status */}
+
+        {/* ── Session Header ── */}
         <div className={headerRowStyle}>
-          <Heading level={3} styles={sessionNameStyle}>
+          <Heading level={3}>
             {session.name}
           </Heading>
-          <Badge size='S' variant={getBadgeVariant()}>
+          <StatusLight variant={getStatusVariant()}>
             {t(`profile.content.sessions.active.connectionStatus.${connectionStatus}`)}
-          </Badge>
+          </StatusLight>
         </div>
 
-        {/* Info Row: Location + Started Time */}
-        <div className={infoRowStyle}>
-          {session.location && (
-            <div className={infoItemStyle}>
-              <Location />
-              <Text>{session.location}</Text>
-            </div>
-          )}
-          {session.startedAt && (
-            <div className={infoItemStyle}>
-              <Clock />
-              <Text>
-                {t('profile.content.sessions.active.startedAt', {
-                  time: formatStartedTime(session.startedAt)
-                })}
-              </Text>
-            </div>
-          )}
-        </div>
+        {/* ── Info row: Location + Started time ── */}
+        {(session.location || session.startedAt) && (
+          <div className={infoRowStyle}>
+            {session.location && (
+              <div className={infoItemStyle}>
+                <Location />
+                <Text>{session.location}</Text>
+              </div>
+            )}
+            {session.startedAt && (
+              <div className={infoItemStyle}>
+                <Clock />
+                <Text>
+                  {t('profile.content.sessions.active.startedAt', {
+                    time: formatStartedTime(session.startedAt),
+                  })}
+                </Text>
+              </div>
+            )}
+          </div>
+        )}
 
-        {/* Questions Area - Placeholder for future implementation */}
-        <div className={questionsAreaStyle}>
-          <IllustratedMessage>
-            <Text>{t('profile.content.sessions.active.waitingForQuestion')}</Text>
-          </IllustratedMessage>
-        </div>
+        {/* ── Meter: answered/total ── */}
+        {questions.length > 0 && (
+          <div className={meterRowStyle}>
+            <Meter
+              label={t('profile.content.sessions.active.meter.label')}
+              value={attemptedCount}
+              minValue={0}
+              maxValue={questions.length}
+              valueLabel={`${attemptedCount}/${questions.length}`}
+              formatOptions={{ style: 'decimal' }}
+              variant={attemptedCount === questions.length ? 'positive' : 'informative'}
+            />
+          </div>
+        )}
+
+        {/* ── Question navigation (only when >1 question) ── */}
+        {questions.length > 1 && (
+          <div className={navRowStyle}>
+            <ActionButton
+              isQuiet
+              size="S"
+              onPress={() => setCurrentIndex((i) => Math.max(0, i - 1))}
+              isDisabled={currentIndex === 0}
+              aria-label="Previous question"
+            >
+              <ChevronLeft />
+            </ActionButton>
+
+            <Text styles={navLabelStyle}>
+              {t('profile.content.sessions.active.questionOf', {
+                current: currentIndex + 1,
+                total: questions.length,
+              })}
+            </Text>
+
+            <ActionButton
+              isQuiet
+              size="S"
+              onPress={() => setCurrentIndex((i) => Math.min(questions.length - 1, i + 1))}
+              isDisabled={currentIndex === questions.length - 1}
+              aria-label="Next question"
+            >
+              <ChevronRight />
+            </ActionButton>
+          </div>
+        )}
+
+        {/* ── Question card or waiting state ── */}
+        {isQuestionsLoading ? (
+          <div className={waitingContainerStyle}>
+            <ProgressCircle size="M" isIndeterminate />
+            <Text>{t('common.loading')}</Text>
+          </div>
+        ) : currentQuestion ? (
+          <McqQuestionCard
+            key={currentQuestion.questionId}
+            question={currentQuestion}
+            selectedOptionId={selectedOptions[currentQuestion.questionId] ?? null}
+            isSubmitted={submittedSet.has(currentQuestion.questionId)}
+            isTimedOut={timedOutSet.has(currentQuestion.questionId)}
+            isSubmitting={submittingSet.has(currentQuestion.questionId)}
+            timeLeft={timeLeftMap[currentQuestion.questionId] ?? null}
+            onSelectOption={(optionId) =>
+              handleSelectOption(currentQuestion.questionId, optionId)
+            }
+            onSubmit={() => handleSubmit(currentQuestion)}
+            t={t}
+          />
+        ) : (
+          <div className={waitingContainerStyle}>
+            <IllustratedMessage>
+              <Text>{t('profile.content.sessions.active.waitingForQuestion')}</Text>
+            </IllustratedMessage>
+          </div>
+        )}
       </div>
     </ProfileLayout>
   );

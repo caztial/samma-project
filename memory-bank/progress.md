@@ -373,6 +373,7 @@
 ## Recent Changes Summary
 | Change | Date | Description |
 |--------|------|-------------|
+| Question Service + ActiveSessionPage | Mar 3, 2026 | New `questionService.js`; full MCQ question card, countdown timer, Meter, navigation, submit |
 | Shared API Client Module | Mar 3, 2026 | Created `apiClient.js` with global 401 handling, refactored all services to use it |
 | Profile Overview Page | Mar 2, 2026 | Full API integration, Accordion sections, Edit buttons, Field mappings fixed |
 | Profile Service | Mar 2, 2026 | Factory-based service with Bearer token via axios interceptor |

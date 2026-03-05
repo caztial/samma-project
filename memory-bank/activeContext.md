@@ -1,6 +1,55 @@
 # Active Context
 
-## Current Phase: Frontend Profile UI Enhancements
+## Current Phase: Frontend Session Question UI
+
+### Recent Work (Mar 3, 2026 - Afternoon)
+Implemented session question service and fully reworked ActiveSessionPage with MCQ question display, countdown timer, option selection, and answer submission.
+
+#### Question Service Implementation (Mar 3, 2026 - Afternoon)
+1. **questionService.js** (`frontend/src/services/questionService.js`) - NEW
+   - `createQuestionService({ getToken, onUnauthorized })` - Factory pattern matching sessionService
+   - `getPresentedQuestions(sessionId)` - GET `/sessions/{id}/presented` → normalises response to array
+   - `submitAnswer(sessionId, questionId, attemptNumber, selectedOptionId)` - POST `/sessions/{sid}/questions/{qid}/attempts/{n}/answers`
+
+#### ActiveSessionPage Full Rework (Mar 3, 2026 - Afternoon)
+1. **ActiveSessionPage.jsx** - Complete rework of question interaction UI
+   - `McqQuestionCard` sub-component for rendering a single question
+   - **Meter** showing `attemptedCount/questions.length` with `valueLabel` (e.g. "3/10")
+   - **Multi-question navigation** with `ActionButton` left/right chevrons (only rendered when >1 question)
+   - **Per-question countdown timer** using browser UTC vs `activeAttempt.activatedAt`
+     - `computeTimeLeft(activatedAt, durationSeconds)` helper
+     - `setInterval` at 500ms ticks
+     - Badge variant changes: `informative` → `notice` (≤30s) → `negative` (≤10s)
+     - Timer expiry adds questionId to `timedOutSet` → disables options and submit
+   - **MCQ options** rendered as pressable styled divs (sorted by `order`)
+     - 3 static style constants: `optionRowStyle`, `optionRowSelectedStyle`, `optionRowDisabledStyle`
+     - Option letter (A, B, C…) shown when `showOptionValues === true`
+   - **Submit** via `questionService.submitAnswer()` → adds to `submittedSet`, increments `attemptedCount`
+   - **Services created via refs** to avoid re-creation on renders
+   - **State**: `questions[]`, `currentIndex`, `selectedOptions{}`, `submittedSet`, `timedOutSet`, `timeLeftMap{}`, `submittingSet`, `attemptedCount`
+
+2. **S2 Style macro notes learned**:
+   - `padding: 14` is INVALID → use `paddingX: 12, paddingY: 12` (token-constrained values only)
+   - `outlineWidth: 2`, `opacity: 0.5` are INVALID in S2 style macro
+   - `minWidth: 20` is INVALID → use `minWidth: 16`
+   - Valid padding values are from the spacing scale: 4, 8, 12, 16, 20, 24, etc.
+
+3. **i18n Keys Added** (en-US.json + si-LK.json) under `profile.content.sessions.active`:
+   - `meter.label`, `questionOf`, `attempt`, `timeLeft`, `timesUp`
+   - `submit`, `submitting`, `submitted`, `submitSuccess`, `submitError`, `noQuestions`
+
+#### S2 Components Used
+| Component | Usage |
+|-----------|-------|
+| `Meter` | `value`, `minValue`, `maxValue`, `valueLabel`, `formatOptions={{ style: 'decimal' }}`, `variant` |
+| `ActionButton` | `isQuiet`, `size="S"`, `isDisabled` for prev/next navigation |
+| `Badge` | Attempt indicator, countdown timer (variant changes by urgency) |
+| `Button` | `variant="accent"`, `isPending`, `isDisabled` for submit |
+| `Divider` | Separator between question text and options |
+
+---
+
+## Previous Phase: Frontend Profile UI Enhancements
 
 ### Recent Work (Mar 3, 2026 - Night)
 Implemented Add/Edit Identification dialog with form validation and API integration. This completes all dialogs for the multi-item sections in Profile Overview.

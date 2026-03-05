@@ -343,7 +343,20 @@
             "connected": "Connected",
             "disconnected": "Disconnected",
             "connecting": "Connecting…"
-          }
+          },
+          "meter": {
+            "label": "Questions answered"
+          },
+          "questionOf": "Question {current} of {total}",
+          "attempt": "Attempt {current}/{max}",
+          "timeLeft": "{seconds}s remaining",
+          "timesUp": "Time's up!",
+          "submit": "Submit Answer",
+          "submitting": "Submitting…",
+          "submitted": "Answer submitted",
+          "submitSuccess": "Answer submitted successfully",
+          "submitError": "Failed to submit answer. Please try again.",
+          "noQuestions": "No questions presented yet."
         }
       }
     }
