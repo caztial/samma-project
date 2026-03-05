@@ -170,18 +170,8 @@ export default function JoinSessionPage() {
 
       saveCurrentSession(sessionData);
 
-      // Show success toast with session details
-      ToastQueue.positive(t('profile.content.sessions.join.success', {
-        sessionName: sessionData.sessionName
-      }), {
-        timeout: 2000,
-        actionLabel: t('profile.content.sessions.join.viewSession')
-      });
-
-      // Navigate to session detail page after a short delay
-      setTimeout(() => {
-        //navigate(`/profile/sessions/${participantResponse.sessionId}`);
-      }, 2000);
+      // Navigate to active session page
+      navigate(`/profile/sessions/${participantResponse.sessionId}`);
 
     } catch (error) {
       const errorMessage = getErrorMessage(error);

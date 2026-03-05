@@ -335,6 +335,15 @@
             "ended": "Ended",
             "draft": "Draft"
           }
+        },
+        "active": {
+          "startedAt": "Started: {time}",
+          "waitingForQuestion": "Waiting for question from presenter…",
+          "connectionStatus": {
+            "connected": "Connected",
+            "disconnected": "Disconnected",
+            "connecting": "Connecting…"
+          }
         }
       }
     }

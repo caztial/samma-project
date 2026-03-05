@@ -11,6 +11,7 @@ import EducationPage from './pages/profile/EducationPage';
 import BankAccountsPage from './pages/profile/BankAccountsPage';
 import SessionsPage from './pages/profile/SessionsPage';
 import JoinSessionPage from './pages/profile/JoinSessionPage';
+import ActiveSessionPage from './pages/profile/ActiveSessionPage';
 import AdminPortalPage from './pages/admin/AdminPortalPage';
 import ProtectedRoute from './components/ProtectedRoute';
 
@@ -79,6 +80,14 @@ function AppRoutes() {
           element={
             <ProtectedRoute>
               <JoinSessionPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/profile/sessions/:sessionId"
+          element={
+            <ProtectedRoute>
+              <ActiveSessionPage />
             </ProtectedRoute>
           }
         />
