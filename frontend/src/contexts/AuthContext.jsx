@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { clearAllAnswerStates } from '../services/sessionStorage';
 
 const AuthContext = createContext(undefined);
 
@@ -68,12 +69,13 @@ export function AuthProvider({ children }) {
     });
   }, []);
 
-  // Logout - clear all auth data
+  // Logout - clear all auth data including persisted answer states
   const logout = useCallback(() => {
     setToken(null);
     setUser(null);
     localStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(USER_KEY);
+    clearAllAnswerStates();
   }, []);
 
   // Handle 401 Unauthorized responses - logout and redirect to login

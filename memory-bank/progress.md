@@ -353,6 +353,8 @@
 - i18n from day one - English and Sinhala supported
 - S2 style macro: `'end'` not `'flex-end'`; `paddingLeft`/`paddingRight` not `paddingStart`/`paddingEnd`
 - API URL configured once in `.env.*` — drives both axios `baseURL` and Vite dev proxy target
+- **Per-attempt state tracking** — `submittedAnswers[qId][attemptNumber]` allows multiple attempts per question
+- **Composite timeout keys** — `"questionId:attemptNumber"` ensures fresh timer for each attempt
 
 ## What's Left
 - ❌ Database migration
@@ -373,6 +375,7 @@
 ## Recent Changes Summary
 | Change | Date | Description |
 |--------|------|-------------|
+| Per-Attempt Answer Tracking | Mar 3, 2026 | ActiveSessionPage refactored: timer runs continuously, `submittedAnswers[qId][attemptNumber]` per-attempt tracking, composite timeout keys |
 | Question Service + ActiveSessionPage | Mar 3, 2026 | New `questionService.js`; full MCQ question card, countdown timer, Meter, navigation, submit |
 | Shared API Client Module | Mar 3, 2026 | Created `apiClient.js` with global 401 handling, refactored all services to use it |
 | Profile Overview Page | Mar 2, 2026 | Full API integration, Accordion sections, Edit buttons, Field mappings fixed |

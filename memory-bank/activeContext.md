@@ -2,8 +2,29 @@
 
 ## Current Phase: Frontend Session Question UI
 
-### Recent Work (Mar 3, 2026 - Afternoon)
-Implemented session question service and fully reworked ActiveSessionPage with MCQ question display, countdown timer, option selection, and answer submission.
+### Recent Work (Mar 3, 2026 - Late Afternoon)
+Updated ActiveSessionPage for multi-attempt question handling with per-attempt state tracking and continuous countdown timer.
+
+#### Per-Attempt Answer Tracking (Mar 3, 2026 - Late Afternoon)
+1. **ActiveSessionPage.jsx** - Major state management refactor
+   - **Timer runs continuously** — removed guard that stopped countdown after submission; timer always shows remaining time for user reference
+   - **Per-attempt submitted tracking** — replaced `submittedSet: Set<questionId>` with `submittedAnswers: { [questionId]: { [attemptNumber]: optionId } }`
+   - **Per-attempt timeout tracking** — `timedOutSet` now uses composite keys `"questionId:attemptNumber"` so a new attempt gets a fresh timer
+   - **Derived attemptedCount** — `Object.keys(submittedAnswers).length` (unique questions answered at least once), no separate counter state
+   - **Card re-mounts on new attempt** — `key={questionId:attemptNumber}` forces React to reset UI state when a new attempt is presented
+
+2. **sessionStorage.js** - Schema update
+   - `saveAnswerState` / `getAnswerState` now use `submittedAnswers: { [qId]: { [attemptNumber]: optionId } }`
+   - Removed `submittedQuestions: string[]` and `attemptedCount: number` (now derived)
+   - Cleaner schema that supports multiple attempts per question
+
+3. **Key Behavior Changes**:
+   - Question remains interactive after submission if a new attempt is presented (higher `attemptNumber`)
+   - Timer shows elapsed countdown even after answer submitted (for user awareness)
+   - `isSubmitted` checks specific attempt: `submittedAnswers[qId]?.[attemptNumber] != null`
+   - `isTimedOut` checks composite key: `timedOutSet.has("qId:attemptNumber")`
+
+#### Earlier: Question Service Implementation (Mar 3, 2026 - Afternoon)
 
 #### Question Service Implementation (Mar 3, 2026 - Afternoon)
 1. **questionService.js** (`frontend/src/services/questionService.js`) - NEW

@@ -19,7 +19,7 @@ import ProfileLayout from '../../layouts/ProfileLayout';
 import { useAuth } from '../../contexts/AuthContext';
 import { createSessionService } from '../../services/sessionService';
 import { createQuestionService } from '../../services/questionService';
-import { getCurrentSession } from '../../services/sessionStorage';
+import { getCurrentSession, saveAnswerState, getAnswerState } from '../../services/sessionStorage';
 import Location from '@react-spectrum/s2/icons/Location';
 import Clock from '@react-spectrum/s2/icons/Clock';
 import ChevronLeft from '@react-spectrum/s2/icons/ChevronLeft';
@@ -245,6 +245,14 @@ function timerVariant(seconds) {
   return 'informative';
 }
 
+/**
+ * Composite key for timedOutSet: "questionId:attemptNumber"
+ * Ensures a new attempt gets a fresh timer even if the previous attempt timed out.
+ */
+function timedOutKey(questionId, attemptNumber) {
+  return `${questionId}:${attemptNumber}`;
+}
+
 // ─── McqQuestionCard ──────────────────────────────────────────────────────────
 
 /**
@@ -386,11 +394,13 @@ function McqQuestionCard({
  *
  * Features:
  * - Fetches and displays presented MCQ questions from GET /sessions/{id}/presented
- * - Meter shows X/Y questions answered
+ * - Meter shows X/Y unique questions answered (at least one attempt submitted)
  * - Multi-question navigation with left/right ActionButton arrows
- * - Per-question countdown timer using browser UTC vs activatedAt
+ * - Per-question countdown timer — runs continuously regardless of submission state
+ * - Timer is keyed per attempt ("qId:attemptNum") so a new attempt resets the timeout
  * - MCQ option selection with visual highlight
  * - Submit via POST /sessions/{sid}/questions/{qid}/attempts/{n}/answers
+ * - Submitted answers tracked per attempt: { [qId]: { [attemptNumber]: optionId } }
  */
 export default function ActiveSessionPage() {
   const { sessionId } = useParams();
@@ -408,19 +418,23 @@ export default function ActiveSessionPage() {
   const [currentIndex, setCurrentIndex] = useState(0);
 
   // ── Per-question interaction state ──────────────────────────────────────────
-  // { [questionId]: optionId }
+  // { [questionId]: optionId } — currently selected (or last selected) option per question
   const [selectedOptions, setSelectedOptions] = useState({});
-  // Set of questionIds already successfully submitted
-  const [submittedSet, setSubmittedSet] = useState(new Set());
-  // Set of questionIds where timer has expired
+
+  // { [questionId]: { [attemptNumber]: optionId } } — confirmed submissions keyed by attempt
+  // A question is only "submitted for current attempt" if submittedAnswers[qId][attemptNumber] exists.
+  // This allows re-answering when a new attempt is presented.
+  const [submittedAnswers, setSubmittedAnswers] = useState({});
+
+  // Set of composite keys "questionId:attemptNumber" where timer has expired.
+  // Using composite key means a new attempt gets a fresh timer even if prior attempt timed out.
   const [timedOutSet, setTimedOutSet] = useState(new Set());
+
   // { [questionId]: seconds }
   const [timeLeftMap, setTimeLeftMap] = useState({});
-  // Set of questionIds currently being submitted
-  const [submittingSet, setSubmittingSet] = useState(new Set());
 
-  // Local count of answered questions (for Meter)
-  const [attemptedCount, setAttemptedCount] = useState(0);
+  // Set of questionIds currently mid-submission (network in flight)
+  const [submittingSet, setSubmittingSet] = useState(new Set());
 
   // Connection status (static until SignalR integration)
   const [connectionStatus] = useState('connected');
@@ -475,7 +489,7 @@ export default function ActiveSessionPage() {
     return () => { isMounted = false; };
   }, [sessionId]);
 
-  // ── Fetch presented questions ────────────────────────────────────────────────
+  // ── Fetch presented questions + hydrate persisted answer state ───────────────
   useEffect(() => {
     let isMounted = true;
 
@@ -486,17 +500,33 @@ export default function ActiveSessionPage() {
         if (isMounted) {
           setQuestions(data);
           setCurrentIndex(0);
-          // Initialise timeLeftMap for all questions that have an active attempt + duration
+
+          // Build initial timeLeftMap AND pre-seed timedOutSet for already-elapsed questions
           const initialTimeLeft = {};
+          const initialTimedOut = new Set();
+
           data.forEach((q) => {
             if (q.activeAttempt?.activatedAt && q.durationSeconds) {
-              initialTimeLeft[q.questionId] = computeTimeLeft(
-                q.activeAttempt.activatedAt,
-                q.durationSeconds
-              );
+              const remaining = computeTimeLeft(q.activeAttempt.activatedAt, q.durationSeconds);
+              initialTimeLeft[q.questionId] = remaining;
+              if (remaining === 0) {
+                // Use composite key so new attempts start fresh
+                initialTimedOut.add(timedOutKey(q.questionId, q.activeAttempt.attemptNumber));
+              }
             }
           });
+
           setTimeLeftMap(initialTimeLeft);
+          if (initialTimedOut.size > 0) {
+            setTimedOutSet(initialTimedOut);
+          }
+
+          // Hydrate persisted answer state (survives navigation / page reload)
+          const saved = getAnswerState(sessionId);
+          if (saved) {
+            setSelectedOptions(saved.selectedOptions ?? {});
+            setSubmittedAnswers(saved.submittedAnswers ?? {});
+          }
         }
       } catch (err) {
         // Non-fatal — if questions fail, show waiting state
@@ -511,6 +541,8 @@ export default function ActiveSessionPage() {
   }, [sessionId]);
 
   // ── Countdown ticker ─────────────────────────────────────────────────────────
+  // Timer always runs regardless of submission state — a submitted question still
+  // shows the elapsed countdown for the user's reference.
   useEffect(() => {
     if (questions.length === 0) return;
 
@@ -521,15 +553,18 @@ export default function ActiveSessionPage() {
 
         questions.forEach((q) => {
           if (!q.activeAttempt?.activatedAt || !q.durationSeconds) return;
-          if (submittedSet.has(q.questionId)) return;
 
           const remaining = computeTimeLeft(q.activeAttempt.activatedAt, q.durationSeconds);
           if (prev[q.questionId] !== remaining) {
             next[q.questionId] = remaining;
             changed = true;
 
-            if (remaining === 0 && !timedOutSet.has(q.questionId)) {
-              setTimedOutSet((ts) => new Set(ts).add(q.questionId));
+            if (remaining === 0) {
+              const key = timedOutKey(q.questionId, q.activeAttempt.attemptNumber);
+              setTimedOutSet((ts) => {
+                if (ts.has(key)) return ts;
+                return new Set(ts).add(key);
+              });
             }
           }
         });
@@ -539,7 +574,7 @@ export default function ActiveSessionPage() {
     }, 500);
 
     return () => clearInterval(interval);
-  }, [questions, submittedSet, timedOutSet]);
+  }, [questions]);
 
   // ── Handlers ─────────────────────────────────────────────────────────────────
 
@@ -566,9 +601,25 @@ export default function ActiveSessionPage() {
           selectedOptionId
         );
 
-        // Mark as submitted and increment local attempted count
-        setSubmittedSet((prev) => new Set(prev).add(questionId));
-        setAttemptedCount((c) => c + 1);
+        // Record the submitted answer against this specific attempt number
+        setSubmittedAnswers((prev) => {
+          const updated = {
+            ...prev,
+            [questionId]: {
+              ...(prev[questionId] ?? {}),
+              [activeAttempt.attemptNumber]: selectedOptionId,
+            },
+          };
+
+          // Persist to localStorage so state survives navigation/reload
+          // We capture updated here inside the setState callback to get the latest value
+          saveAnswerState(sessionId, {
+            selectedOptions,
+            submittedAnswers: updated,
+          });
+
+          return updated;
+        });
 
         ToastQueue.positive(t('profile.content.sessions.active.submitSuccess'), {
           timeout: 4000,
@@ -622,8 +673,24 @@ export default function ActiveSessionPage() {
     );
   }
 
-  // ── Current question ──────────────────────────────────────────────────────────
+  // ── Derived values ────────────────────────────────────────────────────────────
   const currentQuestion = questions[currentIndex] ?? null;
+
+  // Count of unique questions that have been answered at least once across any attempt
+  const attemptedCount = Object.keys(submittedAnswers).length;
+
+  // For the current question + active attempt: is this specific attempt already submitted?
+  const currentAttemptNumber = currentQuestion?.activeAttempt?.attemptNumber;
+  const isCurrentSubmitted =
+    currentQuestion != null &&
+    currentAttemptNumber != null &&
+    submittedAnswers[currentQuestion.questionId]?.[currentAttemptNumber] != null;
+
+  // Is the current attempt's timer expired?
+  const isCurrentTimedOut =
+    currentQuestion != null &&
+    currentAttemptNumber != null &&
+    timedOutSet.has(timedOutKey(currentQuestion.questionId, currentAttemptNumber));
 
   // ── Render ────────────────────────────────────────────────────────────────────
   return (
@@ -662,7 +729,7 @@ export default function ActiveSessionPage() {
           </div>
         )}
 
-        {/* ── Meter: answered/total ── */}
+        {/* ── Meter: unique questions answered / total ── */}
         {questions.length > 0 && (
           <div className={meterRowStyle}>
             <Meter
@@ -717,11 +784,11 @@ export default function ActiveSessionPage() {
           </div>
         ) : currentQuestion ? (
           <McqQuestionCard
-            key={currentQuestion.questionId}
+            key={`${currentQuestion.questionId}:${currentAttemptNumber}`}
             question={currentQuestion}
             selectedOptionId={selectedOptions[currentQuestion.questionId] ?? null}
-            isSubmitted={submittedSet.has(currentQuestion.questionId)}
-            isTimedOut={timedOutSet.has(currentQuestion.questionId)}
+            isSubmitted={isCurrentSubmitted}
+            isTimedOut={isCurrentTimedOut}
             isSubmitting={submittingSet.has(currentQuestion.questionId)}
             timeLeft={timeLeftMap[currentQuestion.questionId] ?? null}
             onSelectOption={(optionId) =>
