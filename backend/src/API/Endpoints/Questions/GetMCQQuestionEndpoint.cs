@@ -72,6 +72,7 @@ public class GetMcqQuestionEndpoint : EndpointWithoutRequest<MCQQuestionResponse
                     .AnswerOptions.Select(o => new AnswerOptionResponse
                     {
                         Id = o.Id,
+                        OptionNumber = o.OptionNumber,
                         Text = o.Text,
                         Order = o.Order,
                         Points = o.Points,

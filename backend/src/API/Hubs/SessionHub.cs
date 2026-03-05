@@ -34,11 +34,7 @@ public class SessionHub : Hub
         }
         catch (Exception ex)
         {
-            _logger.LogError(
-                ex,
-                "Error joining session group: {SessionCode}",
-                sessionCode
-            );
+            _logger.LogError(ex, "Error joining session group: {SessionCode}", sessionCode);
             throw;
         }
     }
@@ -61,11 +57,7 @@ public class SessionHub : Hub
         }
         catch (Exception ex)
         {
-            _logger.LogError(
-                ex,
-                "Error leaving session group: {SessionCode}",
-                sessionCode
-            );
+            _logger.LogError(ex, "Error leaving session group: {SessionCode}", sessionCode);
             throw;
         }
     }
@@ -88,11 +80,7 @@ public class SessionHub : Hub
         }
         catch (Exception ex)
         {
-            _logger.LogError(
-                ex,
-                "Error joining admin group: {SessionCode}",
-                sessionCode
-            );
+            _logger.LogError(ex, "Error joining admin group: {SessionCode}", sessionCode);
             throw;
         }
     }
@@ -115,11 +103,7 @@ public class SessionHub : Hub
         }
         catch (Exception ex)
         {
-            _logger.LogError(
-                ex,
-                "Error leaving admin group: {SessionCode}",
-                sessionCode
-            );
+            _logger.LogError(ex, "Error leaving admin group: {SessionCode}", sessionCode);
             throw;
         }
     }
@@ -142,11 +126,7 @@ public class SessionHub : Hub
         }
         catch (Exception ex)
         {
-            _logger.LogError(
-                ex,
-                "Error joining presenter group: {SessionCode}",
-                sessionCode
-            );
+            _logger.LogError(ex, "Error joining presenter group: {SessionCode}", sessionCode);
             throw;
         }
     }
@@ -169,11 +149,7 @@ public class SessionHub : Hub
         }
         catch (Exception ex)
         {
-            _logger.LogError(
-                ex,
-                "Error leaving presenter group: {SessionCode}",
-                sessionCode
-            );
+            _logger.LogError(ex, "Error leaving presenter group: {SessionCode}", sessionCode);
             throw;
         }
     }

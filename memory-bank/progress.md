@@ -162,6 +162,7 @@
 - ✅ **Question** - Aggregate Root with MCQ validation
 - ✅ **McqQuestion** - MCQ question type with answer options
 - ✅ **McqAnswerOption** - Entity for MCQ options with points (Id is Guid)
+  - **OptionNumber** (Mar 3, 2026) - Added string property for option identifier (e.g., "A", "B", "C")
 - ✅ **Tag** - Entity for question tags with normalized name
 - ✅ **MediaMetadata** - Value Object for audio/video attachments
 - ✅ **QuestionType** enum - MCQ type
@@ -375,6 +376,7 @@
 ## Recent Changes Summary
 | Change | Date | Description |
 |--------|------|-------------|
+| McqAnswerOption.OptionNumber | Mar 3, 2026 | Added `OptionNumber` property (string, max 10 chars) for option identifier (e.g., "A", "B", "C"); updated entity, service, DTOs, mappers, endpoints, DbContext |
 | Per-Attempt Answer Tracking | Mar 3, 2026 | ActiveSessionPage refactored: timer runs continuously, `submittedAnswers[qId][attemptNumber]` per-attempt tracking, composite timeout keys |
 | Question Service + ActiveSessionPage | Mar 3, 2026 | New `questionService.js`; full MCQ question card, countdown timer, Meter, navigation, submit |
 | Shared API Client Module | Mar 3, 2026 | Created `apiClient.js` with global 401 handling, refactored all services to use it |

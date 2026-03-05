@@ -125,7 +125,8 @@ public class McqQuestionService : IMcqQuestionService
         string text,
         int order,
         int points,
-        bool isCorrect
+        bool isCorrect,
+        string optionNumber = ""
     )
     {
         var question = await _mcqQuestionRepository.GetByIdAsync(questionId);
@@ -142,7 +143,7 @@ public class McqQuestionService : IMcqQuestionService
             }
         }
 
-        var answerOption = question.AddAnswerOption(text, order, points, isCorrect);
+        var answerOption = question.AddAnswerOption(text, order, points, isCorrect, optionNumber);
 
         // Validate and save
         if (!question.ValidateMCQ())
@@ -186,7 +187,8 @@ public class McqQuestionService : IMcqQuestionService
         string? text = null,
         int? order = null,
         int? points = null,
-        bool? isCorrect = null
+        bool? isCorrect = null,
+        string? optionNumber = null
     )
     {
         var question = await _mcqQuestionRepository.GetByIdAsync(questionId);
@@ -218,6 +220,9 @@ public class McqQuestionService : IMcqQuestionService
 
         if (isCorrect != null)
             option.IsCorrect = isCorrect.Value;
+
+        if (optionNumber != null)
+            option.OptionNumber = optionNumber;
 
         // Validate and save
         if (!question.ValidateMCQ())

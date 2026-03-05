@@ -23,11 +23,19 @@ public class McqQuestion : Question
     /// <param name="order">Display order of the option</param>
     /// <param name="points">Points awarded for selecting this option</param>
     /// <param name="isCorrect">Whether this option is the correct answer</param>
-    public McqAnswerOption AddAnswerOption(string text, int order, int points, bool isCorrect)
+    /// <param name="optionNumber">Option number/identifier (e.g., "A", "B", "C")</param>
+    public McqAnswerOption AddAnswerOption(
+        string text,
+        int order,
+        int points,
+        bool isCorrect,
+        string optionNumber = ""
+    )
     {
         var option = new McqAnswerOption
         {
             McqQuestionId = Id,
+            OptionNumber = optionNumber,
             Text = text,
             Order = order,
             Points = points,

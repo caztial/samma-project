@@ -6,6 +6,11 @@ namespace API.DTOs.Questions;
 public class AnswerOptionDto
 {
     /// <summary>
+    /// Option number/identifier (e.g., "A", "B", "C", "1", "2", "3")
+    /// </summary>
+    public string OptionNumber { get; set; } = string.Empty;
+
+    /// <summary>
     /// Option text
     /// </summary>
     public string Text { get; set; } = string.Empty;
@@ -32,6 +37,7 @@ public class AnswerOptionDto
 public class AnswerOptionResponse
 {
     public Guid Id { get; set; }
+    public string OptionNumber { get; set; } = string.Empty;
     public string Text { get; set; } = string.Empty;
     public int Order { get; set; }
     public int Points { get; set; }

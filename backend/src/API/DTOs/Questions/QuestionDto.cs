@@ -133,6 +133,11 @@ public class AddAnswerOptionRequest
     public Guid QuestionId { get; set; }
 
     /// <summary>
+    /// Option number/identifier (e.g., "A", "B", "C", "1", "2", "3")
+    /// </summary>
+    public string OptionNumber { get; set; } = string.Empty;
+
+    /// <summary>
     /// The answer option text
     /// </summary>
     public string Text { get; set; } = string.Empty;
@@ -167,6 +172,11 @@ public class UpdateAnswerOptionRequest
     /// Answer option ID from route
     /// </summary>
     public Guid AnswerOptionId { get; set; }
+
+    /// <summary>
+    /// Updated option number/identifier (e.g., "A", "B", "C")
+    /// </summary>
+    public string? OptionNumber { get; set; }
 
     /// <summary>
     /// Updated text

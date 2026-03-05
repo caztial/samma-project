@@ -37,7 +37,8 @@ public class AddAnswerOptionEndpoint : Endpoint<AddAnswerOptionRequest, AnswerOp
                 req.Text,
                 req.Order,
                 req.Points,
-                req.IsCorrect
+                req.IsCorrect,
+                req.OptionNumber
             );
 
             if (option == null)
@@ -53,6 +54,7 @@ public class AddAnswerOptionEndpoint : Endpoint<AddAnswerOptionRequest, AnswerOp
             Response = new AnswerOptionResponse
             {
                 Id = option.Id,
+                OptionNumber = option.OptionNumber,
                 Text = option.Text,
                 Order = option.Order,
                 Points = option.Points,

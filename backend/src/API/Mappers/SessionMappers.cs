@@ -147,6 +147,7 @@ public class PresentedMcqQuestionMapper
                     .Select(o => new PresentedMcqAnswerResponse
                     {
                         OptionId = o.Id,
+                        OptionNumber = o.OptionNumber,
                         OptionText = sq.ShowOptionValues ? o.Text : string.Empty,
                         Order = o.Order
                     })

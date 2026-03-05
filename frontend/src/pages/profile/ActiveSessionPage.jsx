@@ -280,9 +280,9 @@ function McqQuestionCard({
   const attemptDisplay =
     activeAttempt
       ? t('profile.content.sessions.active.attempt', {
-          current: activeAttempt.attemptNumber,
-          max: maxAttempts,
-        })
+        current: activeAttempt.attemptNumber,
+        max: maxAttempts,
+      })
       : null;
 
   const timerDisplay =
@@ -352,10 +352,12 @@ function McqQuestionCard({
                 }
               }}
             >
-              {showOptionValues && (
-                <Text styles={optionLetterStyle}>{indexToLetter(idx)}</Text>
+              {!showOptionValues && (
+                <Text styles={optionLetterStyle}>{option.optionNumber}</Text>
               )}
-              <Text styles={optionTextStyle}>{option.optionText}</Text>
+              {showOptionValues && (
+                <Text styles={optionTextStyle}>{option.optionText}</Text>
+              )}
             </div>
           );
         })}

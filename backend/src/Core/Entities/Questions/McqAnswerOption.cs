@@ -12,6 +12,11 @@ public class McqAnswerOption : BaseEntity
     public Guid McqQuestionId { get; set; }
 
     /// <summary>
+    /// Option number/identifier (e.g., "A", "B", "C", "1", "2", "3")
+    /// </summary>
+    public string OptionNumber { get; set; } = string.Empty;
+
+    /// <summary>
     /// The text content of this answer option
     /// </summary>
     public string Text { get; set; } = string.Empty;

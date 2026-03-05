@@ -334,6 +334,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
         builder.Entity<McqAnswerOption>(entity =>
         {
             entity.HasKey(o => o.Id);
+            entity.Property(o => o.OptionNumber).HasMaxLength(10);
             entity.Property(o => o.Text).HasMaxLength(1000).IsRequired();
 
             // Index for ordering

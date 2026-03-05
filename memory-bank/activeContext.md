@@ -1,6 +1,38 @@
 # Active Context
 
-## Current Phase: Frontend Session Question UI
+## Current Phase: Backend Question Enhancement + Frontend Session Question UI
+
+### Recent Work (Mar 3, 2026 - Evening)
+Added `OptionNumber` property to `McqAnswerOption` entity for option identifiers like "A", "B", "C".
+
+#### McqAnswerOption.OptionNumber Implementation (Mar 3, 2026 - Evening)
+1. **Entity Layer**:
+   - `McqAnswerOption.cs` - Added `OptionNumber` property (string)
+   - `McqQuestion.cs` - Updated `AddAnswerOption()` method with `optionNumber` parameter
+
+2. **Service Layer**:
+   - `IMcqQuestionService.cs` - Added `optionNumber` parameter to `AddAnswerOptionAsync()` and `UpdateAnswerOptionAsync()`
+   - `McqQuestionService.cs` - Updated implementations
+
+3. **DTO Layer**:
+   - `AnswerOptionDto.cs` - Added `OptionNumber` to both DTOs
+   - `QuestionDto.cs` - Added `OptionNumber` to request DTOs
+
+4. **Mapper Layer**:
+   - `QuestionMappers.cs` - Updated both mappers to include `OptionNumber`
+
+5. **Endpoint Layer**:
+   - `AddAnswerOptionEndpoint.cs` - Pass and return `OptionNumber`
+   - `UpdateAnswerOptionEndpoint.cs` - Pass and return `OptionNumber`
+
+6. **Database Configuration**:
+   - `ApplicationDbContext.cs` - Added column configuration with max length of 10 characters
+
+7. **Build Status**: ✅ Build succeeded with 5 pre-existing nullable warnings
+
+---
+
+## Previous Phase: Frontend Session Question UI
 
 ### Recent Work (Mar 3, 2026 - Late Afternoon)
 Updated ActiveSessionPage for multi-attempt question handling with per-attempt state tracking and continuous countdown timer.

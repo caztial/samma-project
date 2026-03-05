@@ -52,7 +52,8 @@ public class MCQQuestionMapper : Mapper<CreateMCQQuestionRequest, MCQQuestionRes
                     option.Text,
                     option.Order,
                     option.Points,
-                    option.IsCorrect
+                    option.IsCorrect,
+                    option.OptionNumber
                 );
             }
         }
@@ -93,6 +94,7 @@ public class MCQQuestionMapper : Mapper<CreateMCQQuestionRequest, MCQQuestionRes
                     .AnswerOptions.Select(o => new AnswerOptionResponse
                     {
                         Id = o.Id,
+                        OptionNumber = o.OptionNumber,
                         Text = o.Text,
                         Order = o.Order,
                         Points = o.Points,
@@ -146,6 +148,7 @@ public class MCQQuestionResponseMapper : ResponseMapper<MCQQuestionResponse, Mcq
                     .AnswerOptions.Select(o => new AnswerOptionResponse
                     {
                         Id = o.Id,
+                        OptionNumber = o.OptionNumber,
                         Text = o.Text,
                         Order = o.Order,
                         Points = o.Points,

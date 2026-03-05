@@ -48,7 +48,8 @@ public interface IMcqQuestionService
         string text,
         int order,
         int points,
-        bool isCorrect
+        bool isCorrect,
+        string optionNumber = ""
     );
 
     /// <summary>
@@ -65,6 +66,7 @@ public interface IMcqQuestionService
         string? text = null,
         int? order = null,
         int? points = null,
-        bool? isCorrect = null
+        bool? isCorrect = null,
+        string? optionNumber = null
     );
 }

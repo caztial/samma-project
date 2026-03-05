@@ -203,6 +203,7 @@ public record PresentedMcqQuestionResponse
 public record PresentedMcqAnswerResponse
 {
     public Guid OptionId { get; set; }
+    public string OptionNumber { get; set; } = string.Empty;
     public string OptionText { get; set; } = string.Empty;
     public int Order { get; set; }
 }

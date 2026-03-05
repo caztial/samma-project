@@ -38,7 +38,8 @@ public class UpdateAnswerOptionEndpoint : Endpoint<UpdateAnswerOptionRequest, An
                 req.Text,
                 req.Order,
                 req.Points,
-                req.IsCorrect
+                req.IsCorrect,
+                req.OptionNumber
             );
 
             if (option == null)
@@ -54,6 +55,7 @@ public class UpdateAnswerOptionEndpoint : Endpoint<UpdateAnswerOptionRequest, An
             Response = new AnswerOptionResponse
             {
                 Id = option.Id,
+                OptionNumber = option.OptionNumber,
                 Text = option.Text,
                 Order = option.Order,
                 Points = option.Points,
