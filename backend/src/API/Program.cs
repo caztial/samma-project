@@ -65,10 +65,30 @@ builder
 // JWT AUTHENTICATION (FastEndpoints.Security)
 // ============================================
 
-builder.Services.AddAuthenticationJwtBearer(s =>
-{
-    s.SigningKey = jwtOptions.SigningKey;
-});
+builder.Services.AddAuthenticationJwtBearer(
+    s =>
+    {
+        s.SigningKey = jwtOptions.SigningKey;
+    },
+    o => // 2nd Param: JwtBearerOptions (This has the Events property)
+    {
+        o.Events = new JwtBearerEvents
+        {
+            OnMessageReceived = context =>
+            {
+                var accessToken = context.Request.Query["access_token"];
+                var path = context.HttpContext.Request.Path;
+
+                // Match the path you used in app.MapHub<SessionHub>("/hub/session")
+                if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/hub/session"))
+                {
+                    context.Token = accessToken;
+                }
+                return Task.CompletedTask;
+            }
+        };
+    }
+);
 
 // Add authorization services
 builder.Services.AddAuthorization();
@@ -153,7 +173,11 @@ builder.Services.AddCors(options =>
         "SignalRCors",
         policy =>
         {
-            policy.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod();
+            policy
+                .WithOrigins("http://localhost:5173")
+                .AllowAnyHeader()
+                .AllowCredentials()
+                .AllowAnyMethod();
         }
     );
 });

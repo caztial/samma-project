@@ -11,5 +11,14 @@
 export const API_BASE_URL =
   import.meta.env.VITE_API_URL ?? 'http://localhost:5001/api';
 
+/**
+ * Base URL for the backend server (without /api suffix).
+ * Used for SignalR connections which have their own routes.
+ */
+export const BACKEND_BASE_URL = API_BASE_URL.replace(/\/api\/?$/, '');
+
+/** SignalR hub URL for session real-time communication */
+export const SIGNALR_HUB_URL = `${BACKEND_BASE_URL}hub/session`;
+
 /** Current environment label ("development" | "production" | ...) */
 export const APP_ENV = import.meta.env.VITE_ENV ?? import.meta.env.MODE;

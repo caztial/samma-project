@@ -20,6 +20,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { createSessionService } from '../../services/sessionService';
 import { createQuestionService } from '../../services/questionService';
 import { getCurrentSession, saveAnswerState, getAnswerState } from '../../services/sessionStorage';
+import { createSignalRService, ConnectionState } from '../../services/signalrService';
 import Location from '@react-spectrum/s2/icons/Location';
 import Clock from '@react-spectrum/s2/icons/Clock';
 import ChevronLeft from '@react-spectrum/s2/icons/ChevronLeft';
@@ -438,18 +439,28 @@ export default function ActiveSessionPage() {
   // Set of questionIds currently mid-submission (network in flight)
   const [submittingSet, setSubmittingSet] = useState(new Set());
 
-  // Connection status (static until SignalR integration)
-  const [connectionStatus] = useState('connected');
+  // SignalR connection status
+  const [connectionStatus, setConnectionStatus] = useState(ConnectionState.DISCONNECTED);
 
   // ── Services (created once via refs) ────────────────────────────────────────
   const sessionServiceRef = useRef(null);
   const questionServiceRef = useRef(null);
+  const signalRServiceRef = useRef(null);
 
   if (!sessionServiceRef.current) {
     sessionServiceRef.current = createSessionService({ getToken: () => getToken(), onUnauthorized });
   }
   if (!questionServiceRef.current) {
     questionServiceRef.current = createQuestionService({ getToken: () => getToken(), onUnauthorized });
+  }
+  if (!signalRServiceRef.current) {
+    signalRServiceRef.current = createSignalRService({
+      getToken: () => getToken(),
+      onConnected: () => setConnectionStatus(ConnectionState.CONNECTED),
+      onDisconnected: () => setConnectionStatus(ConnectionState.DISCONNECTED),
+      onReconnecting: () => setConnectionStatus(ConnectionState.RECONNECTING),
+      onReconnected: () => setConnectionStatus(ConnectionState.CONNECTED),
+    });
   }
 
   // ── Fetch session info ───────────────────────────────────────────────────────
@@ -578,6 +589,42 @@ export default function ActiveSessionPage() {
     return () => clearInterval(interval);
   }, [questions]);
 
+  // ── SignalR connection ───────────────────────────────────────────────────────
+  // Connect to session hub and join session group when session is loaded
+  useEffect(() => {
+    if (!session?.id) return;
+
+    let isMounted = true;
+
+    const connectToHub = async () => {
+      try {
+        setConnectionStatus(ConnectionState.CONNECTING);
+        await signalRServiceRef.current.connect();
+
+        if (isMounted) {
+          await signalRServiceRef.current.joinSessionGroup(session.id);
+        }
+      } catch (error) {
+        console.error('Failed to connect to SignalR hub:', error);
+        if (isMounted) {
+          setConnectionStatus(ConnectionState.DISCONNECTED);
+        }
+      }
+    };
+
+    connectToHub();
+
+    return async () => {
+      isMounted = false;
+      try {
+        await signalRServiceRef.current.leaveSessionGroup(session.id);
+        await signalRServiceRef.current.disconnect();
+      } catch (error) {
+        // Ignore errors on cleanup
+      }
+    };
+  }, [session?.id]);
+
   // ── Handlers ─────────────────────────────────────────────────────────────────
 
   const handleSelectOption = useCallback((questionId, optionId) => {
@@ -645,8 +692,9 @@ export default function ActiveSessionPage() {
   // ── Status light variant ──────────────────────────────────────────────────────
   const getStatusVariant = () => {
     switch (connectionStatus) {
-      case 'connected': return 'positive';
-      case 'connecting': return 'notice';
+      case ConnectionState.CONNECTED: return 'positive';
+      case ConnectionState.CONNECTING:
+      case ConnectionState.RECONNECTING: return 'notice';
       default: return 'negative';
     }
   };
