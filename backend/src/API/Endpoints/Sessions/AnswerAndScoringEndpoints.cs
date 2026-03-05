@@ -53,6 +53,7 @@ public class SubmitMCQAnswerEndpoint
         }
 
         // Create the command with a unique ID for idempotency
+        // Capture request received time for timeout validation
         var command = new SubmitAnswerCommand
         {
             SessionId = sessionId,

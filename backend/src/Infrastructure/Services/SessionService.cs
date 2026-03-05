@@ -596,7 +596,8 @@ public class SessionService : ISessionService
         Guid questionId,
         string userId,
         int attemptNumber,
-        Guid selectedOptionId
+        Guid selectedOptionId,
+        DateTimeOffset answeredAt
     )
     {
         // Validate session
@@ -625,6 +626,18 @@ public class SessionService : ISessionService
                 $"Attempt {attemptNumber} is not accepting answers."
             );
 
+        // Get question for duration and answer validation
+        var question = await _mcqQuestionRepository.GetByIdAsync(questionId);
+        if (question == null)
+            throw new InvalidOperationException("Question not found.");
+
+        // Check if time has elapsed for this attempt using request received time
+        var effectiveDuration = sessionQuestion.GetEffectiveDuration(question.DurationSeconds);
+        if (attempt.HasTimeElapsed(effectiveDuration, answeredAt))
+            throw new InvalidOperationException(
+                "Time has elapsed for this attempt. Answers are no longer accepted."
+            );
+
         // Get participant
         var participant = session.Participants.FirstOrDefault(p => p.UserId == userId);
         if (participant == null)
@@ -641,11 +654,7 @@ public class SessionService : ISessionService
         if (existingAnswer != null)
             throw new InvalidOperationException("Already submitted an answer for this attempt.");
 
-        // Get question and validate answer
-        var question = await _mcqQuestionRepository.GetByIdAsync(questionId);
-        if (question == null)
-            throw new InvalidOperationException("Question not found.");
-
+        // Validate MCQ question
         if (question is not McqQuestion mcqQuestion)
             throw new InvalidOperationException("Question is not an MCQ question.");
 

@@ -164,9 +164,10 @@ public record SubmitAnswerCommand
     public Guid CommandId { get; init; } = Guid.NewGuid();
 
     /// <summary>
-    /// When the command was created.
+    /// When the answer was submitted (request received time).
+    /// Used for timeout validation.
     /// </summary>
-    public DateTime CreatedAt { get; init; } = DateTime.UtcNow;
+    public DateTimeOffset CreatedAt { get; init; } = DateTimeOffset.UtcNow;
 
     /// <summary>
     /// The session ID.

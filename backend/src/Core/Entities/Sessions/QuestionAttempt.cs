@@ -101,4 +101,21 @@ public class QuestionAttempt : BaseEntity
     {
         return IsActive && DeactivatedAt == null;
     }
+
+    /// <summary>
+    /// Checks if the allocated time has elapsed for this attempt.
+    /// </summary>
+    /// <param name="durationSeconds">The duration in seconds (if null, no timeout applies)</param>
+    /// <param name="answeredAt">When the answer was submitted (request received time)</param>
+    /// <returns>True if time has elapsed, false otherwise</returns>
+    public bool HasTimeElapsed(int? durationSeconds, DateTimeOffset answeredAt)
+    {
+        if (!ActivatedAt.HasValue || !durationSeconds.HasValue)
+            return false; // No duration = no timeout
+
+        // Convert ActivatedAt to DateTimeOffset for comparison
+        var activatedAtOffset = new DateTimeOffset(ActivatedAt.Value, TimeSpan.Zero);
+        var elapsed = (answeredAt - activatedAtOffset).TotalSeconds;
+        return elapsed > durationSeconds.Value;
+    }
 }

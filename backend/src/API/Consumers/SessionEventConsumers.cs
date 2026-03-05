@@ -337,7 +337,8 @@ public class SubmitAnswerCommandConsumer : IConsumer<SubmitAnswerCommand>
                 command.QuestionId,
                 command.UserId,
                 command.AttemptNumber,
-                command.SelectedOptionId
+                command.SelectedOptionId,
+                command.CreatedAt
             );
 
             _logger.LogInformation(

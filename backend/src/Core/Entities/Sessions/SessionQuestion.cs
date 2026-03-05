@@ -134,10 +134,13 @@ public class SessionQuestion : BaseEntity
 
     /// <summary>
     /// Gets the effective duration for this question.
+    /// Returns custom duration if set, otherwise falls back to question's default duration.
     /// </summary>
-    public int? GetEffectiveDuration()
+    /// <param name="questionDefaultDuration">The question's default duration in seconds</param>
+    /// <returns>The effective duration in seconds, or null if no duration is configured</returns>
+    public int? GetEffectiveDuration(int? questionDefaultDuration = null)
     {
-        return CustomDurationSeconds;
+        return CustomDurationSeconds ?? questionDefaultDuration;
     }
 
     /// <summary>

@@ -174,7 +174,8 @@ public interface ISessionService
         Guid questionId,
         string userId,
         int attemptNumber,
-        Guid selectedOptionId
+        Guid selectedOptionId,
+        DateTimeOffset answeredAt
     );
 
     /// <summary>
