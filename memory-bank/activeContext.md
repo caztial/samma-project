@@ -1,9 +1,35 @@
 # Active Context
 
-## Current Phase: Backend Question Enhancement + Frontend Session Question UI
+## Current Phase: SignalR Integration for Real-time Session Updates
 
-### Recent Work (Mar 3, 2026 - Evening)
-Added `OptionNumber` property to `McqAnswerOption` entity for option identifiers like "A", "B", "C".
+### Recent Work (Mar 6, 2026)
+Installed and integrated `@microsoft/signalr` (v10.0.0) for real-time communication in the ActiveSessionPage.
+
+#### SignalR Integration (Mar 6, 2026)
+1. **Package Installation**:
+   - Installed `@microsoft/signalr@10.0.0` via npm
+
+2. **Config Updates** (`frontend/src/config.js`):
+   - Added `BACKEND_BASE_URL` - extracts base URL without `/api` suffix
+   - Added `SIGNALR_HUB_URL` - configured as `{BACKEND_BASE_URL}/hub/session`
+
+3. **New Service** (`frontend/src/services/signalrService.js`):
+   - `ConnectionState` enum: `CONNECTING`, `CONNECTED`, `DISCONNECTED`, `RECONNECTING`
+   - `createSignalRService({ getToken, onConnected, onDisconnected, onReconnecting, onReconnected })` factory
+   - JWT bearer token authentication via `accessTokenFactory`
+   - Automatic reconnection with exponential backoff (0, 2, 4, 6, 8, 10 seconds)
+   - Methods: `connect()`, `disconnect()`, `joinSessionGroup()`, `leaveSessionGroup()`, `on()`, `off()`
+
+4. **ActiveSessionPage Integration** (`frontend/src/pages/profile/ActiveSessionPage.jsx`):
+   - SignalR service initialized with auth token from `AuthContext`
+   - Connects to `/hub/session` when session data is loaded (depends on `session.code`)
+   - Joins session group via `JoinSessionGroup(sessionCode)`
+   - Dynamic connection status display (StatusLight with variants: positive/notice/negative)
+   - Proper cleanup: leaves group and disconnects on component unmount
+
+### Previous: Backend Question Enhancement + Frontend Session Question UI
+
+#### McqAnswerOption.OptionNumber Implementation (Mar 3, 2026 - Evening)
 
 #### McqAnswerOption.OptionNumber Implementation (Mar 3, 2026 - Evening)
 1. **Entity Layer**:

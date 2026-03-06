@@ -368,7 +368,7 @@
 - ❌ Frontend: Education page with add/edit/delete
 - ❌ Frontend: Bank Accounts page with add/edit/delete
 - ❌ Frontend: Build out admin portal page with admin features
-- ❌ Frontend: SignalR integration
+- ✅ Frontend: SignalR integration (Mar 6, 2026)
 - ❌ Testing
 - ❌ Session timer/auto-deactivation
 - ❌ Distributed cache for idempotency (currently in-memory)
@@ -376,6 +376,7 @@
 ## Recent Changes Summary
 | Change | Date | Description |
 |--------|------|-------------|
+| SignalR Integration | Mar 6, 2026 | Installed `@microsoft/signalr@10.0.0`; created `signalrService.js` with JWT auth and auto-reconnect; integrated into ActiveSessionPage for real-time session updates |
 | McqAnswerOption.OptionNumber | Mar 3, 2026 | Added `OptionNumber` property (string, max 10 chars) for option identifier (e.g., "A", "B", "C"); updated entity, service, DTOs, mappers, endpoints, DbContext |
 | Per-Attempt Answer Tracking | Mar 3, 2026 | ActiveSessionPage refactored: timer runs continuously, `submittedAnswers[qId][attemptNumber]` per-attempt tracking, composite timeout keys |
 | Question Service + ActiveSessionPage | Mar 3, 2026 | New `questionService.js`; full MCQ question card, countdown timer, Meter, navigation, submit |

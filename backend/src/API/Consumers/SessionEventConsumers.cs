@@ -43,7 +43,7 @@ public class ParticipantJoinedEventConsumer : IConsumer<ParticipantJoinedEvent>
         };
 
         await _hubContext
-            .Clients.Group($"{evt.Code}-admin")
+            .Clients.Group($"{evt.SessionId}-admin")
             .SendAsync("SessionEvent", notification);
 
         _logger.LogDebug("SSE notification sent: ParticipantJoined to admin group");
@@ -86,7 +86,7 @@ public class ParticipantLeftEventConsumer : IConsumer<ParticipantLeftEvent>
         };
 
         await _hubContext
-            .Clients.Group($"{evt.Code}-admin")
+            .Clients.Group($"{evt.SessionId}-admin")
             .SendAsync("SessionEvent", notification);
 
         _logger.LogDebug("SSE notification sent: ParticipantLeft to admin group");
@@ -129,7 +129,9 @@ public class QuestionPresentedEventConsumer : IConsumer<QuestionPresentedEvent>
             Timestamp = evt.OccurredAt
         };
 
-        await _hubContext.Clients.Group(evt.Code).SendAsync("SessionEvent", notification);
+        await _hubContext
+            .Clients.Group(evt.SessionId.ToString())
+            .SendAsync("SessionEvent", notification);
 
         _logger.LogDebug("SSE notification sent: QuestionPresented to participants");
     }
@@ -173,7 +175,9 @@ public class QuestionAttemptActivatedEventConsumer : IConsumer<QuestionAttemptAc
             Timestamp = evt.OccurredAt
         };
 
-        await _hubContext.Clients.Group(evt.Code).SendAsync("SessionEvent", notification);
+        await _hubContext
+            .Clients.Group(evt.SessionId.ToString())
+            .SendAsync("SessionEvent", notification);
 
         _logger.LogDebug("SSE notification sent: AttemptActivated to participants");
     }
@@ -215,7 +219,9 @@ public class QuestionDeactivatedEventConsumer : IConsumer<QuestionDeactivatedEve
             Timestamp = evt.OccurredAt
         };
 
-        await _hubContext.Clients.Group(evt.Code).SendAsync("SessionEvent", notification);
+        await _hubContext
+            .Clients.Group(evt.SessionId.ToString())
+            .SendAsync("SessionEvent", notification);
 
         _logger.LogDebug("SSE notification sent: QuestionDeactivated to participants");
     }
@@ -256,9 +262,8 @@ public class SessionEndedEventConsumer : IConsumer<SessionEndedEvent>
         };
 
         // Send to both participants and admin groups
-        await _hubContext.Clients.Group(evt.Code).SendAsync("SessionEvent", notification);
         await _hubContext
-            .Clients.Group($"{evt.Code}-admin")
+            .Clients.Group(evt.SessionId.ToString())
             .SendAsync("SessionEvent", notification);
 
         _logger.LogDebug("SSE notification sent: SessionEnded to all users");
@@ -363,7 +368,9 @@ public class SubmitAnswerCommandConsumer : IConsumer<SubmitAnswerCommand>
                 Score = answer.FinalScore
             };
 
-            await _hubContext.Clients.User(command.UserId).SendAsync("AnswerResult", resultEvent);
+            await _hubContext
+                .Clients.Group($"{command.SessionId}-{command.UserId}")
+                .SendAsync("AnswerResult", resultEvent);
         }
         catch (InvalidOperationException ex)
         {
@@ -386,7 +393,9 @@ public class SubmitAnswerCommandConsumer : IConsumer<SubmitAnswerCommand>
                 SelectedOptionId = command.SelectedOptionId
             };
 
-            await _hubContext.Clients.User(command.UserId).SendAsync("AnswerResult", resultEvent);
+            await _hubContext
+                .Clients.Group($"{command.SessionId}-{command.UserId}")
+                .SendAsync("AnswerResult", resultEvent);
         }
         catch (Exception ex)
         {
@@ -408,7 +417,9 @@ public class SubmitAnswerCommandConsumer : IConsumer<SubmitAnswerCommand>
                 SelectedOptionId = command.SelectedOptionId
             };
 
-            await _hubContext.Clients.User(command.UserId).SendAsync("AnswerResult", resultEvent);
+            await _hubContext
+                .Clients.Group($"{command.SessionId}-{command.UserId}")
+                .SendAsync("AnswerResult", resultEvent);
         }
     }
 }

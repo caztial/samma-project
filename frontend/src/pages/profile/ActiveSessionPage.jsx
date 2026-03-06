@@ -227,11 +227,6 @@ function formatStartedTime(dateString) {
   });
 }
 
-/** Convert index (0-based) to option letter: 0→A, 1→B, … */
-function indexToLetter(index) {
-  return String.fromCharCode(65 + index);
-}
-
 /** Compute seconds remaining from activatedAt UTC and durationSeconds */
 function computeTimeLeft(activatedAt, durationSeconds) {
   if (!activatedAt || !durationSeconds) return null;
@@ -414,6 +409,7 @@ export default function ActiveSessionPage() {
   const [session, setSession] = useState(null);
   const [isSessionLoading, setIsSessionLoading] = useState(true);
   const [sessionError, setSessionError] = useState(null);
+  const [AttemptActivatedEvent, setAttemptActivatedEvent] = useState(null);
 
   // ── Questions ───────────────────────────────────────────────────────────────
   const [questions, setQuestions] = useState([]);
@@ -551,7 +547,7 @@ export default function ActiveSessionPage() {
 
     if (sessionId) fetchQuestions();
     return () => { isMounted = false; };
-  }, [sessionId]);
+  }, [sessionId, AttemptActivatedEvent]);
 
   // ── Countdown ticker ─────────────────────────────────────────────────────────
   // Timer always runs regardless of submission state — a submitted question still
@@ -596,12 +592,40 @@ export default function ActiveSessionPage() {
 
     let isMounted = true;
 
+    // Define event handlers BEFORE connecting
+    const handleAnswerResult = (result) => {
+      console.log('Answer Event:', result);
+      if (result.success) {
+        ToastQueue.positive(t('profile.content.sessions.active.submitSuccess'), {
+          timeout: 1000,
+        });
+      } else {
+        ToastQueue.negative(t('profile.content.sessions.active.submitError'), {
+          timeout: 3000,
+        });
+      }
+    };
+
+    const handleSessionEvent = (result) => {
+      if (result.eventType === 'AttemptActivated') {
+        setAttemptActivatedEvent(result.timestamp);
+      }
+      if (result.eventType === 'SessionEnded') {
+        navigator.back();
+      }
+      console.log('Session Event:', result);
+    };
+
     const connectToHub = async () => {
       try {
         setConnectionStatus(ConnectionState.CONNECTING);
         await signalRServiceRef.current.connect();
 
         if (isMounted) {
+          // Register listeners BEFORE connecting to avoid missing events
+          signalRServiceRef.current.on('AnswerResult', handleAnswerResult);
+          signalRServiceRef.current.on('SessionEvent', handleSessionEvent);
+
           await signalRServiceRef.current.joinSessionGroup(session.id);
         }
       } catch (error) {
@@ -616,6 +640,8 @@ export default function ActiveSessionPage() {
 
     return async () => {
       isMounted = false;
+      // Remove event handlers
+      signalRServiceRef.current.off('AnswerResult', handleAnswerResult);
       try {
         await signalRServiceRef.current.leaveSessionGroup(session.id);
         await signalRServiceRef.current.disconnect();
@@ -670,8 +696,8 @@ export default function ActiveSessionPage() {
           return updated;
         });
 
-        ToastQueue.positive(t('profile.content.sessions.active.submitSuccess'), {
-          timeout: 4000,
+        ToastQueue.positive(t('profile.content.sessions.active.submitting'), {
+          timeout: 100,
         });
       } catch (err) {
         const msg =

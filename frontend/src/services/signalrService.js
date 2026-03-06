@@ -44,8 +44,9 @@ export function createSignalRService({
         accessTokenFactory: () => getToken?.() ?? '',
         withCredentials: true,
         skipNegotiation: false,
-        transport: signalR.HttpTransportType.WebSockets | signalR.HttpTransportType.ServerSentEvents,
+        transport: signalR.HttpTransportType.ServerSentEvents | signalR.HttpTransportType.WebSockets, // Allow both transports
       })
+      .withKeepAliveInterval(30000) // 30 seconds
       .withAutomaticReconnect()
       .configureLogging(signalR.LogLevel.Warning)
       .build();

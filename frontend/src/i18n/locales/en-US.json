@@ -342,7 +342,8 @@
           "connectionStatus": {
             "connected": "Connected",
             "disconnected": "Disconnected",
-            "connecting": "Connecting…"
+            "connecting": "Connecting…",
+            "reconnecting": "Reconnecting…"
           },
           "meter": {
             "label": "Questions answered"

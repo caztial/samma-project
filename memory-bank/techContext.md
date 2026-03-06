@@ -24,12 +24,13 @@
 
 | Component | Technology | Version |
 |-----------|-----------|---------|
-| Framework | React | 18 |
+| Framework | React | 19.2 |
 | Build Tool | Vite | 7+ |
 | Language | JavaScript (JSX) | - |
 | UI Components | @react-spectrum/s2 | Latest |
 | State Management | React Context | - |
 | HTTP Client | Axios | - |
+| Real-time | @microsoft/signalr | 10.0.0 |
 | i18n | Custom (LocaleContext) | - |
 | Build Plugin | unplugin-parcel-macros | - |
 | Locale Optimization | @react-aria/optimize-locales-plugin | - |

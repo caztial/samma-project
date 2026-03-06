@@ -26,6 +26,10 @@ public class SessionHub : Hub
         try
         {
             await Groups.AddToGroupAsync(Context.ConnectionId, sessionCode);
+            await Groups.AddToGroupAsync(
+                Context.ConnectionId,
+                $"{sessionCode}-{Context.User?.Claims.FirstOrDefault(c => c.Type == "UserId")?.Value}"
+            );
             _logger.LogInformation(
                 "Client {ConnectionId} joined session group: {SessionCode}",
                 Context.ConnectionId,
