@@ -1,6 +1,9 @@
 # Active Context
 
-## Current Phase: SignalR Integration for Real-time Session Updates
+## Current Phase: SignalR Integration and Admin UI Cleanup
+
+### Recent Work (Mar 7, 2026)
+- **Admin UI Fixes**: Fixed sidebar content overlay by removing duplicate settings/logout controls from the sidebar and refining styling.
 
 ### Recent Work (Mar 6, 2026)
 Installed and integrated `@microsoft/signalr` (v10.0.0) for real-time communication in the ActiveSessionPage.

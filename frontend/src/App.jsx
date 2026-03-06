@@ -12,7 +12,10 @@ import BankAccountsPage from './pages/profile/BankAccountsPage';
 import SessionsPage from './pages/profile/SessionsPage';
 import JoinSessionPage from './pages/profile/JoinSessionPage';
 import ActiveSessionPage from './pages/profile/ActiveSessionPage';
-import AdminPortalPage from './pages/admin/AdminPortalPage';
+import DashboardPage from './pages/admin/DashboardPage';
+import SessionsAdminPage from './pages/admin/SessionsPage';
+import QuestionsPage from './pages/admin/QuestionsPage';
+import UsersPage from './pages/admin/UsersPage';
 import ProtectedRoute from './components/ProtectedRoute';
 
 /**
@@ -96,7 +99,31 @@ function AppRoutes() {
           path="/admin"
           element={
             <ProtectedRoute requiredRoles={['Admin', 'Moderator']}>
-              <AdminPortalPage />
+              <DashboardPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/sessions"
+          element={
+            <ProtectedRoute requiredRoles={['Admin', 'Moderator']}>
+              <SessionsAdminPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/questions"
+          element={
+            <ProtectedRoute requiredRoles={['Admin', 'Moderator']}>
+              <QuestionsPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/users"
+          element={
+            <ProtectedRoute requiredRoles={['Admin', 'Moderator']}>
+              <UsersPage />
             </ProtectedRoute>
           }
         />

@@ -364,6 +364,37 @@
   },
   "admin": {
     "title": "Admin Portal",
-    "comingSoon": "Admin features coming soon. Check back later!"
+    "comingSoon": "Coming soon",
+    "nav": {
+      "ariaLabel": "Admin navigation",
+      "title": "Admin Panel",
+      "dashboard": "Dashboard",
+      "sessions": "Sessions",
+      "questions": "Questions",
+      "users": "Users",
+      "collapse": "Collapse",
+      "collapseSidebar": "Collapse sidebar",
+      "expandSidebar": "Expand sidebar"
+    },
+    "dashboard": {
+      "title": "Dashboard",
+      "subtitle": "Overview of your admin panel",
+      "description": "Dashboard analytics and quick actions will appear here."
+    },
+    "sessions": {
+      "title": "Sessions",
+      "subtitle": "Manage Dhamma sessions",
+      "description": "Create, edit, and manage sessions for participants."
+    },
+    "questions": {
+      "title": "Questions",
+      "subtitle": "Manage the question bank",
+      "description": "Create, edit, and organize questions for sessions."
+    },
+    "users": {
+      "title": "Users",
+      "subtitle": "Manage user accounts",
+      "description": "View, edit, and manage user accounts and roles."
+    }
   }
 }
