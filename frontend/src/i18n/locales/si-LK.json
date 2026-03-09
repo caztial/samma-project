@@ -387,7 +387,33 @@
     "questions": {
       "title": "ප්‍රශ්න",
       "subtitle": "ප්‍රශ්න බැංකුව කළමනාකරණය",
-      "description": "සැසි සඳහා ප්‍රශ්න සාදන්න, සංස්කරණය කරන්න සහ සංවිධානය කරන්න."
+      "description": "සැසි සඳහා ප්‍රශ්න සාදන්න, සංස්කරණය කරන්න සහ සංවිධානය කරන්න.",
+      "table": {
+        "searchPlaceholder": "ප්‍රශ්න සොයන්න...",
+        "filterByTags": "ටැග් අනුව පෙරන්න",
+        "filterByType": "වර්ගය අනුව පෙරන්න",
+        "allTypes": "සියලු වර්ග",
+        "questionType": "වර්ගය",
+        "questionNumber": "අංකය",
+        "questionText": "ප්‍රශ්නය",
+        "tags": "ටැග්",
+        "verified": "තහවුරු කළ",
+        "createdAt": "නිර්මාණය",
+        "actions": "ක්‍රියා",
+        "edit": "සංස්කරණය",
+        "delete": "මකන්න",
+        "addQuestion": "ප්‍රශ්නයක් එකතු කරන්න",
+        "showing": "{total} න් {start}-{end} පෙන්වයි",
+        "pageSize": "පිටුවකට",
+        "noResults": "ප්‍රශ්න හමු නොවීය",
+        "noResultsDescription": "ඔබේ සෙවුම් හෝ පෙරහන් සකසන්න.",
+        "confirmDelete": "ඔබට මෙම ප්‍රශ්නය මකාදැමීමට අවශ්‍යද?",
+        "confirmDeleteTitle": "ප්‍රශ්නය මකන්න",
+        "deleteSuccess": "ප්‍රශ්නය සාර්ථකව මකාදමන ලදී.",
+        "deleteError": "ප්‍රශ්නය මකාදැමීමට අසාර්ථක විය.",
+        "loadingError": "ප්‍රශ්න පූරණය කිරීමට අසාර්ථක විය.",
+        "retry": "නැවත උත්සාහ කරන්න"
+      }
     },
     "users": {
       "title": "පරිශීලකයින්",

@@ -10,17 +10,17 @@ const containerStyle = style({
 });
 
 const headerStyle = style({
-  marginBottom: 24,
+  marginBottom: 16,
 });
 
 const titleStyle = style({
-  font: 'heading-xl',
+  font: 'heading',
   color: 'heading',
-  marginBottom: 8,
+  marginBottom: 4,
 });
 
 const subtitleStyle = style({
-  font: 'body',
+  font: 'body-sm',
   color: 'neutral-subdued',
 });
 

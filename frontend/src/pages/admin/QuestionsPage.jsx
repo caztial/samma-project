@@ -1,7 +1,8 @@
-import { Heading, Content, IllustratedMessage } from '@react-spectrum/s2';
+import { Heading } from '@react-spectrum/s2';
 import { style } from '@react-spectrum/s2/style' with { type: 'macro' };
 import { useTranslation } from '../../i18n/useTranslation';
 import AdminLayout from '../../layouts/AdminLayout';
+import QuestionsTable from './components/QuestionsTable';
 
 const containerStyle = style({
   display: 'flex',
@@ -10,17 +11,17 @@ const containerStyle = style({
 });
 
 const headerStyle = style({
-  marginBottom: 24,
+  marginBottom: 16,
 });
 
 const titleStyle = style({
-  font: 'heading-xl',
+  font: 'heading',
   color: 'heading',
-  marginBottom: 8,
+  marginBottom: 4,
 });
 
 const subtitleStyle = style({
-  font: 'body',
+  font: 'body-sm',
   color: 'neutral-subdued',
 });
 
@@ -37,11 +38,7 @@ export default function QuestionsPage() {
           <h1 className={titleStyle}>{t('admin.questions.title')}</h1>
           <p className={subtitleStyle}>{t('admin.questions.subtitle')}</p>
         </div>
-
-        <IllustratedMessage>
-          <Heading>{t('admin.comingSoon')}</Heading>
-          <Content>{t('admin.questions.description')}</Content>
-        </IllustratedMessage>
+        <QuestionsTable />
       </div>
     </AdminLayout>
   );

@@ -389,7 +389,33 @@
     "questions": {
       "title": "Questions",
       "subtitle": "Manage the question bank",
-      "description": "Create, edit, and organize questions for sessions."
+      "description": "Create, edit, and organize questions for sessions.",
+      "table": {
+        "searchPlaceholder": "Search questions...",
+        "filterByTags": "Filter by tags",
+        "filterByType": "Filter by type",
+        "allTypes": "All types",
+        "questionType": "Type",
+        "questionNumber": "Number",
+        "questionText": "Question",
+        "tags": "Tags",
+        "verified": "Verified",
+        "createdAt": "Created",
+        "actions": "Actions",
+        "edit": "Edit",
+        "delete": "Delete",
+        "addQuestion": "Add Question",
+        "showing": "Showing {start}-{end} of {total}",
+        "pageSize": "Per page",
+        "noResults": "No questions found",
+        "noResultsDescription": "Try adjusting your search or filters.",
+        "confirmDelete": "Are you sure you want to delete this question?",
+        "confirmDeleteTitle": "Delete Question",
+        "deleteSuccess": "Question deleted successfully.",
+        "deleteError": "Failed to delete question.",
+        "loadingError": "Failed to load questions.",
+        "retry": "Retry"
+      }
     },
     "users": {
       "title": "Users",
